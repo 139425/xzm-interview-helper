@@ -1,0 +1,20 @@
+services:
+  python-ai:
+    build: .
+    container_name: xzm-python-ai
+    env_file:
+      - .env
+    # Explicit container-only override. The published port remains loopback on
+    # the Docker host, while bare-metal defaults stay 127.0.0.1.
+    environment:
+      HOST: 0.0.0.0
+      GRPC_HOST: 0.0.0.0
+    ports:
+      - "127.0.0.1:50051:50051"
+    volumes:
+      - ./chroma_db:/app/chroma_db
+      - ./docs:/app/docs
+      # Local development fallback. Production should inject
+      # DEEPSEEK_API_KEY from its secret manager instead.
+      - ./deepseek.local.json:/app/deepseek.local.json:ro
+    restart: unless-stopped

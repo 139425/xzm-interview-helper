@@ -1,0 +1,144 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.xzm.xzm_interview_helper.grpc.client";
+option java_outer_classname = "PythonAiChatProto";
+
+// 使用pythonai package与Java客户端保持一致
+package pythonai;
+
+// Python AI后端聊天服务
+service PythonAiChatService {
+  // 保留：流式思考对话
+  rpc StreamThinkChat(ThinkChatRequest) returns (stream ThinkChatResponse);
+  // 新增：生成面试问题（非流式）
+  rpc GenerateQuestions(GenerateQuestionsRequest) returns (GenerateQuestionsResponse);
+  // 新增：评价用户回答（非流式）
+  rpc EvaluateAnswer(EvaluateAnswerRequest) returns (EvaluateAnswerResponse);
+  // 新增：生成面试总结（非流式）
+  rpc GenerateSummary(GenerateSummaryRequest) returns (GenerateSummaryResponse);
+  // Stateful interview orchestration. The Java service persists state and
+  // sends one decision request for each interview turn.
+  rpc RunInterviewAgent(InterviewAgentRequest) returns (InterviewAgentResponse);
+}
+
+// 思考模式聊天请求
+message ThinkChatRequest {
+  // 用户消息内容
+  string message = 1;
+
+  // 系统提示词（可选）
+  optional string system_prompt = 2;
+
+  // 模型名（可选），用于在思考/非思考间切换
+  optional string model_name = 3;
+
+  // 是否启用思考（可选）
+  optional bool enable_thinking = 4;
+
+  // 提示词模式：none/simple/professional（可选）
+  optional string prompt_mode = 5;
+
+  // Model provider: zhipu/deepseek
+  optional string provider = 6;
+}
+
+// 思考模式流式响应
+message ThinkChatResponse {
+  // 响应类型：THINKING（思考过程）、CONTENT（正式回答）、DONE（完成）、ERROR（错误）
+  PythonResponseType type = 1;
+
+  // 响应内容片段
+  string content = 2;
+}
+
+// 响应类型枚举
+enum PythonResponseType {
+  PY_UNKNOWN = 0;
+  PY_THINKING = 1;  // 思考过程
+  PY_CONTENT = 2;   // 正式回答
+  PY_DONE = 3;      // 完成
+  PY_ERROR = 4;     // 错误
+  PY_STAGE = 5;     // Server-owned observable pipeline stage
+}
+
+// ==================== 面试模块消息定义 ====================
+
+// 生成面试问题请求
+message GenerateQuestionsRequest {
+  string resume_text = 1;       // 简历文本
+}
+
+// 生成面试问题响应
+message GenerateQuestionsResponse {
+  repeated string questions = 1; // 生成的问题列表
+  bool success = 2;
+  optional string error = 3;
+}
+
+// 评价用户回答请求
+message EvaluateAnswerRequest {
+  string question = 1;          // 面试问题
+  string answer = 2;            // 用户回答
+}
+
+// 评价用户回答响应
+message EvaluateAnswerResponse {
+  string knowledge_tags = 1;    // 知识点标签
+  int32 score = 2;              // 分数(1-10)
+  string evaluation = 3;        // 评价内容
+  string reference_answer = 4;  // 参考回答方向
+  bool success = 5;
+  optional string error = 6;
+}
+
+// 生成面试总结请求
+message GenerateSummaryRequest {
+  string interview_record = 1;  // 面试记录文本
+}
+
+// 生成面试总结响应
+message GenerateSummaryResponse {
+  string summary = 1;           // 面试总结(markdown)
+  bool success = 2;
+  optional string error = 3;
+}
+
+// One complete, non-streaming decision for the interview agent. Counters are
+// the questions already issued before the returned action is applied.
+message InterviewAgentRequest {
+  string operation = 1;                 // START / ANSWER / SUMMARIZE
+  string resume_text = 2;
+  string dialogue_json = 3;             // Persisted dialogue serialized as JSON
+  string current_question = 4;
+  string candidate_answer = 5;
+  int32 total_question_count = 6;
+  int32 primary_question_count = 7;
+  int32 follow_up_count = 8;
+  int32 max_total_questions = 9;
+  int32 min_primary_questions = 10;
+  int32 max_primary_questions = 11;
+  optional string provider = 12;
+  optional string model_name = 13;
+  optional bool enable_thinking = 14;
+  string target_role = 15;
+}
+
+// Only public, candidate-safe fields are returned. In particular, this
+// response intentionally has no raw model reasoning / chain-of-thought field.
+message InterviewAgentResponse {
+  string action = 1;                    // ASK_PRIMARY / ASK_FOLLOW_UP / END_INTERVIEW / GENERATE_SUMMARY
+  string question = 2;
+  int32 score = 3;
+  string evaluation = 4;
+  string knowledge_tags = 5;
+  string reference_answer = 6;
+  string decision_note = 7;             // Short, public status; never raw CoT
+  string summary = 8;
+  int32 rag_hit_count = 9;
+  string model_name = 10;
+  bool thinking_enabled = 11;
+  bool success = 12;
+  optional string error = 13;
+  string model_provider = 14;
+}

@@ -1,0 +1,1697 @@
+:root {
+  /* 默认使用暗色主题 - 参考代码颜色方案 */
+  --primary-color: #8ab4f8;
+  --primary-hover: #7aa3e7;
+  --bg-primary: #131314;
+  --bg-secondary: #1c1c1e;
+  --bg-tertiary: #2c2c2e;
+  --text-primary: #e0e0e0;
+  --text-secondary: #b0b0b0;
+  --text-tertiary: #888;
+  --border-color: #333;
+  --border-hover: #444;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  --transition-speed: 0.2s;
+  
+  /* Gemini 风格变量 - 暗色主题 */
+  --gemini-bg-primary: #131314;
+  --gemini-bg-secondary: #1c1c1e;
+  --gemini-bg-tertiary: #2c2c2e;
+  --gemini-bg-hover: #3a3a3c;
+  --gemini-text-primary: #e0e0e0;
+  --gemini-text-secondary: #b0b0b0;
+  --gemini-text-tertiary: #888;
+  --gemini-border-color: #333;
+  --gemini-border-hover: #444;
+  --gemini-accent-blue: #8ab4f8;
+  --gemini-accent-green: #81c995;
+  --gemini-accent-yellow: #fdd663;
+}
+
+/* 全局防止水平滚动 */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+:root {
+  --gemini-accent-red: #f28b82;
+  --gemini-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --gemini-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --gemini-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  
+  /* 布局相关变量 */
+  --input-container-height: 120px;
+  --prompt-bar-height: 100px;
+  --sidebar-width: 280px;
+  
+  /* Gemini 布局变量 */
+  --gemini-spacing-xs: 4px;
+  --gemini-spacing-sm: 8px;
+  --gemini-spacing-md: 12px;
+  --gemini-spacing-lg: 16px;
+  --gemini-spacing-xl: 24px;
+  --gemini-spacing-2xl: 32px;
+  
+  --gemini-radius-sm: 4px;
+  --gemini-radius-md: 8px;
+  --gemini-radius-lg: 12px;
+  --gemini-radius-full: 9999px;
+  
+  --gemini-transition-fast: 0.15s;
+  --gemini-transition-normal: 0.3s;
+  --gemini-transition-slow: 0.5s;
+  --gemini-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  --gemini-sidebar-width-expanded: 280px;
+  --gemini-sidebar-width-collapsed: 72px;
+  --gemini-content-max-width: 800px;
+  
+  --gemini-z-sidebar: 1000;
+  --gemini-z-dropdown: 2000;
+  --gemini-z-modal: 3000;
+}
+
+/* Gemini 动画 */
+@keyframes gemini-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes gemini-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Gemini 工具类 */
+.gemini-smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+.gemini-smooth-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.gemini-smooth-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.gemini-smooth-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--gemini-border-color);
+  border-radius: 3px;
+}
+
+.gemini-smooth-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--gemini-border-hover);
+}
+
+.gemini-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gemini-icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background-color: transparent;
+  color: var(--gemini-text-primary);
+  cursor: pointer;
+  transition:
+    color var(--gemini-transition-fast),
+    background-color var(--gemini-transition-fast),
+    transform var(--gemini-transition-fast);
+}
+
+.gemini-icon-button:hover {
+  background-color: var(--gemini-bg-hover);
+}
+
+.gemini-icon-button:active {
+  transform: scale(0.95);
+}
+
+[data-theme="light"] {
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --border-color: #e2e8f0;
+  --border-hover: #cbd5e1;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  
+  /* Gemini 风格变量 - 亮色主题 */
+  --gemini-bg-primary: #ffffff;
+  --gemini-bg-secondary: #f8fafc;
+  --gemini-bg-tertiary: #f1f5f9;
+  --gemini-bg-hover: #e2e8f0;
+  --gemini-text-primary: #1e293b;
+  --gemini-text-secondary: #475569;
+  --gemini-text-tertiary: #64748b;
+  --gemini-border-color: #e2e8f0;
+  --gemini-border-hover: #cbd5e1;
+  --gemini-accent-blue: #2563eb;
+  --gemini-accent-green: #16a34a;
+  --gemini-accent-yellow: #eab308;
+  --gemini-accent-red: #dc2626;
+  --gemini-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --gemini-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --gemini-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* 主题切换过渡（仅颜色相关，不含 box-shadow / filter / transform） */
+html[data-theme] body,
+html[data-theme] .gemini-prompt-bar,
+html[data-theme] .xzm-glass,
+html[data-theme] .xzm-surface,
+html[data-theme] .xzm-input,
+html[data-theme] .xzm-btn,
+html[data-theme] .xzm-chip {
+  transition:
+    background-color var(--xzm-duration-normal) var(--xzm-ease-out),
+    color var(--xzm-duration-normal) var(--xzm-ease-out),
+    border-color var(--xzm-duration-normal) var(--xzm-ease-out);
+}
+
+html[data-theme] .gemini-sidebar {
+  transition:
+    width 220ms cubic-bezier(0.2, 0, 0, 1),
+    background-color var(--xzm-duration-normal) var(--xzm-ease-out),
+    color var(--xzm-duration-normal) var(--xzm-ease-out),
+    border-color var(--xzm-duration-normal) var(--xzm-ease-out);
+}
+
+@media (max-width: 768px) {
+  html[data-theme] .gemini-sidebar {
+    transition:
+      transform 260ms cubic-bezier(0.2, 0, 0, 1),
+      background-color var(--xzm-duration-normal) var(--xzm-ease-out),
+      color var(--xzm-duration-normal) var(--xzm-ease-out),
+      border-color var(--xzm-duration-normal) var(--xzm-ease-out);
+  }
+}
+
+.el-overlay,
+.el-overlay-dialog,
+.el-dialog,
+.el-dialog__header,
+.el-dialog__body,
+.el-dialog__footer,
+.el-message-box,
+.el-drawer,
+.el-drawer__header,
+.el-drawer__body,
+.modal-overlay,
+.modal-container {
+  transition: none !important;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--gemini-bg-primary);
+  color: var(--gemini-text-primary);
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+/* 确保亮色主题的背景是白色 - 全面覆盖所有组件 */
+[data-theme="light"] body {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+}
+
+[data-theme="light"] #app {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+}
+
+/* 主要页面容器 */
+[data-theme="light"] .gemini-chat-page,
+[data-theme="light"] .gemini-interview-page {
+  background-color: #ffffff !important;
+}
+
+/* 主内容区域 */
+[data-theme="light"] .main-content {
+  background-color: #ffffff !important;
+}
+
+[data-theme="light"] .content-area {
+  background-color: #ffffff !important;
+}
+
+[data-theme="light"] .messages-area {
+  background-color: #ffffff !important;
+}
+
+/* 侧边栏 */
+[data-theme="light"] .gemini-sidebar {
+  background-color: #f8fafc !important;
+  border-right-color: #e2e8f0 !important;
+}
+
+/* 顶部栏 */
+[data-theme="light"] .top-bar {
+  background-color: #ffffff !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+
+/* 输入框区域 */
+[data-theme="light"] .gemini-prompt-bar {
+  background-color: #ffffff !important;
+}
+
+/* 欢迎区域 */
+[data-theme="light"] .welcome-interview,
+[data-theme="light"] .welcome-content {
+  background-color: #ffffff !important;
+}
+
+/* 消息项 */
+[data-theme="light"] .message-item {
+  background-color: #f8fafc !important;
+}
+
+/* 卡片和面板 */
+[data-theme="light"] .resume-card,
+[data-theme="light"] .preparing-card,
+[data-theme="light"] .evaluation-card,
+[data-theme="light"] .input-card,
+[data-theme="light"] .action-card {
+  background-color: #f8fafc !important;
+}
+
+/* 按钮 */
+[data-theme="light"] .gemini-icon-button {
+  color: #1e293b !important;
+}
+
+[data-theme="light"] .gemini-icon-button:hover {
+  background-color: #e2e8f0 !important;
+}
+
+/* 历史记录项 */
+[data-theme="light"] .history-item {
+  color: #1e293b !important;
+}
+
+[data-theme="light"] .history-item:hover {
+  background-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .history-item.active {
+  background-color: #dbeafe !important;
+}
+
+/* 模式切换按钮 */
+[data-theme="light"] .mode-btn {
+  background-color: transparent !important;
+  color: #475569 !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .mode-btn:hover {
+  background-color: #f1f5f9 !important;
+}
+
+[data-theme="light"] .mode-btn.active {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+/* 用户菜单 */
+[data-theme="light"] .user-menu {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .menu-header {
+  background-color: #f8fafc !important;
+}
+
+[data-theme="light"] .menu-item {
+  color: #1e293b !important;
+}
+
+[data-theme="light"] .menu-item:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* 右侧工具栏 */
+[data-theme="light"] .right-toolbar {
+  background-color: #ffffff !important;
+}
+
+[data-theme="light"] .toolbar-toggle,
+[data-theme="light"] .toolbar-content {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .toolbar-btn {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .toolbar-btn:hover {
+  background-color: #e2e8f0 !important;
+  color: #2563eb !important;
+}
+
+/* 输入框和文本区域 */
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] .el-input__inner,
+[data-theme="light"] .el-textarea__inner {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* 对话框 */
+[data-theme="light"] .el-dialog {
+  background-color: #ffffff !important;
+}
+
+[data-theme="light"] .el-dialog__header {
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+}
+
+[data-theme="light"] .el-dialog__body {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+}
+
+/* 所有文字颜色 */
+[data-theme="light"] .item-title,
+[data-theme="light"] .history-title,
+[data-theme="light"] .logo-text,
+[data-theme="light"] .btn-text,
+[data-theme="light"] .user-name,
+[data-theme="light"] .role-name,
+[data-theme="light"] .welcome-title,
+[data-theme="light"] .welcome-desc {
+  color: #1e293b !important;
+}
+
+/* 次要文字颜色 */
+[data-theme="light"] .item-meta,
+[data-theme="light"] .item-time,
+[data-theme="light"] .text-secondary {
+  color: #475569 !important;
+}
+
+/* 三级文字颜色 */
+[data-theme="light"] .text-tertiary,
+[data-theme="light"] .user-type {
+  color: #64748b !important;
+}
+
+/* Markdown渲染器 - 代码块和表格 */
+[data-theme="light"] pre,
+[data-theme="light"] code,
+[data-theme="light"] .markdown-body pre,
+[data-theme="light"] .markdown-body code {
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+[data-theme="light"] pre code {
+  background-color: transparent !important;
+}
+
+[data-theme="light"] table,
+[data-theme="light"] .markdown-body table,
+[data-theme="light"] thead,
+[data-theme="light"] tbody,
+[data-theme="light"] tr,
+[data-theme="light"] th,
+[data-theme="light"] td {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] th {
+  background-color: #f8fafc !important;
+}
+
+/* 所有按钮 */
+[data-theme="light"] button,
+[data-theme="light"] .el-button {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] button:hover,
+[data-theme="light"] .el-button:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* 主要按钮（蓝色） */
+[data-theme="light"] .el-button--primary,
+[data-theme="light"] button.primary,
+[data-theme="light"] .start-interview-btn,
+[data-theme="light"] .submit-btn,
+[data-theme="light"] .report-btn {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+}
+
+/* 新对话按钮 */
+[data-theme="light"] .new-chat-btn {
+  background-color: transparent !important;
+  color: #1e293b !important;
+}
+
+[data-theme="light"] .new-chat-btn:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* 底部按钮 */
+[data-theme="light"] .bottom-btn {
+  background-color: transparent !important;
+  color: #1e293b !important;
+}
+
+[data-theme="light"] .bottom-btn:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* 主题切换按钮 */
+[data-theme="light"] .theme-toggle-btn {
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+[data-theme="light"] .theme-toggle-btn:hover {
+  background-color: #e2e8f0 !important;
+}
+
+/* 用户头像按钮 */
+[data-theme="light"] .user-avatar-btn {
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* 消息内容背景 */
+[data-theme="light"] .message-content {
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* AI消息（助手回复） */
+[data-theme="light"] .message-item.assistant .message-content {
+  background-color: #f8fafc !important;
+}
+
+/* 用户消息 */
+[data-theme="light"] .message-item.user .message-content {
+  background-color: #dbeafe !important;
+}
+
+/* 问题消息 */
+[data-theme="light"] .question-message .message-content {
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+}
+
+/* 回答消息 */
+[data-theme="light"] .answer-message .message-content {
+  background-color: #dbeafe !important;
+  color: #1e293b !important;
+}
+
+/* 输入框容器 */
+[data-theme="light"] .prompt-input-container,
+[data-theme="light"] .answer-textarea {
+  background-color: #ffffff !important;
+}
+
+/* Element Plus 组件覆盖 */
+[data-theme="light"] .el-input,
+[data-theme="light"] .el-textarea {
+  background-color: #ffffff !important;
+}
+
+[data-theme="light"] .el-input__wrapper {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .el-select,
+[data-theme="light"] .el-dropdown {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+}
+
+/* 下拉菜单 */
+[data-theme="light"] .el-dropdown-menu,
+[data-theme="light"] .el-select-dropdown {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .el-dropdown-menu__item,
+[data-theme="light"] .el-select-dropdown__item {
+  color: #1e293b !important;
+}
+
+[data-theme="light"] .el-dropdown-menu__item:hover,
+[data-theme="light"] .el-select-dropdown__item:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* 标签 */
+[data-theme="light"] .el-tag {
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* 徽章 */
+[data-theme="light"] .status-badge {
+  color: #ffffff !important;
+}
+
+/* 加载状态 */
+[data-theme="light"] .list-state {
+  color: #64748b !important;
+}
+
+/* 分隔线 */
+[data-theme="light"] .menu-divider,
+[data-theme="light"] hr {
+  background-color: #e2e8f0 !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* 滚动条 - 亮色主题 - 白色背景 */
+[data-theme="light"] ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1 !important;
+  background: #cbd5e1 !important;
+  border-radius: 3px;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8 !important;
+  background: #94a3b8 !important;
+}
+
+/* 输入框的滚动条 - 完全隐藏（所有主题） */
+.el-textarea__inner::-webkit-scrollbar,
+.prompt-input ::-webkit-scrollbar,
+.prompt-input textarea::-webkit-scrollbar,
+textarea::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Firefox 隐藏滚动条 */
+.el-textarea__inner,
+.prompt-input textarea,
+textarea {
+  scrollbar-width: none !important;
+}
+
+/* 历史记录滚动条 - 白色背景 */
+[data-theme="light"] .history-list::-webkit-scrollbar-track {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+[data-theme="light"] .history-list::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1 !important;
+  background: #cbd5e1 !important;
+}
+
+[data-theme="light"] .history-list::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8 !important;
+  background: #94a3b8 !important;
+}
+
+/* 历史记录条数显示 - 白色背景 */
+[data-theme="light"] .item-count {
+  background-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+
+/* 复制和转到MD按钮 - 亮色主题 */
+[data-theme="light"] .copy-btn,
+[data-theme="light"] .markdown-btn,
+[data-theme="light"] .action-btn,
+[data-theme="light"] .code-actions button,
+[data-theme="light"] .message-actions button {
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .copy-btn:hover,
+[data-theme="light"] .markdown-btn:hover,
+[data-theme="light"] .action-btn:hover,
+[data-theme="light"] .code-actions button:hover,
+[data-theme="light"] .message-actions button:hover {
+  background-color: #e2e8f0 !important;
+  color: #2563eb !important;
+}
+
+/* AI回复的Markdown背景 - 亮色主题 - 强制黑色文字 */
+[data-theme="light"] .markdown-body,
+[data-theme="light"] .markdown-content,
+[data-theme="light"] .message-markdown,
+[data-theme="light"] .assistant-message .markdown-body {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+}
+
+/* Markdown所有文本元素 - 强制黑色 */
+[data-theme="light"] .markdown-body *:not(.hljs):not([class^="hljs-"]),
+[data-theme="light"] .markdown-content *:not(.hljs):not([class^="hljs-"]),
+[data-theme="light"] .message-markdown *:not(.hljs):not([class^="hljs-"]) {
+  color: #1e293b !important;
+}
+
+/* Markdown中的代码块 - 白色背景 */
+[data-theme="light"] .markdown-body pre,
+[data-theme="light"] .markdown-content pre,
+[data-theme="light"] .message-markdown pre {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .markdown-body code,
+[data-theme="light"] .markdown-content code,
+[data-theme="light"] .message-markdown code {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+}
+
+/* 行内代码 - 白色背景 */
+[data-theme="light"] .markdown-body code:not(pre code),
+[data-theme="light"] .markdown-content code:not(pre code),
+[data-theme="light"] .message-markdown code:not(pre code) {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+/* 所有滚动条 - 亮色主题统一处理 - 白色背景 */
+[data-theme="light"] *::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+
+[data-theme="light"] *::-webkit-scrollbar-track {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+[data-theme="light"] *::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1 !important;
+  background: #cbd5e1 !important;
+  border-radius: 3px !important;
+}
+
+[data-theme="light"] *::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8 !important;
+  background: #94a3b8 !important;
+}
+
+/* Chat Container Styles */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  max-width: 1024px;
+  width: 100%;
+  height: 100vh;
+  margin: 0 auto;
+  background-color: var(--bg-primary);
+}
+
+/* Header Styles */
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.title h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.025em;
+}
+
+.memory-id {
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+/* Messages Container */
+.messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+  background-color: var(--bg-primary);
+  scroll-behavior: smooth;
+}
+
+.messages-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background-color: rgba(222, 215, 215, 0.2);
+  border-radius: 3px;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: var(--text-secondary);
+}
+
+/* Input Container */
+.input-container {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  background-color: var(--bg-primary);
+  border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.input-container .el-textarea__inner {
+  background-color: var(--bg-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 0.5rem !important;
+  color: var(--text-primary) !important;
+  transition: all var(--transition-speed) !important;
+  resize: none !important;
+  min-height: 44px;
+  max-height: 120px;
+  font-size: 1rem;
+  line-height: 1.5;
+  padding: 0.75rem 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.input-container .el-textarea__inner:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+  outline: none;
+}
+
+.message-item {
+  display: flex;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+  align-items: flex-start;
+  max-width: 98%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.message-item.user {
+  flex-direction: row;
+}
+
+.message-item.assistant {
+  flex-direction: row;
+}
+
+
+
+.message-item .content {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.message-item .role-name {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.message-item .message-content {
+  word-break: break-word;
+  line-height: 1.6;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+}
+
+.message-item.user .message-content {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.message-item.assistant .message-content {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.input-container .el-textarea__inner:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2) !important;
+}
+
+/* Button Styles */
+.el-button {
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all var(--transition-speed);
+}
+
+.el-button--primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.el-button--primary:hover {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+/* Scrollbar Styles */
+.messages-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+  background-color: var(--border-hover);
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: var(--text-secondary);
+}
+
+.el-empty__description {
+  color: var(--text-secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .chat-container {
+    width: 100%;
+  }
+  
+  .chat-header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .messages-container {
+    padding: 1rem 0.5rem;
+  }
+  
+  .input-container {
+    padding: 1rem 0.5rem;
+  }
+  
+  .message-item {
+    max-width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  .message-item .content {
+    max-width: 95%;
+  }
+  
+  .message-item .message-content {
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+  
+  /* 移动端代码块溢出控制 - 防止代码块撑开页面 */
+  .code-block-wrapper {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+  
+  .code-block-wrapper pre {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  .markdown-content {
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+  
+  .markdown-content pre {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+  }
+  
+  .assistant-content-wrapper {
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+}
+
+/* Button Overrides */
+.el-button {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  transition: all var(--transition-speed) !important;
+}
+
+.el-button--primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.el-button--primary:hover {
+  background-color: var(--primary-hover) !important;
+  border-color: var(--primary-hover) !important;
+  transform: translateY(-1px);
+}
+
+.el-button:not(.el-button--primary) {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: transparent !important;
+  color: var(--text-primary) !important;
+}
+
+.el-button:not(.el-button--primary):hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  transform: translateY(-1px);
+}
+
+/* Element Plus Message 全局样式覆盖 */
+.el-message {
+  color: #000000 !important;
+  font-weight: 500 !important;
+}
+
+.el-message--success {
+  background-color: #f0f9ff !important;
+  border-color: #22c55e !important;
+  color: #000000 !important;
+}
+
+.el-message--error {
+  background-color: #fef2f2 !important;
+  border-color: #ef4444 !important;
+  color: #000000 !important;
+}
+
+.el-message--warning {
+  background-color: #fffbeb !important;
+  border-color: #f59e0b !important;
+  color: #000000 !important;
+}
+
+.el-message--info {
+  background-color: #f8fafc !important;
+  border-color: #6b7280 !important;
+  color: #000000 !important;
+}
+
+.el-message .el-message__content {
+  color: #000000 !important;
+  font-weight: 500 !important;
+}
+
+/* 暗色主题下的消息样式 */
+[data-theme="dark"] .el-message {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .el-message--success {
+  background-color: #064e3b !important;
+  border-color: #22c55e !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .el-message--error {
+  background-color: #7f1d1d !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .el-message--warning {
+  background-color: #78350f !important;
+  border-color: #f59e0b !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .el-message--info {
+  background-color: #374151 !important;
+  border-color: #6b7280 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .el-message .el-message__content {
+  color: #ffffff !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 0px;
+  }
+  
+  .chat-container {
+    width: 100%;
+    padding: 0.5rem;
+  }
+
+  .chat-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .title h2 {
+    font-size: 1.25rem;
+  }
+
+  .memory-id {
+    display: none;
+  }
+}
+
+/*
+ ========================================
+   亮色主题最终强制修复 - 最高优先级
+   ======================================== */
+
+/* 1. 输入框滚动条 - 彻底隐藏 */
+[data-theme="light"] .el-textarea__inner::-webkit-scrollbar,
+[data-theme="light"] .prompt-input ::-webkit-scrollbar,
+[data-theme="light"] .prompt-input textarea::-webkit-scrollbar,
+[data-theme="light"] .gemini-prompt-bar textarea::-webkit-scrollbar,
+[data-theme="light"] textarea::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+}
+
+/* 2. 所有滚动条 - 强制白色/浅色 */
+[data-theme="light"] ::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+  background-color: #ffffff !important;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background-color: #e2e8f0 !important;
+  background: #e2e8f0 !important;
+  border-radius: 3px !important;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background-color: #cbd5e1 !important;
+  background: #cbd5e1 !important;
+}
+
+/* 3. 历史记录滚动条 - 特别处理 */
+[data-theme="light"] .history-list::-webkit-scrollbar,
+[data-theme="light"] .gemini-smooth-scroll::-webkit-scrollbar {
+  width: 6px !important;
+  background-color: #ffffff !important;
+}
+
+[data-theme="light"] .history-list::-webkit-scrollbar-track,
+[data-theme="light"] .gemini-smooth-scroll::-webkit-scrollbar-track {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+[data-theme="light"] .history-list::-webkit-scrollbar-thumb,
+[data-theme="light"] .gemini-smooth-scroll::-webkit-scrollbar-thumb {
+  background-color: #e2e8f0 !important;
+  background: #e2e8f0 !important;
+}
+
+/* 4. 复制和转到MD按钮 - 强制白色 */
+[data-theme="light"] button[class*="copy"],
+[data-theme="light"] button[class*="Copy"],
+[data-theme="light"] button[class*="markdown"],
+[data-theme="light"] button[class*="Markdown"],
+[data-theme="light"] .copy-btn,
+[data-theme="light"] .markdown-btn,
+[data-theme="light"] .action-btn,
+[data-theme="light"] .code-actions button,
+[data-theme="light"] .message-actions button,
+[data-theme="light"] .code-block-actions button {
+  background-color: #f1f5f9 !important;
+  background: #f1f5f9 !important;
+  color: #1e293b !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] button[class*="copy"]:hover,
+[data-theme="light"] button[class*="Copy"]:hover,
+[data-theme="light"] button[class*="markdown"]:hover,
+[data-theme="light"] button[class*="Markdown"]:hover {
+  background-color: #e2e8f0 !important;
+  background: #e2e8f0 !important;
+  color: #2563eb !important;
+}
+
+/* 5. AI回复的Markdown背景 - 强制白色 */
+[data-theme="light"] .markdown-body,
+[data-theme="light"] .markdown-content,
+[data-theme="light"] .message-markdown,
+[data-theme="light"] .markdown-renderer,
+[data-theme="light"] .assistant-message .markdown-body,
+[data-theme="light"] [class*="markdown"],
+[data-theme="light"] [class*="Markdown"] {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #1e293b !important;
+}
+
+/* Markdown代码块 - 浅灰色 */
+[data-theme="light"] .markdown-body pre,
+[data-theme="light"] .markdown-content pre,
+[data-theme="light"] .message-markdown pre,
+[data-theme="light"] pre[class*="language-"],
+[data-theme="light"] .hljs {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #1e293b !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .markdown-body code,
+[data-theme="light"] .markdown-content code,
+[data-theme="light"] .message-markdown code,
+[data-theme="light"] code[class*="language-"] {
+  background-color: transparent !important;
+  background: transparent !important;
+  color: #1e293b !important;
+}
+
+/* 行内代码 */
+[data-theme="light"] .markdown-body p code,
+[data-theme="light"] .markdown-body li code,
+[data-theme="light"] .markdown-content p code,
+[data-theme="light"] .markdown-content li code,
+[data-theme="light"] code:not(pre code) {
+  background-color: #f1f5f9 !important;
+  background: #f1f5f9 !important;
+  color: #dc2626 !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+}
+
+/* 6. 确保所有可能的黑色背景都被覆盖 */
+[data-theme="light"] div[style*="background: rgb(0, 0, 0)"],
+[data-theme="light"] div[style*="background-color: rgb(0, 0, 0)"],
+[data-theme="light"] div[style*="background: #000"],
+[data-theme="light"] div[style*="background-color: #000"],
+[data-theme="light"] pre[style*="background: rgb(0, 0, 0)"],
+[data-theme="light"] pre[style*="background-color: rgb(0, 0, 0)"],
+[data-theme="light"] code[style*="background: rgb(0, 0, 0)"],
+[data-theme="light"] code[style*="background-color: rgb(0, 0, 0)"] {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #1e293b !important;
+}
+
+/* 7. Element Plus组件强制覆盖 */
+[data-theme="light"] .el-scrollbar__thumb {
+  background-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .el-scrollbar__bar {
+  background-color: #ffffff !important;
+}
+
+/* 8. 代码高亮库覆盖 */
+[data-theme="light"] .hljs {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+[data-theme="light"] .hljs * {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+/* 9. 确保没有任何元素使用纯黑色背景 */
+[data-theme="light"] * {
+  /* 如果背景是纯黑色，强制改为白色 */
+}
+
+[data-theme="light"] *[style*="background: black"],
+[data-theme="light"] *[style*="background-color: black"],
+[data-theme="light"] *[style*="background: #000000"],
+[data-theme="light"] *[style*="background-color: #000000"] {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+
+/* ============================================
+   终极修复 - 亮色主题滚动条和Markdown文字
+   ============================================ */
+
+/* 滚动条终极修复 - 白色背景 */
+html[data-theme="light"] ::-webkit-scrollbar-track,
+body[data-theme="light"] ::-webkit-scrollbar-track,
+[data-theme="light"] *::-webkit-scrollbar-track {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+html[data-theme="light"] ::-webkit-scrollbar-thumb,
+body[data-theme="light"] ::-webkit-scrollbar-thumb,
+[data-theme="light"] *::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1 !important;
+  background: #cbd5e1 !important;
+}
+
+/* Markdown文字终极修复 - 黑色文字 */
+html[data-theme="light"] .markdown-content,
+html[data-theme="light"] .markdown-content *:not(.hljs):not([class^="hljs-"]),
+html[data-theme="light"] .markdown-body,
+html[data-theme="light"] .markdown-body *:not(.hljs):not([class^="hljs-"]),
+body[data-theme="light"] .markdown-content,
+body[data-theme="light"] .markdown-content *:not(.hljs):not([class^="hljs-"]),
+body[data-theme="light"] .markdown-body,
+body[data-theme="light"] .markdown-body *:not(.hljs):not([class^="hljs-"]),
+[data-theme="light"] .markdown-content,
+[data-theme="light"] .markdown-content *:not(code):not(.hljs):not([class^="hljs-"]),
+[data-theme="light"] .markdown-body,
+[data-theme="light"] .markdown-body *:not(code):not(.hljs):not([class^="hljs-"]) {
+  color: #1e293b !important;
+}
+
+/* 代码块保持白色背景 */
+html[data-theme="light"] .markdown-content pre,
+html[data-theme="light"] .markdown-content code,
+html[data-theme="light"] .markdown-body pre,
+html[data-theme="light"] .markdown-body code,
+body[data-theme="light"] .markdown-content pre,
+body[data-theme="light"] .markdown-content code,
+body[data-theme="light"] .markdown-body pre,
+body[data-theme="light"] .markdown-body code,
+[data-theme="light"] .markdown-content pre,
+[data-theme="light"] .markdown-content code,
+[data-theme="light"] .markdown-body pre,
+[data-theme="light"] .markdown-body code {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #1e293b !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+
+/* ============================================
+   提示词模式下拉菜单 - 主题适配修复
+   ============================================ */
+
+/* 暗色主题 - 下拉菜单 */
+.el-dropdown-menu,
+.el-popper.is-light {
+  background-color: var(--gemini-bg-secondary) !important;
+  border: 1px solid var(--gemini-border-color) !important;
+  box-shadow: var(--gemini-shadow-lg) !important;
+}
+
+.el-dropdown-menu__item {
+  color: var(--gemini-text-primary) !important;
+  background-color: transparent !important;
+}
+
+.el-dropdown-menu__item:hover,
+.el-dropdown-menu__item:focus {
+  background-color: var(--gemini-bg-hover) !important;
+  color: var(--gemini-text-primary) !important;
+}
+
+/* 选中项样式 - 暗色主题 */
+.el-dropdown-menu__item.is-active {
+  background-color: var(--gemini-bg-hover) !important;
+  color: var(--gemini-accent-blue) !important;
+  font-weight: 500 !important;
+}
+
+/* 下拉菜单图标颜色 */
+.el-dropdown-menu__item .el-icon {
+  color: inherit !important;
+}
+
+/* 下拉菜单箭头 */
+.el-popper__arrow::before {
+  background-color: var(--gemini-bg-secondary) !important;
+  border-color: var(--gemini-border-color) !important;
+}
+
+/* 亮色主题 - 下拉菜单 - 强制白色背景 */
+[data-theme="light"] .el-dropdown-menu,
+[data-theme="light"] .el-popper.is-light,
+[data-theme="light"] .el-popper,
+[data-theme="light"] .el-dropdown__popper {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light"] .el-dropdown-menu__item,
+[data-theme="light"] .el-popper .el-dropdown-menu__item {
+  color: #1e293b !important;
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+[data-theme="light"] .el-dropdown-menu__item:hover,
+[data-theme="light"] .el-dropdown-menu__item:focus,
+[data-theme="light"] .el-popper .el-dropdown-menu__item:hover {
+  background-color: #f1f5f9 !important;
+  background: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+/* 选中项样式 - 亮色主题 */
+[data-theme="light"] .el-dropdown-menu__item.is-active,
+[data-theme="light"] .el-popper .el-dropdown-menu__item.is-active {
+  background-color: #dbeafe !important;
+  background: #dbeafe !important;
+  color: #2563eb !important;
+  font-weight: 500 !important;
+}
+
+/* 亮色主题下拉菜单图标和文字 */
+[data-theme="light"] .el-dropdown-menu__item .el-icon,
+[data-theme="light"] .el-dropdown-menu__item span {
+  color: inherit !important;
+}
+
+/* 亮色主题下拉菜单箭头 */
+[data-theme="light"] .el-popper__arrow::before {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* 确保下拉菜单内的文字和图标可见 */
+.el-dropdown-menu__item span {
+  color: inherit !important;
+}
+
+/* 强制覆盖所有可能的深色背景 - 亮色主题 */
+html[data-theme="light"] .el-dropdown-menu,
+html[data-theme="light"] .el-dropdown-menu__item,
+body[data-theme="light"] .el-dropdown-menu,
+body[data-theme="light"] .el-dropdown-menu__item,
+[data-theme="light"] .el-dropdown-menu,
+[data-theme="light"] .el-dropdown-menu__item {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+html[data-theme="light"] .el-dropdown-menu__item.is-active,
+body[data-theme="light"] .el-dropdown-menu__item.is-active {
+  background-color: #dbeafe !important;
+  background: #dbeafe !important;
+}
+
+
+/* ============================================
+   亮色主题下拉菜单 - 终极修复
+   使用最高优先级确保白色背景
+   ============================================ */
+
+/* 下拉菜单容器 - 亮色主题 */
+html[data-theme="light"] .el-popper.el-dropdown__popper,
+html[data-theme="light"] .el-dropdown__popper.el-popper,
+body[data-theme="light"] .el-popper.el-dropdown__popper,
+[data-theme="light"] .el-popper.el-dropdown__popper,
+[data-theme="light"] .el-dropdown__popper {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+/* 下拉菜单本身 - 亮色主题 */
+html[data-theme="light"] .el-dropdown-menu.el-dropdown-menu--default,
+html[data-theme="light"] .el-dropdown-menu,
+body[data-theme="light"] .el-dropdown-menu.el-dropdown-menu--default,
+body[data-theme="light"] .el-dropdown-menu,
+[data-theme="light"] .el-dropdown-menu.el-dropdown-menu--default,
+[data-theme="light"] .el-dropdown-menu {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* 下拉菜单项 - 亮色主题 - 强制白色背景 */
+html[data-theme="light"] .el-dropdown-menu .el-dropdown-menu__item,
+html[data-theme="light"] .el-dropdown-menu__item,
+body[data-theme="light"] .el-dropdown-menu .el-dropdown-menu__item,
+body[data-theme="light"] .el-dropdown-menu__item,
+[data-theme="light"] .el-dropdown-menu .el-dropdown-menu__item,
+[data-theme="light"] .el-dropdown-menu__item {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #1e293b !important;
+}
+
+/* 下拉菜单项悬停 - 亮色主题 */
+html[data-theme="light"] .el-dropdown-menu__item:hover,
+html[data-theme="light"] .el-dropdown-menu__item:focus,
+html[data-theme="light"] .el-dropdown-menu__item.hover,
+body[data-theme="light"] .el-dropdown-menu__item:hover,
+body[data-theme="light"] .el-dropdown-menu__item:focus,
+[data-theme="light"] .el-dropdown-menu__item:hover,
+[data-theme="light"] .el-dropdown-menu__item:focus {
+  background-color: #f1f5f9 !important;
+  background: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+/* 下拉菜单项选中 - 亮色主题 */
+html[data-theme="light"] .el-dropdown-menu__item.is-active,
+html[data-theme="light"] .el-dropdown-menu__item--active,
+body[data-theme="light"] .el-dropdown-menu__item.is-active,
+[data-theme="light"] .el-dropdown-menu__item.is-active {
+  background-color: #dbeafe !important;
+  background: #dbeafe !important;
+  color: #2563eb !important;
+}
+
+/* 下拉菜单项内的图标和文字 - 亮色主题 */
+html[data-theme="light"] .el-dropdown-menu__item .el-icon,
+html[data-theme="light"] .el-dropdown-menu__item span,
+html[data-theme="light"] .el-dropdown-menu__item i,
+body[data-theme="light"] .el-dropdown-menu__item .el-icon,
+body[data-theme="light"] .el-dropdown-menu__item span,
+[data-theme="light"] .el-dropdown-menu__item .el-icon,
+[data-theme="light"] .el-dropdown-menu__item span {
+  color: inherit !important;
+}
+
+
+/* ============================================
+   亮色主题下拉菜单 - 超级终极修复 v2
+   解决部分菜单项显示深色背景的问题
+   ============================================ */
+
+/* 重置所有 Element Plus 下拉菜单的默认样式 */
+[data-theme="light"] .el-popper,
+[data-theme="light"] .el-popper.is-light,
+[data-theme="light"] .el-popper.is-dark,
+[data-theme="light"] .el-popper.el-dropdown__popper,
+[data-theme="light"] .el-dropdown__popper,
+[data-theme="light"] .el-dropdown-menu,
+[data-theme="light"] .el-dropdown-menu.el-dropdown-menu--default,
+[data-theme="light"] .el-dropdown-menu.el-dropdown-menu--small,
+[data-theme="light"] .el-dropdown-menu.el-dropdown-menu--large {
+  --el-dropdown-menuItem-hover-fill: #f1f5f9 !important;
+  --el-dropdown-menuItem-hover-color: #1e293b !important;
+  --el-bg-color-overlay: #ffffff !important;
+  --el-fill-color-light: #f1f5f9 !important;
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* 强制所有下拉菜单项使用白色背景 */
+[data-theme="light"] .el-dropdown-menu__item,
+[data-theme="light"] .el-dropdown-menu > li,
+[data-theme="light"] .el-dropdown-menu > .el-dropdown-menu__item,
+[data-theme="light"] ul.el-dropdown-menu > li,
+[data-theme="light"] ul.el-dropdown-menu > .el-dropdown-menu__item {
+  --el-dropdown-menuItem-hover-fill: #f1f5f9 !important;
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #1e293b !important;
+}
+
+/* 悬停状态 */
+[data-theme="light"] .el-dropdown-menu__item:hover,
+[data-theme="light"] .el-dropdown-menu__item:focus,
+[data-theme="light"] .el-dropdown-menu__item.is-highlighted,
+[data-theme="light"] .el-dropdown-menu > li:hover,
+[data-theme="light"] .el-dropdown-menu > li:focus {
+  background-color: #f1f5f9 !important;
+  background: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+/* 选中/激活状态 */
+[data-theme="light"] .el-dropdown-menu__item.is-active,
+[data-theme="light"] .el-dropdown-menu__item[aria-selected="true"],
+[data-theme="light"] .el-dropdown-menu > li.is-active {
+  background-color: #dbeafe !important;
+  background: #dbeafe !important;
+  color: #2563eb !important;
+  font-weight: 500 !important;
+}
+
+/* 禁用状态 */
+[data-theme="light"] .el-dropdown-menu__item.is-disabled,
+[data-theme="light"] .el-dropdown-menu__item[disabled] {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #9ca3af !important;
+}
+
+/* 确保下拉菜单内所有子元素继承正确的颜色 */
+[data-theme="light"] .el-dropdown-menu__item *,
+[data-theme="light"] .el-dropdown-menu__item .el-icon,
+[data-theme="light"] .el-dropdown-menu__item span,
+[data-theme="light"] .el-dropdown-menu__item svg {
+  color: inherit !important;
+  fill: currentColor !important;
+}
+
+/* 下拉菜单分隔线 */
+[data-theme="light"] .el-dropdown-menu__item--divided {
+  border-top-color: #e2e8f0 !important;
+}
+
+/* 下拉菜单箭头 */
+[data-theme="light"] .el-popper__arrow,
+[data-theme="light"] .el-popper__arrow::before {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* 使用 :where() 降低优先级但确保覆盖 */
+:where([data-theme="light"]) .el-dropdown-menu__item:not(.is-active):not(:hover) {
+  background-color: #ffffff !important;
+}
+
+/* 针对可能的内联样式覆盖 */
+[data-theme="light"] .el-dropdown-menu__item[style*="background"],
+[data-theme="light"] .el-dropdown-menu__item[style*="color"] {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #1e293b !important;
+}
+
+/* 确保 popper 容器也是白色 */
+[data-theme="light"] .el-popper.is-light .el-dropdown-menu,
+[data-theme="light"] .el-popper.is-dark .el-dropdown-menu {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+/* 覆盖 Element Plus CSS 变量 */
+[data-theme="light"] {
+  --el-dropdown-menuItem-hover-fill: #f1f5f9;
+  --el-dropdown-menuItem-hover-color: #1e293b;
+  --el-bg-color-overlay: #ffffff;
+  --el-fill-color-light: #f1f5f9;
+  --el-text-color-primary: #1e293b;
+  --el-text-color-regular: #1e293b;
+  --el-border-color-light: #e2e8f0;
+}

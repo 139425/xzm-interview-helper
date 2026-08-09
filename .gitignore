@@ -1,0 +1,54 @@
+# Local secrets and environment files
+**/.env
+**/.env.*
+!**/.env.example
+**/.local-secrets/
+**/deepseek.local.json
+**/*credentials*
+**/*.jks
+**/*.p12
+**/*.pem
+**/*.key
+
+# RAG source documents, indexes, evaluation corpora, and generated reports
+backend-java/docs/
+backend-ai/docs/
+backend-ai/chroma_db/
+backend-ai/evaluation/
+backend-ai/reports/
+**/*.sqlite3
+**/*.pickle
+**/rag_v2_lexical_cache.json*
+
+# Private or environment-specific test assets
+frontend/tests/e2e/
+frontend/image/
+frontend/public/image/
+
+# Dependencies and build outputs
+**/node_modules/
+**/dist/
+**/target/
+**/build/
+**/.venv/
+**/venv/
+**/__pycache__/
+**/.pytest_cache/
+**/.hypothesis/
+**/.jqwik-database
+**/*.py[cod]
+**/*.class
+**/*.jar
+**/*.zip
+**/*.tar.gz
+
+# Logs, reports, IDE files, and operating-system metadata
+**/*.log
+**/*.pid
+**/*.result
+**/.idea/
+**/.vscode/
+**/.claude/
+**/.DS_Store
+Thumbs.db
+.deploy/

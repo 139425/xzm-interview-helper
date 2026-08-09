@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- 跨域部署时，可由受信任的发布配置写入完整 API 基础地址（含 /xzm）。 -->
+<meta name="app-api-base" content=""/>
+<title>⚡ CodeStudio — 在线 Python / C++ / Java 工作台</title>
+<style>
+/* ========== 主题变量 ========== */
+:root{
+  --bg:#141519; --panel:#1d1f26; --panel2:#181a20; --border:#2c2f3a;
+  --fg:#e7e9f0; --dim:#8b91a3; --accent:#4f8cff; --accent2:#3a6fd8;
+  --ok:#7ddc8f; --err:#ff7d7d; --warn:#ffd166; --codeFs:14px;
+}
+body.light{ --bg:#eef0f4; --panel:#ffffff; --panel2:#e9ebf1; --border:#d4d8e2; --fg:#23252c; --dim:#6b7180; }
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);display:flex;flex-direction:column;overflow:hidden;
+  font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif}
+button,select,input,textarea{font:inherit;color:inherit}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Cascadia Mono","Courier New",monospace}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px}
+::-webkit-scrollbar-thumb:hover{background:#4a4f60}
+
+/* ========== 工具栏 ========== */
+#toolbar{flex:0 0 auto;min-height:46px;display:flex;align-items:center;gap:8px;padding:6px 10px;
+  background:var(--panel);border-bottom:1px solid var(--border);flex-wrap:wrap}
+#logo{font-weight:700;white-space:nowrap}#logo b{color:var(--accent)}
+.sel{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;outline:none;cursor:pointer}
+.btn{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:5px 11px;cursor:pointer;
+  white-space:nowrap;transition:border-color .15s,background .15s}
+.btn:hover{border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.btn-primary:hover:not(:disabled){background:var(--accent2)}
+.btn-danger:hover:not(:disabled){border-color:var(--err);color:var(--err)}
+.grow{flex:1}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;
+  border-radius:50%;animation:sp 1s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ========== 主区 + 可拖拽布局 ========== */
+#main{flex:1;display:flex;min-height:0}
+#editorPane{width:var(--edw,58%);min-width:0;display:flex;flex-direction:column;background:var(--panel)}
+#ioPane{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
+#stdinPane{height:var(--inh,32%);min-height:0;display:flex;flex-direction:column;background:var(--panel)}
+#outputPane{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--panel)}
+.pane-h{flex:0 0 30px;display:flex;align-items:center;gap:6px;padding:0 8px;font-size:12px;color:var(--dim);
+  background:var(--panel2);border-bottom:1px solid var(--border)}
+.pane-h .btn{padding:1px 8px;font-size:12px}
+.gutter{background:var(--border);flex:0 0 5px;z-index:5;transition:background .15s}
+.gutter:hover,.gutter.act{background:var(--accent)}
+.gutter-v{cursor:col-resize}
+.gutter-h{cursor:row-resize}
+body.dragging,body.dragging *{user-select:none!important}
+
+/* ========== 编辑器 ========== */
+#edHost{flex:1;min-height:0;position:relative}
+#edHost .CodeMirror{position:absolute;inset:0;height:100%;font-size:var(--codeFs);
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Cascadia Mono","Courier New",monospace}
+#fallbackTa{position:absolute;inset:0;width:100%;height:100%;resize:none;border:0;outline:none;
+  background:transparent;color:var(--fg);padding:10px;font-size:var(--codeFs);tab-size:4;white-space:pre}
+
+/* ========== 输入 / 输出 ========== */
+#stdinTa{flex:1;resize:none;border:0;outline:none;background:transparent;color:var(--fg);padding:8px;font-size:var(--codeFs)}
+#argsInput{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-size:12px;width:170px}
+#outEl{flex:1;overflow:auto;padding:8px 10px;font-size:var(--codeFs)}
+.ob{white-space:pre-wrap;word-break:break-word}
+.ob-sys{color:var(--dim);font-style:italic}
+.ob-stderr{color:var(--err)}
+.ob-compile{color:var(--warn)}
+.ob-ok{color:var(--ok)}
+.ob-hr{border-top:1px dashed var(--border);margin:8px 0}
+
+/* ========== 状态栏 ========== */
+#statusbar{flex:0 0 26px;display:flex;align-items:center;gap:16px;padding:0 10px;font-size:12px;color:var(--dim);
+  background:var(--panel);border-top:1px solid var(--border);white-space:nowrap;overflow:hidden}
+#stMid{flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis}
+
+/* ========== 设置弹窗 / 提示 ========== */
+#modalBg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:50}
+#modalBg.show{display:flex}
+#modal{width:min(600px,94vw);max-height:88vh;overflow:auto;background:var(--panel);
+  border:1px solid var(--border);border-radius:10px;padding:18px 20px}
+#modal h3{margin-bottom:10px}
+.set-row{display:flex;align-items:center;gap:10px;margin:12px 0;flex-wrap:wrap}
+.set-row>label{flex:0 0 150px;color:var(--dim)}
+.set-row input[type=text],.set-row input[type=password]{flex:1;min-width:180px;background:var(--panel2);
+  border:1px solid var(--border);border-radius:6px;padding:5px 8px;outline:none}
+.hint{font-size:12px;color:var(--dim);background:var(--panel2);border-left:3px solid var(--accent);
+  padding:8px 10px;border-radius:0 6px 6px 0;margin:12px 0;line-height:1.7}
+.hint code{background:rgba(127,127,127,.18);padding:1px 5px;border-radius:4px;word-break:break-all}
+#toasts{position:fixed;right:14px;bottom:40px;display:flex;flex-direction:column;gap:8px;z-index:60}
+.toast{background:var(--panel2);border:1px solid var(--border);border-left:3px solid var(--accent);
+  border-radius:6px;padding:8px 14px;font-size:13px;box-shadow:0 4px 14px rgba(0,0,0,.3);animation:ti .2s ease}
+@keyframes ti{from{opacity:0;transform:translateY(6px)}}
+
+/* ========== 窄屏:纵向堆叠 ========== */
+@media (max-width:760px){
+  #main{flex-direction:column}
+  #editorPane{width:auto;height:var(--edh,50%)}
+  .gutter-v{cursor:row-resize}
+}
+</style>
+</head>
+<body>
+<noscript style="padding:20px">本页面需要启用 JavaScript。</noscript>
+
+<!-- 工具栏 -->
+<div id="toolbar">
+  <div id="logo">⚡ Code<b>Studio</b></div>
+  <select id="langSel" class="sel" title="选择语言">
+    <option value="python">Python</option>
+    <option value="cpp">C++</option>
+    <option value="java">Java</option>
+  </select>
+  <select id="tplSel" class="sel" title="载入示例代码"></select>
+  <button id="runBtn" class="btn btn-primary" title="运行 (Ctrl+Enter)">▶ 运行</button>
+  <button id="stopBtn" class="btn btn-danger" disabled title="停止当前运行">■ 停止</button>
+  <div class="grow"></div>
+  <button id="themeBtn" class="btn" title="明暗主题切换">🌓</button>
+  <button id="settingsBtn" class="btn" title="设置与永久性说明">⚙ 设置</button>
+</div>
+
+<!-- 主区:编辑器 | 竖分隔条 | (stdin / 横分隔条 / 输出) -->
+<div id="main">
+  <div id="editorPane">
+    <div class="pane-h">
+      <span id="fileName" class="mono">main.py</span>
+      <div class="grow"></div>
+      <button id="copyCodeBtn" class="btn" title="复制代码">复制</button>
+      <button id="dlBtn" class="btn" title="下载源码文件">下载</button>
+    </div>
+    <div id="edHost">
+      <textarea id="fallbackTa" class="mono" spellcheck="false" aria-label="代码编辑器"></textarea>
+    </div>
+  </div>
+
+  <div id="gutterV" class="gutter gutter-v" title="拖动调整比例 · 双击复位"></div>
+
+  <div id="ioPane">
+    <div id="stdinPane">
+      <div class="pane-h">
+        <span>标准输入 stdin</span>
+        <div class="grow"></div>
+        <span>参数</span>
+        <input id="argsInput" class="mono" placeholder="程序参数,空格分隔" title="命令行参数,支持引号"/>
+      </div>
+      <textarea id="stdinTa" class="mono" spellcheck="false" placeholder="程序通过 input()/cin/Scanner 读取的内容写在这里…"></textarea>
+    </div>
+
+    <div id="gutterH" class="gutter gutter-h" title="拖动调整比例 · 双击复位"></div>
+
+    <div id="outputPane">
+      <div class="pane-h">
+        <span>输出</span>
+        <div class="grow"></div>
+        <button id="copyOutBtn" class="btn" title="复制全部输出">复制</button>
+        <button id="clearOutBtn" class="btn" title="清空输出">清空</button>
+      </div>
+      <div id="outEl" class="mono" aria-live="polite"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 状态栏 -->
+<div id="statusbar">
+  <span id="stLeft">Ln 1, Col 1</span>
+  <span id="stMid"></span>
+  <span id="stRight">Ctrl+Enter 运行 · Ctrl+S 保存</span>
+</div>
+
+<!-- 设置弹窗 -->
+<div id="modalBg">
+  <div id="modal">
+    <h3>⚙ 设置</h3>
+    <div class="set-row">
+      <label>Python 运行引擎</label>
+      <select id="optPyEngine" class="sel">
+        <option value="auto">自动(浏览器本地优先,云端兜底)</option>
+        <option value="browser">仅浏览器本地 (Pyodide)</option>
+        <option value="cloud">仅云端沙箱</option>
+      </select>
+    </div>
+    <div class="set-row">
+      <label>自定义 Piston 端点</label>
+      <input type="text" id="optEndpoint" class="mono" placeholder="例: http://localhost:2000/api/v2"/>
+    </div>
+    <div class="set-row">
+      <label>Piston API Token</label>
+      <input type="password" id="optToken" class="mono" placeholder="可选;emkc 公共云或私有实例的授权 Token"/>
+    </div>
+    <div class="set-row">
+      <label>云端请求超时</label>
+      <input type="range" id="optTimeout" min="5" max="60" step="5" style="flex:1"/>
+      <span id="optTimeoutVal"></span>
+    </div>
+    <div class="set-row">
+      <label>代码字号</label>
+      <input type="range" id="optFont" min="12" max="20" step="1" style="flex:1"/>
+      <span id="optFontVal"></span>
+    </div>
+    <div class="set-row">
+      <label>运行前清空输出</label>
+      <input type="checkbox" id="optAutoClear"/>
+    </div>
+    <div class="set-row">
+      <button id="resetLayoutBtn" class="btn">重置布局比例</button>
+      <button id="resetAllBtn" class="btn btn-danger">恢复全部默认</button>
+      <div class="grow"></div>
+      <button id="modalCloseBtn" class="btn btn-primary">关闭</button>
+    </div>
+    <div class="hint">
+      <b>「永久可用」如何保证?(多层容灾)</b><br>
+      ① <b>Python 默认在你的浏览器本地执行</b>(Pyodide/WebAssembly),首次加载缓存后不依赖任何服务器,断网也能跑;<br>
+      ② C++/Java 自动依次尝试多个免注册云端沙箱(Wandbox、Godbolt),任一存活即可运行,并动态解析编译器版本,避免硬编码过期;<br>
+      ③ 终极方案:<b>自建开源 Piston 沙箱</b>,一条命令:<br>
+      <code>docker run --privileged -dit -p 2000:2000 --name piston ghcr.io/engineer-man/piston</code><br>
+      再用其 CLI 安装 gcc / java / python 运行时,然后在上方"自定义端点"填 <code>http://localhost:2000/api/v2</code>,即 100% 不依赖任何第三方;<br>
+      ④ 注:emkc 官方公共 Piston 自 2026-02-15 起需授权 Token(教育/非商用可向作者申请),填入 Token 后会自动优先启用该通道。
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+"use strict";
+/* =====================================================================
+ * CodeStudio 单文件在线 IDE
+ * 架构:编辑器(CodeMirror,CDN 失败降级 textarea)
+ *      + Python 本地引擎(Pyodide @ Web Worker,可强杀)
+ *      + 云端执行链(自定义 Piston → [Token]emkc → Wandbox/Godbolt 动态容灾)
+ * ===================================================================== */
+const $ = id => document.getElementById(id);
+const LS = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+function resolveApplicationApiBase(){
+  const configured = (document.querySelector('meta[name="app-api-base"]')?.content || '').trim();
+  if(configured) return configured.replace(/\/+$/, '');
+  const origin = window.location.origin.replace(/\/+$/, '');
+  // Vite 开发服务器与 Spring Boot 默认端口不同；生产环境优先使用同源 /xzm。
+  if(window.location.port === '5173') return window.location.protocol + '//' + window.location.hostname + ':8104/xzm';
+  return origin + '/xzm';
+}
+const APPLICATION_API_BASE = resolveApplicationApiBase();
+function getSessionToken(){
+  try{ return localStorage.getItem('token') || ''; }catch(e){ return ''; }
+}
+function authRequiredError(){
+  const err = new Error('云端执行需要登录，请先登录后重新打开代码编辑器。');
+  err.code = 'AUTH_REQUIRED';
+  return err;
+}
+function executionRateLimitedError(message){
+  const err = new Error(message || '代码执行请求过于频繁，请稍后再试。');
+  err.code = 'EXECUTION_RATE_LIMITED';
+  return err;
+}
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+
+/* ---------------- 语言定义与示例模板 ---------------- */
+const LANGS = {
+  python: {
+    label:'Python', file:'main.py', ext:'py', cm:'python', piston:'python', wandbox:'cpython-head', gb:'python',
+    tpls:[
+      { name:'Hello World', code:'print("Hello, World!")\n' },
+      { name:'读取输入求和', code:'# 在右上「标准输入」中填入两个数,如: 3 5\na, b = map(int, input().split())\nprint(f"{a} + {b} = {a + b}")\n' },
+      { name:'斐波那契数列', code:'def fib(n):\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n\nfor i in range(10):\n    print(f"fib({i}) = {fib(i)}")\n' }
+    ]
+  },
+  cpp: {
+    label:'C++', file:'main.cpp', ext:'cpp', cm:'text/x-c++src', piston:'c++', wandbox:'gcc-head', gb:'c++',
+    tpls:[
+      { name:'Hello World', code:'#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    cout << "Hello, World!" << endl;\n    return 0;\n}\n' },
+      { name:'读取输入求和', code:'#include <bits/stdc++.h>\nusing namespace std;\n// 在右上「标准输入」中填入两个数,如: 3 5\nint main() {\n    long long a, b;\n    if (cin >> a >> b)\n        cout << a << " + " << b << " = " << a + b << "\\n";\n    return 0;\n}\n' },
+      { name:'vector 排序', code:'#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    vector<int> v{5, 2, 9, 1, 7};\n    sort(v.begin(), v.end());\n    for (int x : v) cout << x << " ";\n    cout << "\\n";\n    return 0;\n}\n' }
+    ]
+  },
+  java: {
+    label:'Java', file:'Main.java', ext:'java', cm:'text/x-java', piston:'java', wandbox:'openjdk-head', gb:'java',
+    tpls:[
+      { name:'Hello World', code:'public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}\n' },
+      { name:'读取输入求和', code:'import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        // 在右上「标准输入」中填入两个数,如: 3 5\n        Scanner sc = new Scanner(System.in);\n        if (sc.hasNextLong()) {\n            long a = sc.nextLong(), b = sc.nextLong();\n            System.out.println(a + " + " + b + " = " + (a + b));\n        }\n    }\n}\n' },
+      { name:'数组排序', code:'import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        int[] arr = {5, 2, 9, 1, 7};\n        Arrays.sort(arr);\n        System.out.println(Arrays.toString(arr));\n    }\n}\n' }
+    ]
+  }
+};
+
+/* ---------------- 持久化状态 ---------------- */
+let settings = Object.assign(
+  { theme:'dark', fontSize:14, pyEngine:'auto', endpoint:'', pistonToken:'', timeout:30, autoClear:true },
+  LS.get('cr.settings', {}));
+let layout = Object.assign({ edw:58, edh:50, inh:32 }, LS.get('cr.layout', {}));
+let curLang = LANGS[LS.get('cr.lang','python')] ? LS.get('cr.lang','python') : 'python';
+const saveSettings = () => LS.set('cr.settings', settings);
+
+/* ---------------- 编辑器适配层(CodeMirror ⇄ textarea 双模) ---------------- */
+const Editor = {
+  cm:null, ta:$('fallbackTa'),
+  getValue(){ return this.cm ? this.cm.getValue() : this.ta.value; },
+  setValue(v){ this.cm ? this.cm.setValue(v) : (this.ta.value = v); },
+  setMode(m){ if(this.cm) this.cm.setOption('mode', m); },
+  setTheme(dark){ if(this.cm) this.cm.setOption('theme', dark ? 'material-darker' : 'default'); },
+  focus(){ (this.cm ? this.cm : this.ta).focus(); },
+  refresh(){ if(this.cm) this.cm.refresh(); }
+};
+let rafPend = false;
+function cmRefreshSoon(){ if(rafPend) return; rafPend = true; requestAnimationFrame(() => { rafPend = false; Editor.refresh(); }); }
+
+/* ---------------- 状态栏 ---------------- */
+let curLn = 1, curCol = 1;
+function renderStatusLeft(){
+  const n = Editor.getValue().split('\n').length;
+  $('stLeft').textContent = 'Ln ' + curLn + ', Col ' + curCol + ' · ' + n + ' 行';
+}
+function setCursor(l, c){ curLn = l; curCol = c; renderStatusLeft(); }
+function taCursor(){
+  const p = Editor.ta.selectionStart, s = Editor.ta.value.slice(0, p);
+  const lastNl = s.lastIndexOf('\n');
+  setCursor((s.match(/\n/g) || []).length + 1, p - lastNl);
+}
+function engineHint(){
+  if(curLang === 'python')
+    return { auto:'Python:本地 Pyodide 优先 + 云端兜底', browser:'Python:仅浏览器本地', cloud:'Python:仅云端沙箱' }[settings.pyEngine];
+  return LANGS[curLang].label + ':云端沙箱(多后端自动容灾)';
+}
+
+/* ---------------- 代码自动保存 ---------------- */
+function saveCode(){
+  LS.set('cr.code.' + curLang, Editor.getValue());
+  $('stRight').textContent = '已保存 ' + new Date().toLocaleTimeString();
+}
+const saveDebounced = debounce(saveCode, 600);
+function onCodeChange(){ $('stRight').textContent = '● 编辑中…'; saveDebounced(); renderStatusLeft(); }
+
+/* ---------------- 输出区 ---------------- */
+let lastBlock = null;
+function nearBottom(){ const o = $('outEl'); return o.scrollHeight - o.scrollTop - o.clientHeight < 50; }
+function appendOut(type, text){
+  if(!text) return;
+  const o = $('outEl'), stick = nearBottom(), MAX = 100000;
+  if(text.length > MAX) text = text.slice(0, MAX) + '\n…[输出过长,已截断 ' + (text.length - MAX) + ' 字符]';
+  if(lastBlock && lastBlock.dataset.t === type){ lastBlock.textContent += text; }
+  else{
+    const d = document.createElement('div');
+    d.className = 'ob ob-' + type; d.dataset.t = type; d.textContent = text;
+    o.appendChild(d); lastBlock = d;
+  }
+  while(o.childNodes.length > 400) o.removeChild(o.firstChild); // DOM 防爆
+  if(stick) o.scrollTop = o.scrollHeight;
+}
+const sys = t => appendOut('sys', t + '\n');
+function hr(){ const d = document.createElement('div'); d.className = 'ob-hr'; $('outEl').appendChild(d); lastBlock = null; }
+function clearOut(){ $('outEl').innerHTML = ''; lastBlock = null; }
+const fmtMs = ms => ms < 1000 ? ms + ' ms' : (ms / 1000).toFixed(2) + ' s';
+
+/* ---------------- 参数解析(支持引号) ---------------- */
+function parseArgs(s){
+  const out = []; let cur = '', q = null;
+  for(const ch of (s || '')){
+    if(q){ if(ch === q) q = null; else cur += ch; }
+    else if(ch === '"' || ch === "'") q = ch;
+    else if(/\s/.test(ch)){ if(cur){ out.push(cur); cur = ''; } }
+    else cur += ch;
+  }
+  if(cur) out.push(cur);
+  return out;
+}
+
+/* =====================================================================
+ * 云端执行链:自定义 Piston → [有 Token 时] emkc Piston → Wandbox / Godbolt
+ * 全部动态解析版本,单点失败自动切换下一后端
+ * ===================================================================== */
+let running = false, stopFlag = false, cloudCtl = null;
+
+async function fx(url, opts){ // 带超时 + 可停止的 fetch
+  const ctl = new AbortController(); cloudCtl = ctl;
+  const tm = setTimeout(() => { try{ ctl.abort(); }catch(e){} }, (settings.timeout || 30) * 1000);
+  try{
+    return await fetch(url, Object.assign({ signal: ctl.signal }, opts));
+  }catch(e){
+    if(ctl.signal.aborted && stopFlag) throw { name:'AbortError' };
+    if(ctl.signal.aborted) throw new Error('请求超时');
+    throw new Error('网络错误(可能是跨域/离线/服务不可用)');
+  }finally{
+    clearTimeout(tm);
+    if(cloudCtl === ctl) cloudCtl = null;
+  }
+}
+
+/* ---- Piston:动态解析 runtimes 版本(缓存 24h),失败用 * 通配 ---- */
+const rtCache = {};
+function semGt(a, b){
+  const pa = String(a).split('.').map(Number), pb = String(b).split('.').map(Number);
+  for(let i = 0; i < 3; i++){ const d = (pa[i] || 0) - (pb[i] || 0); if(d) return d > 0; }
+  return false;
+}
+async function pistonVersion(base, name, auth){
+  const key = 'cr.rt.' + base;
+  let entry = rtCache[base] || LS.get(key, null);
+  if(!entry || Date.now() - entry.t > 864e5){
+    try{
+      const h = auth ? { 'Authorization': auth } : {};
+      const r = await fx(base + '/runtimes', { headers: h });
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      const list = await r.json(), map = {};
+      for(const it of list){
+        for(const n of [it.language, ...(it.aliases || [])])
+          if(!map[n] || semGt(it.version, map[n])) map[n] = it.version;
+      }
+      entry = { t: Date.now(), map }; rtCache[base] = entry; LS.set(key, entry);
+    }catch(e){
+      if(e && e.name === 'AbortError') throw e;
+      entry = entry || { t:0, map:{} };
+    }
+  } else rtCache[base] = entry;
+  return (entry.map && entry.map[name]) || '*';
+}
+async function execPiston(b, L, code, stdin, args){
+  const version = await pistonVersion(b.base, L.piston, b.auth);
+  let fname = L.file;
+  if(L.piston === 'java'){ // Java: public 类名 → 文件名自动匹配
+    const m = code.match(/public\s+class\s+([A-Za-z_$][\w$]*)/);
+    if(m) fname = m[1] + '.java';
+  }
+  const headers = { 'Content-Type': 'application/json' };
+  if(b.auth) headers['Authorization'] = b.auth;
+  const r = await fx(b.base + '/execute', {
+    method:'POST', headers,
+    body: JSON.stringify({ language: L.piston, version, files:[{ name: fname, content: code }], stdin: stdin || '', args: args || [] })
+  });
+  if(r.status === 429) throw new Error('触发限流 429');
+  if(r.status === 401 || r.status === 403) throw new Error('需要授权 Token(' + r.status + ')');
+  if(!r.ok) throw new Error('HTTP ' + r.status);
+  const j = await r.json();
+  if(j.message) throw new Error(j.message);
+  const run = j.run || {}, comp = j.compile;
+  const res = { backend: b.name + ' (' + L.piston + ' ' + version + ')',
+    stdout: run.stdout || '', stderr: run.stderr || '',
+    exitCode: run.code == null ? 0 : run.code, signal: run.signal || null,
+    compileOut:'', compileFailed:false };
+  if(comp){
+    const cerr = (comp.stderr || comp.output || '').trim();
+    if(comp.code !== 0){ res.compileFailed = true; res.compileOut = cerr || '编译失败'; res.exitCode = comp.code; res.stdout = ''; res.stderr = ''; }
+    else if(cerr) res.compileOut = cerr;
+  }
+  return res;
+}
+
+/* ---- 应用代理：使用当前会话 JWT，服务端固定 Piston 上游并施加输入、频率和超时边界。 ---- */
+async function execApplicationProxy(L, code, stdin, args){
+  const token = getSessionToken();
+  if(!token) throw authRequiredError();
+  let fname = L.file;
+  if(L.piston === 'java'){
+    const m = code.match(/public\s+class\s+([A-Za-z_$][\w$]*)/);
+    if(m) fname = m[1] + '.java';
+  }
+  const r = await fx(APPLICATION_API_BASE + '/code/execute', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + token },
+    body: JSON.stringify({ language:L.piston, version:'*', files:[{ name:fname, content:code }], stdin:stdin || '', args:args || [] })
+  });
+  if(r.status === 401 || r.status === 403) throw authRequiredError();
+  if(r.status === 429){
+    let message = '';
+    try{ message = (await r.json()).message || ''; }catch(e){}
+    throw executionRateLimitedError(message);
+  }
+  if(!r.ok){
+    let message = 'HTTP ' + r.status;
+    try{ message = (await r.json()).message || message; }catch(e){}
+    throw new Error(message);
+  }
+  const j = await r.json();
+  if(j.message) throw new Error(j.message);
+  const run = j.run || {}, comp = j.compile;
+  const res = { backend:'应用受控沙箱 (' + L.piston + ')',
+    stdout: run.stdout || '', stderr: run.stderr || '',
+    exitCode: run.code == null ? 0 : run.code, signal: run.signal || null,
+    compileOut:'', compileFailed:false };
+  if(comp){
+    const cerr = (comp.stderr || comp.output || '').trim();
+    if(comp.code !== 0){ res.compileFailed = true; res.compileOut = cerr || '编译失败'; res.exitCode = comp.code; res.stdout = ''; res.stderr = ''; }
+    else if(cerr) res.compileOut = cerr;
+  }
+  return res;
+}
+
+/* ---- Wandbox ---- */
+async function execWandbox(L, lang, code, stdin, args){
+  let src = code;
+  if(lang === 'java') src = code.replace(/\bpublic\s+class\b/, 'class'); // 适配任意服务端文件名
+  const body = { compiler: L.wandbox, code: src, stdin: stdin || '' };
+  if(args && args.length) body['runtime-option-raw'] = args.join('\n');
+  if(lang === 'cpp') body['compiler-option-raw'] = '-O2\n-std=gnu++17';
+  const r = await fx('https://wandbox.org/api/compile.json', {
+    method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body)
+  });
+  if(!r.ok) throw new Error('HTTP ' + r.status);
+  const j = await r.json();
+  const st = j.status != null ? parseInt(j.status, 10) : null;
+  const res = { backend:'Wandbox (' + L.wandbox + ')',
+    stdout: j.program_output || '', stderr: j.program_error || '',
+    compileOut: (j.compiler_error || j.compiler_message || '').trim(),
+    exitCode: 0, signal: j.signal || null, compileFailed:false };
+  if(res.compileOut && (st == null || st !== 0) && !j.program_output && !j.program_error){
+    res.compileFailed = true; res.exitCode = st == null ? 1 : st;
+  } else res.exitCode = st == null ? (j.signal ? 1 : 0) : st;
+  if(Number.isNaN(res.exitCode)) res.exitCode = res.compileOut ? 1 : 0;
+  return res;
+}
+
+/* ---- Godbolt / Compiler Explorer:动态选最新可执行编译器(缓存 24h) ---- */
+async function godboltId(gbLang){
+  const key = 'cr.gb.' + gbLang;
+  const c = LS.get(key, null);
+  if(c && Date.now() - c.t < 864e5 && c.id) return c.id;
+  const r = await fx('https://godbolt.org/api/compilers/' + encodeURIComponent(gbLang) + '?fields=id,supportsExecute',
+    { headers:{ 'Accept':'application/json' } });
+  if(!r.ok) throw new Error('HTTP ' + r.status);
+  const list = await r.json();
+  const re = gbLang === 'c++' ? /^g(\d+)$/ : gbLang === 'java' ? /^java(\d+)$/ : /^python(\d+)$/;
+  let cands = list.filter(x => re.test(x.id));
+  const ex = cands.filter(x => x.supportsExecute !== false);
+  if(ex.length) cands = ex;
+  let best = null, bn = -1;
+  for(const x of cands){ const n = +re.exec(x.id)[1]; if(n > bn){ bn = n; best = x.id; } }
+  if(!best) throw new Error('未找到可执行编译器');
+  LS.set(key, { t: Date.now(), id: best });
+  return best;
+}
+async function execGodbolt(L, lang, code, stdin, args){
+  const id = await godboltId(L.gb);
+  const body = {
+    source: code, lang: L.gb, allowStoreCodeDebug: false,
+    options: {
+      userArguments: lang === 'cpp' ? '-O2 -std=c++17' : '',
+      executeParameters: { args: args || [], stdin: stdin || '' },
+      compilerOptions: { executorRequest: true, skipAsm: true },
+      filters: { execute: true }
+    }
+  };
+  const r = await fx('https://godbolt.org/api/compiler/' + encodeURIComponent(id) + '/compile', {
+    method:'POST', headers:{ 'Content-Type':'application/json', 'Accept':'application/json' },
+    body: JSON.stringify(body)
+  });
+  if(!r.ok) throw new Error('HTTP ' + r.status);
+  const j = await r.json();
+  const txt = a => (a || []).map(x => x.text).join('\n');
+  const res = { backend:'Godbolt (' + id + ')',
+    stdout: txt(j.stdout), stderr: txt(j.stderr),
+    exitCode: typeof j.code === 'number' ? j.code : 0,
+    signal: j.timedOut ? 'TIMEOUT' : null, compileOut:'', compileFailed:false };
+  if(res.stdout) res.stdout += '\n';
+  const br = j.buildResult;
+  if(br){
+    const bt = [txt(br.stderr), txt(br.stdout)].filter(Boolean).join('\n').trim();
+    if(br.code !== 0){ res.compileFailed = true; res.compileOut = bt || '编译失败'; res.exitCode = br.code; res.stdout = ''; res.stderr = ''; }
+    else if(bt) res.compileOut = bt;
+  }
+  if(j.didExecute === false && !res.compileFailed && !res.stderr){ res.stderr = '程序未能执行'; res.exitCode = res.exitCode || 1; }
+  return res;
+}
+
+/* ---- 执行链编排 ---- */
+async function runCloud(lang, code, stdin, args){
+  if(!getSessionToken()) throw authRequiredError();
+  const L = LANGS[lang], chain = [];
+  const ep = (settings.endpoint || '').trim().replace(/\/+$/, '');
+  const tk = (settings.pistonToken || '').trim();
+  chain.push({ kind:'app-proxy', name:'应用受控沙箱' });
+  if(ep) chain.push({ kind:'piston', base: ep, name:'自建 Piston', auth: tk || undefined });
+  if(tk) chain.push({ kind:'piston', base:'https://emkc.org/api/v2/piston', name:'Piston 公共云', auth: tk });
+  if(lang === 'java'){ chain.push({ kind:'godbolt', name:'Godbolt' }); chain.push({ kind:'wandbox', name:'Wandbox' }); }
+  else{ chain.push({ kind:'wandbox', name:'Wandbox' }); chain.push({ kind:'godbolt', name:'Godbolt' }); }
+  if(!tk) chain.push({ kind:'piston', base:'https://emkc.org/api/v2/piston', name:'Piston 公共云(无 Token 尝试)' });
+
+  let lastErr = null;
+  for(const b of chain){
+    if(stopFlag) throw { name:'AbortError' };
+    try{
+      if(b.kind === 'app-proxy') return await execApplicationProxy(L, code, stdin, args);
+      if(b.kind === 'piston') return await execPiston(b, L, code, stdin, args);
+      if(b.kind === 'wandbox') return await execWandbox(L, lang, code, stdin, args);
+      return await execGodbolt(L, lang, code, stdin, args);
+    }catch(err){
+      if(err && err.name === 'AbortError') throw err;
+      if(err && (err.code === 'AUTH_REQUIRED' || err.code === 'EXECUTION_RATE_LIMITED')) throw err;
+      lastErr = err;
+      sys('⚠ ' + b.name + ' 不可用:' + (err.message || err) + ' → 切换下一后端');
+    }
+  }
+  throw lastErr || new Error('无可用后端');
+}
+
+/* =====================================================================
+ * Python 本地引擎:Pyodide @ Web Worker(可强制终止;多版本 CDN 兜底)
+ * ===================================================================== */
+const PY_CDNS = [
+  'https://cdn.jsdelivr.net/pyodide/v314.0.2/full/',
+  'https://cdn.jsdelivr.net/pyodide/v0.28.2/full/',
+  'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/'
+];
+const PY_WORKER_SRC = `
+let py = null;
+const CDNS = ${JSON.stringify(PY_CDNS)};
+async function ensure(){
+  if(py) return;
+  let err = null;
+  for(const base of CDNS){
+    try{
+      postMessage({type:'status', data:'正在加载 Python 运行时(首次约 5~20 秒,之后走缓存):' + base});
+      importScripts(base + 'pyodide.js');
+      py = await loadPyodide({ indexURL: base });
+      postMessage({type:'status', data:'✓ Python 运行时就绪 (Pyodide ' + py.version + ')'});
+      return;
+    }catch(e){ err = e; py = null; }
+  }
+  throw new Error('Pyodide 全部 CDN 加载失败: ' + err);
+}
+self.onmessage = async function(ev){
+  const m = ev.data;
+  if(m.type !== 'run') return;
+  try{
+    await ensure();
+    py.setStdout({ batched: function(s){ postMessage({type:'stdout', data: s + '\\n'}); } });
+    py.setStderr({ batched: function(s){ postMessage({type:'stderr', data: s + '\\n'}); } });
+    let fed = false; const stdinText = m.stdin || '';
+    py.setStdin({ stdin: function(){ if(fed) return null; fed = true; return stdinText; } });
+    try{
+      py.globals.set('__args__', m.args || []);
+      py.runPython('import sys\\nsys.argv = ["main.py"] + list(__args__)');
+    }catch(e){}
+    try{ await py.loadPackagesFromImports(m.code); }catch(e){}
+    let code = 0;
+    try{ await py.runPythonAsync(m.code); }
+    catch(e){ postMessage({type:'stderr', data: String(e) + '\\n'}); code = 1; }
+    postMessage({type:'done', code: code});
+  }catch(e){
+    postMessage({type:'fatal', data: String(e && e.message || e)});
+  }
+};
+`;
+let pyWorker = null, pyJob = null;
+function ensurePyWorker(){
+  if(pyWorker) return;
+  pyWorker = new Worker(URL.createObjectURL(new Blob([PY_WORKER_SRC], { type:'text/javascript' })));
+  pyWorker.onmessage = e => {
+    const m = e.data;
+    if(m.type === 'status'){ sys(m.data); $('stMid').textContent = m.data; }
+    else if(m.type === 'stdout') appendOut('stdout', m.data);
+    else if(m.type === 'stderr') appendOut('stderr', m.data);
+    else if(m.type === 'done'){ const j = pyJob; pyJob = null;
+      if(j) j.resolve({ streamed:true, exitCode:m.code, signal:null, backend:'Pyodide · 浏览器本地' }); }
+    else if(m.type === 'fatal'){ const j = pyJob; pyJob = null;
+      try{ pyWorker.terminate(); }catch(e2){} pyWorker = null;
+      if(j) j.reject(new Error(m.data)); }
+  };
+  pyWorker.onerror = e => {
+    const j = pyJob; pyJob = null;
+    try{ pyWorker.terminate(); }catch(e2){} pyWorker = null;
+    if(j) j.reject(new Error('Worker 错误: ' + (e.message || '未知')));
+  };
+}
+function runPyLocal(code, stdin, args){
+  return new Promise((resolve, reject) => {
+    ensurePyWorker();
+    pyJob = { resolve, reject };
+    pyWorker.postMessage({ type:'run', code, stdin, args });
+  });
+}
+
+/* =====================================================================
+ * 运行 / 停止
+ * ===================================================================== */
+async function doRun(){
+  if(running) return;
+  const code = Editor.getValue();
+  if(!code.trim()){ toast('代码为空'); return; }
+  running = true; stopFlag = false;
+  $('runBtn').disabled = true; $('runBtn').innerHTML = '<span class="spin"></span>运行中';
+  $('stopBtn').disabled = false;
+  if(settings.autoClear) clearOut(); else hr();
+  const L = LANGS[curLang];
+  sys('▶ 运行 ' + L.label + ' · ' + new Date().toLocaleTimeString());
+  const stdin = $('stdinTa').value, args = parseArgs($('argsInput').value);
+  const t0 = performance.now();
+  try{
+    let res;
+    if(curLang === 'python' && settings.pyEngine !== 'cloud'){
+      try{ res = await runPyLocal(code, stdin, args); }
+      catch(err){
+        if(err && err.name === 'AbortError') throw err;
+        if(settings.pyEngine === 'auto'){
+          sys('本地引擎失败:' + (err.message || err) + ' → 尝试云端沙箱…');
+          res = await runCloud(curLang, code, stdin, args);
+        } else throw err;
+      }
+    } else {
+      res = await runCloud(curLang, code, stdin, args);
+    }
+    const dt = Math.round(performance.now() - t0);
+    if(!res.streamed){
+      if(res.compileOut) appendOut('compile', res.compileOut + '\n');
+      if(res.stdout) appendOut('stdout', res.stdout);
+      if(res.stderr) appendOut('stderr', res.stderr);
+      if(!res.compileOut && !res.stdout && !res.stderr) sys('(无输出)');
+    }
+    const ok = res.exitCode === 0 && !res.compileFailed;
+    let line = res.compileFailed ? '✖ 编译失败' : (ok ? '✔' : '✖') + ' 进程结束,退出代码 ' + res.exitCode;
+    if(res.signal) line += '(信号 ' + res.signal + (res.signal === 'SIGKILL' || res.signal === 'TIMEOUT' ? ',可能超时或内存超限' : '') + ')';
+    line += ' · 用时 ' + fmtMs(dt) + ' · ' + res.backend;
+    appendOut(ok ? 'ok' : 'stderr', line + '\n');
+    $('stMid').textContent = '上次运行:' + res.backend + ' · ' + fmtMs(dt);
+  }catch(err){
+    if(err && err.name === 'AbortError') sys('⏹ 已停止');
+    else if(err && err.code === 'AUTH_REQUIRED'){
+      const message = '云端执行需要登录，请先登录后重新打开代码编辑器。';
+      appendOut('stderr', '✖ ' + message + '\n');
+      sys('🔐 ' + message);
+      toast(message);
+    }
+    else if(err && err.code === 'EXECUTION_RATE_LIMITED'){
+      const message = err.message || '代码执行请求过于频繁，请稍后再试。';
+      appendOut('stderr', '✖ ' + message + '\n');
+      sys('⏳ ' + message);
+      toast(message);
+    }
+    else{
+      appendOut('stderr', '✖ 运行失败:' + (err && err.message || err) + '\n');
+      if(curLang !== 'python') sys('提示:所有云端后端均失败时,可在 ⚙设置 中配置自建 Piston 端点或 API Token(见说明)。');
+    }
+  }finally{
+    running = false; cloudCtl = null;
+    $('runBtn').disabled = false; $('runBtn').textContent = '▶ 运行';
+    $('stopBtn').disabled = true;
+  }
+}
+function doStop(){
+  if(!running) return;
+  stopFlag = true;
+  if(cloudCtl){ try{ cloudCtl.abort(); }catch(e){} }
+  if(pyJob){
+    try{ pyWorker.terminate(); }catch(e){}
+    pyWorker = null;
+    const j = pyJob; pyJob = null;
+    j.reject({ name:'AbortError' });
+    sys('(本地 Python 运行时已强制终止,下次运行将自动重建)');
+  }
+}
+
+/* =====================================================================
+ * UI:语言切换 / 模板 / 分隔条 / 主题 / 弹窗 / 快捷键
+ * ===================================================================== */
+function rebuildTpl(){
+  const s = $('tplSel'); s.innerHTML = '';
+  const o0 = document.createElement('option');
+  o0.value = ''; o0.textContent = '📄 示例代码…'; s.appendChild(o0);
+  LANGS[curLang].tpls.forEach((t, i) => {
+    const o = document.createElement('option');
+    o.value = i; o.textContent = t.name; s.appendChild(o);
+  });
+  s.value = '';
+}
+function setLang(l, first){
+  if(!first) saveCode();
+  curLang = l; LS.set('cr.lang', l);
+  const L = LANGS[l];
+  $('fileName').textContent = L.file;
+  $('langSel').value = l;
+  const saved = LS.get('cr.code.' + l, null);
+  Editor.setValue(saved != null ? saved : L.tpls[0].code);
+  Editor.setMode(L.cm);
+  rebuildTpl();
+  $('stMid').textContent = engineHint();
+  renderStatusLeft();
+  if(!first) Editor.focus();
+}
+
+/* ---- 可拖拽分隔条(Pointer Events:鼠标 + 触屏) ---- */
+function initGutter(g, onMove, onReset){
+  let drag = false;
+  g.addEventListener('pointerdown', e => {
+    drag = true; g.setPointerCapture(e.pointerId);
+    g.classList.add('act'); document.body.classList.add('dragging');
+    e.preventDefault();
+  });
+  g.addEventListener('pointermove', e => { if(drag){ onMove(e); cmRefreshSoon(); } });
+  const end = () => {
+    if(!drag) return;
+    drag = false; g.classList.remove('act'); document.body.classList.remove('dragging');
+    LS.set('cr.layout', layout); Editor.refresh();
+  };
+  g.addEventListener('pointerup', end);
+  g.addEventListener('pointercancel', end);
+  g.addEventListener('dblclick', () => { onReset(); LS.set('cr.layout', layout); Editor.refresh(); });
+}
+function applyLayout(){
+  $('editorPane').style.setProperty('--edw', layout.edw + '%');
+  $('editorPane').style.setProperty('--edh', layout.edh + '%');
+  $('stdinPane').style.setProperty('--inh', layout.inh + '%');
+}
+
+/* ---- 主题 / 字号 ---- */
+function applyTheme(){
+  document.body.classList.toggle('light', settings.theme === 'light');
+  Editor.setTheme(settings.theme !== 'light');
+  $('themeBtn').textContent = settings.theme === 'light' ? '🌙' : '☀️';
+}
+function applyFont(){
+  document.documentElement.style.setProperty('--codeFs', settings.fontSize + 'px');
+  Editor.refresh();
+}
+
+/* ---- 复制 / 下载 / Toast ---- */
+async function copyText(t, label){
+  try{ await navigator.clipboard.writeText(t); toast(label + '已复制'); }
+  catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = t; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); toast(label + '已复制'); }catch(e2){ toast('复制失败'); }
+    ta.remove();
+  }
+}
+function toast(msg){
+  const d = document.createElement('div');
+  d.className = 'toast'; d.textContent = msg;
+  $('toasts').appendChild(d);
+  setTimeout(() => { d.style.transition = 'opacity .3s'; d.style.opacity = '0'; setTimeout(() => d.remove(), 350); }, 1800);
+}
+
+/* ---- 设置弹窗 ---- */
+function openModal(){
+  $('optPyEngine').value = settings.pyEngine;
+  $('optEndpoint').value = settings.endpoint;
+  $('optToken').value = settings.pistonToken;
+  $('optTimeout').value = settings.timeout; $('optTimeoutVal').textContent = settings.timeout + ' s';
+  $('optFont').value = settings.fontSize; $('optFontVal').textContent = settings.fontSize + ' px';
+  $('optAutoClear').checked = settings.autoClear;
+  $('modalBg').classList.add('show');
+}
+function closeModal(){ $('modalBg').classList.remove('show'); }
+
+/* =====================================================================
+ * CodeMirror 加载(双 CDN 逐级回退;失败保留 textarea)
+ * ===================================================================== */
+const CM_VER = '5.65.16';
+const CDNJS = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/' + CM_VER;
+const JSD = 'https://cdn.jsdelivr.net/npm/codemirror@' + CM_VER;
+function loadJs(u){ return new Promise((ok, no) => { const s = document.createElement('script'); s.src = u; s.onload = ok; s.onerror = () => no(u); document.head.appendChild(s); }); }
+function loadCss(u){ return new Promise((ok, no) => { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = u; l.onload = ok; l.onerror = () => no(u); document.head.appendChild(l); }); }
+async function chain(loader, urls){ for(const u of urls){ try{ await loader(u); return true; }catch(e){} } return false; }
+function initCM(){
+  if(!window.CodeMirror) return;
+  const v = Editor.ta.value;
+  Editor.ta.style.display = 'none';
+  Editor.cm = CodeMirror($('edHost'), {
+    value: v, mode: LANGS[curLang].cm,
+    theme: settings.theme === 'light' ? 'default' : 'material-darker',
+    lineNumbers: true, matchBrackets: true, autoCloseBrackets: true, styleActiveLine: true,
+    indentUnit: 4, tabSize: 4, indentWithTabs: false,
+    extraKeys: {
+      'Ctrl-Enter': () => doRun(), 'Cmd-Enter': () => doRun(),
+      'Ctrl-/': cm => { if(cm.toggleComment) cm.toggleComment(); },
+      'Tab': cm => cm.somethingSelected() ? cm.indentSelection('add') : cm.replaceSelection('    '),
+      'Shift-Tab': cm => cm.indentSelection('subtract')
+    }
+  });
+  Editor.cm.on('change', onCodeChange);
+  Editor.cm.on('cursorActivity', () => { const c = Editor.cm.getCursor(); setCursor(c.line + 1, c.ch + 1); });
+  Editor.refresh();
+}
+async function bootCM(){
+  chain(loadCss, [CDNJS + '/codemirror.min.css', JSD + '/lib/codemirror.css']);
+  chain(loadCss, [CDNJS + '/theme/material-darker.min.css', JSD + '/theme/material-darker.css']);
+  const core = await chain(loadJs, [CDNJS + '/codemirror.min.js', JSD + '/lib/codemirror.js']);
+  if(!core){ sys('⚠ 语法高亮组件加载失败,已降级为基础编辑模式(功能不受影响)。'); return; }
+  await Promise.all([
+    chain(loadJs, [CDNJS + '/mode/clike/clike.min.js', JSD + '/mode/clike/clike.js']),
+    chain(loadJs, [CDNJS + '/mode/python/python.min.js', JSD + '/mode/python/python.js']),
+    chain(loadJs, [CDNJS + '/addon/edit/matchbrackets.min.js', JSD + '/addon/edit/matchbrackets.js']),
+    chain(loadJs, [CDNJS + '/addon/edit/closebrackets.min.js', JSD + '/addon/edit/closebrackets.js']),
+    chain(loadJs, [CDNJS + '/addon/selection/active-line.min.js', JSD + '/addon/selection/active-line.js']),
+    chain(loadJs, [CDNJS + '/addon/comment/comment.min.js', JSD + '/addon/comment/comment.js'])
+  ]);
+  initCM();
+}
+
+/* =====================================================================
+ * 事件绑定 & 启动
+ * ===================================================================== */
+function boot(){
+  applyLayout(); applyTheme(); applyFont();
+  setLang(curLang, true);
+
+  /* 工具栏 */
+  $('langSel').addEventListener('change', e => setLang(e.target.value));
+  $('tplSel').addEventListener('change', e => {
+    const i = e.target.value; if(i === '') return;
+    const t = LANGS[curLang].tpls[+i];
+    const cur = Editor.getValue();
+    if(cur.trim() && cur !== t.code && !confirm('载入示例将替换当前代码,确定?')){ e.target.value = ''; return; }
+    Editor.setValue(t.code); saveCode(); e.target.value = ''; Editor.focus();
+  });
+  $('runBtn').addEventListener('click', doRun);
+  $('stopBtn').addEventListener('click', doStop);
+  $('themeBtn').addEventListener('click', () => {
+    settings.theme = settings.theme === 'light' ? 'dark' : 'light';
+    saveSettings(); applyTheme();
+  });
+  $('settingsBtn').addEventListener('click', openModal);
+
+  /* 编辑器头部 */
+  $('copyCodeBtn').addEventListener('click', () => copyText(Editor.getValue(), '代码'));
+  $('dlBtn').addEventListener('click', () => {
+    const blob = new Blob([Editor.getValue()], { type:'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = $('fileName').textContent || ('main.' + LANGS[curLang].ext);
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  });
+
+  /* 输出区 */
+  $('copyOutBtn').addEventListener('click', () => copyText($('outEl').innerText, '输出'));
+  $('clearOutBtn').addEventListener('click', clearOut);
+
+  /* textarea 降级模式事件 */
+  const ta = Editor.ta;
+  ta.addEventListener('input', onCodeChange);
+  ['keyup','click'].forEach(ev => ta.addEventListener(ev, taCursor));
+  ta.addEventListener('keydown', e => {
+    if(e.key === 'Tab'){
+      e.preventDefault();
+      const s = ta.selectionStart, en = ta.selectionEnd;
+      ta.value = ta.value.slice(0, s) + '    ' + ta.value.slice(en);
+      ta.selectionStart = ta.selectionEnd = s + 4;
+      onCodeChange();
+    }
+  });
+
+  /* 分隔条 */
+  const mainEl = $('main'), edPane = $('editorPane'), ioPane = $('ioPane'), inPane = $('stdinPane');
+  initGutter($('gutterV'), e => {
+    const r = mainEl.getBoundingClientRect();
+    if(window.innerWidth <= 760){
+      layout.edh = clamp((e.clientY - r.top) / r.height * 100, 15, 85);
+      edPane.style.setProperty('--edh', layout.edh + '%');
+    } else {
+      layout.edw = clamp((e.clientX - r.left) / r.width * 100, 15, 85);
+      edPane.style.setProperty('--edw', layout.edw + '%');
+    }
+  }, () => { layout.edw = 58; layout.edh = 50; applyLayout(); });
+  initGutter($('gutterH'), e => {
+    const r = ioPane.getBoundingClientRect();
+    layout.inh = clamp((e.clientY - r.top) / r.height * 100, 10, 85);
+    inPane.style.setProperty('--inh', layout.inh + '%');
+  }, () => { layout.inh = 32; applyLayout(); });
+
+  /* 设置弹窗 */
+  $('modalCloseBtn').addEventListener('click', closeModal);
+  $('modalBg').addEventListener('click', e => { if(e.target.id === 'modalBg') closeModal(); });
+  $('optPyEngine').addEventListener('change', e => { settings.pyEngine = e.target.value; saveSettings(); $('stMid').textContent = engineHint(); });
+  $('optEndpoint').addEventListener('change', e => { settings.endpoint = e.target.value.trim(); saveSettings(); toast('端点已保存'); });
+  $('optToken').addEventListener('change', e => { settings.pistonToken = e.target.value.trim(); saveSettings(); toast('Token 已保存'); });
+  $('optTimeout').addEventListener('input', e => { settings.timeout = +e.target.value; $('optTimeoutVal').textContent = settings.timeout + ' s'; saveSettings(); });
+  $('optFont').addEventListener('input', e => { settings.fontSize = +e.target.value; $('optFontVal').textContent = settings.fontSize + ' px'; saveSettings(); applyFont(); });
+  $('optAutoClear').addEventListener('change', e => { settings.autoClear = e.target.checked; saveSettings(); });
+  $('resetLayoutBtn').addEventListener('click', () => { layout = { edw:58, edh:50, inh:32 }; applyLayout(); LS.set('cr.layout', layout); Editor.refresh(); toast('布局已重置'); });
+  $('resetAllBtn').addEventListener('click', () => {
+    if(!confirm('将清除本工具保存的所有设置与代码,确定?')) return;
+    try{ Object.keys(localStorage).filter(k => k.startsWith('cr.')).forEach(k => localStorage.removeItem(k)); }catch(e){}
+    location.reload();
+  });
+
+  /* 全局快捷键 */
+  document.addEventListener('keydown', e => {
+    if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); doRun(); }
+    else if((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')){ e.preventDefault(); saveCode(); toast('已保存到浏览器本地'); }
+    else if(e.key === 'Escape') closeModal();
+  });
+  window.addEventListener('resize', cmRefreshSoon);
+  window.addEventListener('beforeunload', () => { try{ saveCode(); }catch(e){} });
+
+  /* 欢迎信息 */
+  sys('欢迎使用 CodeStudio ⚡ 选择语言 → 写代码 → Ctrl+Enter 运行。');
+  sys('Python 默认在浏览器本地执行(首次需加载运行时);C++/Java 走多重云端沙箱自动容灾。');
+  sys('拖动分隔条可自由调整各区域比例(双击复位);代码按语言自动保存。');
+  $('stMid').textContent = engineHint();
+
+  bootCM();
+}
+document.addEventListener('DOMContentLoaded', boot);
+</script>
+</body>
+</html>

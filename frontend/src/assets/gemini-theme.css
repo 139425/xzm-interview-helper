@@ -1,0 +1,561 @@
+/* ========================================
+   Gemini 风格主题样式
+   ======================================== */
+
+/* --- CSS 变量定义 --- */
+:root {
+  /* === 颜色系统 === */
+  /* 背景色 - 使用参考代码的颜色方案 */
+  --gemini-bg-primary: #131314;
+  --gemini-bg-secondary: #131314;
+  --gemini-bg-tertiary: #131314;
+  --gemini-bg-hover: #333;
+  --gemini-bg-active: #444;
+  
+  /* 文字颜色 */
+  --gemini-text-primary: #e0e0e0;
+  --gemini-text-secondary: #b0b0b0;
+  --gemini-text-tertiary: #888;
+  --gemini-text-disabled: #666;
+  
+  /* 强调色 */
+  --gemini-accent-blue: #8ab4f8;
+  --gemini-accent-green: #81c995;
+  --gemini-accent-yellow: #fdd663;
+  --gemini-accent-red: #f28b82;
+  
+  /* 边框颜色 */
+  --gemini-border-color: #333;
+  --gemini-border-hover: #444;
+  --gemini-border-focus: #555;
+  
+  /* === 尺寸系统 === */
+  /* 侧边栏 */
+  --gemini-sidebar-width: 280px;
+  --gemini-sidebar-width-expanded: 240px;
+  --gemini-sidebar-width-collapsed: 72px;
+  --gemini-sidebar-width-mobile: 0px;
+  
+  /* 右侧面板 */
+  --gemini-right-panel-width: 280px;
+  
+  /* 输入框 */
+  --gemini-prompt-bar-max-width: 768px;
+  --gemini-prompt-bar-border-radius: 28px;
+  --gemini-prompt-bar-padding: 14px 20px;
+  --prompt-bar-height: 100px;
+  
+  /* 内容区域 */
+  --gemini-content-max-width: 1024px;
+  
+  /* 圆角 */
+  --gemini-radius-sm: 8px;
+  --gemini-radius-md: 12px;
+  --gemini-radius-lg: 16px;
+  --gemini-radius-xl: 24px;
+  --gemini-radius-full: 9999px;
+  
+  /* 间距 */
+  --gemini-spacing-xs: 4px;
+  --gemini-spacing-sm: 8px;
+  --gemini-spacing-md: 12px;
+  --gemini-spacing-lg: 16px;
+  --gemini-spacing-xl: 24px;
+  --gemini-spacing-2xl: 32px;
+  
+  /* === 动画系统 === */
+  /* 过渡时间 */
+  --gemini-transition-fast: 0.15s;
+  --gemini-transition-normal: 0.3s;
+  --gemini-transition-slow: 0.5s;
+  
+  /* 缓动函数 */
+  --gemini-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --gemini-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --gemini-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  
+  /* === 阴影系统 === */
+  --gemini-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --gemini-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --gemini-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --gemini-shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.5);
+  
+  /* === Z-index 层级 === */
+  --gemini-z-sidebar: 1000;
+  --gemini-z-header: 900;
+  --gemini-z-dropdown: 1100;
+  --gemini-z-modal: 1200;
+  --gemini-z-tooltip: 1300;
+}
+
+/* --- 动画关键帧 --- */
+
+/* 淡入 */
+@keyframes gemini-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 淡出 */
+@keyframes gemini-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* 上滑淡入 */
+@keyframes gemini-slide-up-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 下滑淡出 */
+@keyframes gemini-slide-down-fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+/* 左滑进入 */
+@keyframes gemini-slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* 左滑退出 */
+@keyframes gemini-slide-out-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* 缩放进入 */
+@keyframes gemini-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 缩放退出 */
+@keyframes gemini-scale-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* 脉冲动画 */
+@keyframes gemini-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* 旋转动画 */
+@keyframes gemini-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- 工具类 --- */
+
+/* 动画类 */
+.gemini-fade-in {
+  animation: gemini-fade-in var(--gemini-transition-normal) var(--gemini-ease-out);
+}
+
+.gemini-fade-out {
+  animation: gemini-fade-out var(--gemini-transition-normal) var(--gemini-ease-in);
+}
+
+.gemini-slide-up-fade-in {
+  animation: gemini-slide-up-fade-in var(--gemini-transition-normal) var(--gemini-ease-out);
+}
+
+.gemini-slide-down-fade-out {
+  animation: gemini-slide-down-fade-out var(--gemini-transition-normal) var(--gemini-ease-in);
+}
+
+.gemini-scale-in {
+  animation: gemini-scale-in var(--gemini-transition-fast) var(--gemini-ease-out);
+}
+
+.gemini-scale-out {
+  animation: gemini-scale-out var(--gemini-transition-fast) var(--gemini-ease-in);
+}
+
+/* 过渡类 */
+.gemini-transition-all {
+  transition: all var(--gemini-transition-normal) var(--gemini-ease-in-out);
+}
+
+.gemini-transition-fast {
+  transition: all var(--gemini-transition-fast) var(--gemini-ease-in-out);
+}
+
+.gemini-transition-slow {
+  transition: all var(--gemini-transition-slow) var(--gemini-ease-in-out);
+}
+
+/* 硬件加速 */
+.gemini-gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+/* --- 响应式断点 --- */
+
+/* 移动端 (≤768px) */
+@media (max-width: 768px) {
+  :root {
+    --gemini-sidebar-width: 0px;
+    --gemini-sidebar-width-collapsed: 0px;
+    --gemini-right-panel-width: 0px;
+    --gemini-content-max-width: 100%;
+  }
+}
+
+/* 平板 (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  :root {
+    --gemini-content-max-width: 90%;
+  }
+}
+
+/* 桌面 (>1024px) */
+@media (min-width: 1025px) {
+  :root {
+    --gemini-content-max-width: 1024px;
+  }
+}
+
+/* --- 全局样式覆盖 --- */
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gemini-bg-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gemini-border-color);
+  border-radius: 4px;
+  transition: background var(--gemini-transition-fast);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gemini-border-hover);
+}
+
+/* Firefox 滚动条 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gemini-border-color) var(--gemini-bg-secondary);
+}
+
+/* 亮色主题滚动条样式 */
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: #d0d0d0;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: #b0b0b0;
+}
+
+[data-theme="light"] * {
+  scrollbar-color: #d0d0d0 #f5f5f5;
+}
+
+/* 亮色主题滚动条样式 */
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: #d0d0d0;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: #b0b0b0;
+}
+
+[data-theme="light"] * {
+  scrollbar-color: #d0d0d0 #f5f5f5;
+}
+
+/* 选中文本样式 */
+::selection {
+  background-color: var(--gemini-accent-blue);
+  color: var(--gemini-bg-primary);
+}
+
+::-moz-selection {
+  background-color: var(--gemini-accent-blue);
+  color: var(--gemini-bg-primary);
+}
+
+/* --- Gemini 风格组件基础样式 --- */
+
+/* 按钮基础样式 */
+.gemini-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gemini-spacing-sm);
+  padding: var(--gemini-spacing-sm) var(--gemini-spacing-lg);
+  border: none;
+  border-radius: var(--gemini-radius-full);
+  background-color: var(--gemini-bg-tertiary);
+  color: var(--gemini-text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--gemini-transition-fast) var(--gemini-ease-in-out);
+  user-select: none;
+}
+
+.gemini-button:hover {
+  background-color: var(--gemini-bg-hover);
+  transform: translateY(-1px);
+}
+
+.gemini-button:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.gemini-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 图标按钮 */
+.gemini-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: var(--gemini-radius-full);
+  background-color: transparent;
+  color: var(--gemini-text-secondary);
+  font-size: 24px;
+  cursor: pointer;
+  transition: all var(--gemini-transition-fast) var(--gemini-ease-in-out);
+}
+
+.gemini-icon-button:hover {
+  background-color: var(--gemini-bg-tertiary);
+  color: var(--gemini-text-primary);
+}
+
+.gemini-icon-button:active {
+  transform: scale(0.95);
+}
+
+/* 输入框基础样式 */
+.gemini-input {
+  width: 100%;
+  padding: var(--gemini-spacing-md) var(--gemini-spacing-lg);
+  border: 1px solid var(--gemini-border-color);
+  border-radius: var(--gemini-radius-lg);
+  background-color: var(--gemini-bg-secondary);
+  color: var(--gemini-text-primary);
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  transition: all var(--gemini-transition-fast) var(--gemini-ease-in-out);
+}
+
+.gemini-input:hover {
+  border-color: var(--gemini-border-hover);
+}
+
+.gemini-input:focus {
+  border-color: var(--gemini-accent-blue);
+  box-shadow: 0 0 0 3px rgba(138, 180, 248, 0.1);
+}
+
+.gemini-input::placeholder {
+  color: var(--gemini-text-tertiary);
+}
+
+/* 卡片样式 */
+.gemini-card {
+  background-color: var(--gemini-bg-secondary);
+  border: 1px solid var(--gemini-border-color);
+  border-radius: var(--gemini-radius-lg);
+  padding: var(--gemini-spacing-xl);
+  box-shadow: var(--gemini-shadow-sm);
+  transition: all var(--gemini-transition-fast) var(--gemini-ease-in-out);
+}
+
+.gemini-card:hover {
+  box-shadow: var(--gemini-shadow-md);
+  border-color: var(--gemini-border-hover);
+}
+
+/* 分隔线 */
+.gemini-divider {
+  height: 1px;
+  background-color: var(--gemini-border-color);
+  border: none;
+  margin: var(--gemini-spacing-lg) 0;
+}
+
+/* 徽章 */
+.gemini-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: var(--gemini-radius-full);
+  background-color: var(--gemini-accent-blue);
+  color: var(--gemini-bg-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* 工具提示 */
+.gemini-tooltip {
+  position: absolute;
+  padding: var(--gemini-spacing-sm) var(--gemini-spacing-md);
+  background-color: var(--gemini-bg-tertiary);
+  color: var(--gemini-text-primary);
+  font-size: 0.875rem;
+  border-radius: var(--gemini-radius-sm);
+  box-shadow: var(--gemini-shadow-md);
+  white-space: nowrap;
+  z-index: var(--gemini-z-tooltip);
+  pointer-events: none;
+}
+
+/* --- 性能优化 --- */
+
+/* 减少重绘 */
+.gemini-will-change-transform {
+  will-change: transform;
+}
+
+.gemini-will-change-opacity {
+  will-change: opacity;
+}
+
+.gemini-will-change-auto {
+  will-change: auto;
+}
+
+/* 硬件加速 */
+.gemini-hardware-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* --- 辅助类 --- */
+
+/* 文本截断 */
+.gemini-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 多行截断 */
+.gemini-line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.gemini-line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 隐藏滚动条 */
+.gemini-hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.gemini-hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* 平滑滚动 */
+.gemini-smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+/* 禁用选择 */
+.gemini-no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* 指针事件 */
+.gemini-pointer-events-none {
+  pointer-events: none;
+}
+
+.gemini-pointer-events-auto {
+  pointer-events: auto;
+}

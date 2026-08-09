@@ -1,0 +1,10 @@
+ARG BASE_IMAGE=xzm-python-ai-base:latest
+FROM ${BASE_IMAGE}
+
+WORKDIR /app
+COPY . /app
+
+EXPOSE 9090
+EXPOSE 50051
+
+CMD ["python", "main.py"]

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xzm.xzm_interview_helper.mapper.AiInterviewMapper">
+
+    <resultMap id="BaseResultMap" type="com.xzm.xzm_interview_helper.model.entity.AiInterview">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="user_id" column="user_id" jdbcType="INTEGER"/>
+            <result property="interview_id" column="interview_id" jdbcType="INTEGER"/>
+            <result property="user_description" column="user_description" jdbcType="VARCHAR"/>
+            <result property="is_finish" column="is_finish" jdbcType="TINYINT"/>
+            <result property="create_time" column="create_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,user_id,interview_id,
+        user_description,is_finish,create_time
+    </sql>
+</mapper>

@@ -1,0 +1,447 @@
+/**
+ * surface.css — V2 极简白纸风
+ *
+ * 取代 V1 glass.css。保留同名类（.xzm-glass*）以确保存量组件零侵入：
+ *   .xzm-glass          → 不透明 surface-1 + 1px border + 弱阴影
+ *   .xzm-glass--strong  → 同上，更高对比 surface-elevated
+ *   .xzm-glass--soft    → 同上，背景一致但 border-color 更弱
+ *
+ * 同时提供：
+ *   - 按钮 (.xzm-btn / .xzm-btn--primary / .xzm-btn--ghost / .xzm-btn--icon)
+ *   - 输入框 (.xzm-input)
+ *   - chip (.xzm-chip)
+ *   - 滚动条 (.xzm-scrollbar)
+ *   - 实用类 (truncate / line-clamp / sr-only)
+ *   - 动效辅助 (xzm-fade-in / xzm-spin)
+ *
+ * 严格遵循 docs/minimalism.md：
+ *   - 无 backdrop-filter
+ *   - 无 transform: scale 反馈
+ *   - 无渐变背景/文字/边框
+ *   - 仅 200ms ease-out 过渡
+ */
+
+/* ============================================
+   1) Surface 面板（向后兼容 .xzm-glass*）
+   ============================================ */
+.xzm-glass,
+.xzm-surface {
+  background-color: var(--xzm-surface-1);
+  border: 1px solid var(--xzm-border-color);
+  border-radius: var(--xzm-radius-lg);
+  box-shadow: var(--xzm-shadow-soft);
+}
+
+.xzm-glass--strong,
+.xzm-surface--strong {
+  background-color: var(--xzm-surface-elevated);
+  border-color: var(--xzm-border-color-strong);
+  box-shadow: var(--xzm-shadow-medium);
+}
+
+.xzm-glass--soft,
+.xzm-surface--soft {
+  background-color: var(--xzm-surface-1);
+  border-color: var(--xzm-border-color);
+  box-shadow: none;
+}
+
+.xzm-glass--rounded-pill { border-radius: var(--xzm-radius-full); }
+.xzm-glass--rounded-xl   { border-radius: var(--xzm-radius-xl); }
+.xzm-glass--rounded-2xl  { border-radius: var(--xzm-radius-2xl); }
+
+/* ============================================
+   2) 渐变兼容类（V2 不再有渐变，降级为单色）
+   ============================================ */
+.xzm-text-gradient {
+  color: var(--xzm-text-primary);
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: currentColor;
+}
+.xzm-border-gradient {
+  position: relative;
+}
+.xzm-border-gradient::before {
+  content: none;
+}
+
+/* ============================================
+   3) 按钮
+   ============================================ */
+.xzm-btn {
+  --xzm-btn-bg: transparent;
+  --xzm-btn-fg: var(--xzm-text-primary);
+  --xzm-btn-bd: var(--xzm-border-color);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--xzm-space-2);
+  padding: 0 var(--xzm-space-4);
+  height: 36px;
+  font-family: var(--xzm-font-sans);
+  font-size: var(--xzm-fs-sm);
+  font-weight: var(--xzm-fw-medium);
+  color: var(--xzm-btn-fg);
+  background-color: var(--xzm-btn-bg);
+  border: 1px solid var(--xzm-btn-bd);
+  border-radius: var(--xzm-radius-md);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color var(--xzm-duration-fast) var(--xzm-ease-out),
+    border-color var(--xzm-duration-fast) var(--xzm-ease-out),
+    color var(--xzm-duration-fast) var(--xzm-ease-out);
+}
+.xzm-btn:hover {
+  background-color: var(--xzm-hover-bg);
+}
+.xzm-btn:disabled,
+.xzm-btn[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Primary —— 单色填充（不再渐变） */
+.xzm-btn--primary {
+  --xzm-btn-bg: var(--xzm-brand);
+  --xzm-btn-fg: var(--xzm-text-on-brand);
+  --xzm-btn-bd: transparent;
+}
+.xzm-btn--primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+.xzm-btn--primary:active:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+/* Ghost —— 无边框 */
+.xzm-btn--ghost {
+  --xzm-btn-bd: transparent;
+}
+
+/* Icon —— 方形 */
+.xzm-btn--icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: var(--xzm-radius-sm);
+  --xzm-btn-bd: transparent;
+}
+.xzm-btn--icon-sm { width: 28px; height: 28px; }
+.xzm-btn--icon-lg { width: 36px; height: 36px; }
+
+/* ============================================
+   4) 输入框
+   ============================================ */
+.xzm-input {
+  display: block;
+  width: 100%;
+  height: 36px;
+  padding: 0 var(--xzm-space-3);
+  font: inherit;
+  color: var(--xzm-text-primary);
+  background-color: var(--xzm-surface-0);
+  border: 1px solid var(--xzm-border-color);
+  border-radius: var(--xzm-radius-md);
+  transition:
+    border-color var(--xzm-duration-fast) var(--xzm-ease-out),
+    background-color var(--xzm-duration-fast) var(--xzm-ease-out);
+}
+.xzm-input:hover {
+  border-color: var(--xzm-border-color-hover);
+}
+.xzm-input:focus,
+.xzm-input:focus-visible {
+  border-color: var(--xzm-brand);
+  outline: 2px solid var(--xzm-focus-ring);
+  outline-offset: 0;
+}
+.xzm-input::placeholder { color: var(--xzm-text-muted); }
+
+/* ============================================
+   5) Chip
+   ============================================ */
+.xzm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--xzm-space-1);
+  padding: 0 var(--xzm-space-3);
+  height: 26px;
+  font-size: var(--xzm-fs-xs);
+  color: var(--xzm-text-secondary);
+  background-color: var(--xzm-surface-2);
+  border: 1px solid transparent;
+  border-radius: var(--xzm-radius-full);
+  cursor: pointer;
+  transition:
+    background-color var(--xzm-duration-fast) var(--xzm-ease-out),
+    color var(--xzm-duration-fast) var(--xzm-ease-out);
+}
+.xzm-chip:hover {
+  background-color: var(--xzm-surface-3);
+  color: var(--xzm-text-primary);
+}
+
+/* ============================================
+   6) 滚动条
+   ============================================ */
+.xzm-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--xzm-scrollbar-thumb) var(--xzm-scrollbar-track);
+}
+.xzm-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.xzm-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.xzm-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--xzm-scrollbar-thumb);
+  border-radius: var(--xzm-radius-full);
+}
+.xzm-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--xzm-scrollbar-thumb-hover);
+}
+
+/* ============================================
+   7) Focus ring
+   ============================================ */
+.xzm-focus-ring:focus-visible {
+  outline: 2px solid var(--xzm-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--xzm-radius-sm);
+}
+
+/* ============================================
+   8) 动效辅助 —— 仅保留 fade-in / spin
+   ============================================ */
+@keyframes xzm-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.xzm-fade-in {
+  animation: xzm-fade-in var(--xzm-duration-normal) var(--xzm-ease-out) both;
+}
+
+@keyframes xzm-spin {
+  to { transform: rotate(360deg); }
+}
+.xzm-spin {
+  animation: xzm-spin 1s linear infinite;
+}
+
+/* ============================================
+   9) 实用类
+   ============================================ */
+.xzm-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.xzm-line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.xzm-sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
+}
+
+/* ============================================
+   10) 旧组件 override —— 全部去玻璃、去渐变、去 scale
+   ============================================ */
+
+/* GeminiSidebar */
+.gemini-sidebar {
+  background-color: var(--xzm-surface-1) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  border-right: 1px solid var(--xzm-border-color) !important;
+  box-shadow: none !important;
+}
+
+/* GeminiPromptBar —— 浮岛白底 */
+.gemini-prompt-bar {
+  background-color: var(--xzm-surface-1) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  border: 1px solid var(--xzm-border-color) !important;
+  box-shadow: var(--xzm-shadow-medium) !important;
+  border-radius: var(--xzm-radius-lg) !important;
+  transition:
+    border-color var(--xzm-duration-fast) var(--xzm-ease-out),
+    box-shadow var(--xzm-duration-fast) var(--xzm-ease-out) !important;
+}
+.gemini-prompt-bar.focused {
+  border-color: var(--xzm-brand) !important;
+  box-shadow: var(--xzm-shadow-medium) !important;
+}
+.gemini-prompt-bar.position-bottom {
+  bottom: 16px !important;
+  background-color: var(--xzm-surface-1) !important;
+}
+
+/* PromptBar 内部按钮：去渐变、去 scale */
+.gemini-prompt-bar .send-btn {
+  background: var(--xzm-brand) !important;
+  border: none !important;
+  color: var(--xzm-text-on-brand) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition:
+    filter var(--xzm-duration-fast) var(--xzm-ease-out),
+    background-color var(--xzm-duration-fast) var(--xzm-ease-out) !important;
+}
+.gemini-prompt-bar .send-btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow: none !important;
+  transform: none !important;
+}
+.gemini-prompt-bar .send-btn:active:not(:disabled) {
+  filter: brightness(0.95);
+  transform: none !important;
+}
+
+/* WelcomeSection 容器透明 */
+.welcome-section {
+  background: transparent !important;
+}
+
+/* Auth / UserManagement / NotFound 页面 */
+.auth-container,
+.user-management-container,
+.not-found-container {
+  background: var(--xzm-surface-0) !important;
+  color: var(--xzm-text-primary) !important;
+}
+
+.auth-card,
+.not-found-content {
+  background-color: var(--xzm-surface-1) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  border: 1px solid var(--xzm-border-color) !important;
+  border-radius: var(--xzm-radius-lg) !important;
+  box-shadow: var(--xzm-shadow-medium) !important;
+}
+
+.auth-container .submit-btn,
+.user-management-container .primary-btn,
+.not-found-container .home-btn {
+  background: var(--xzm-brand) !important;
+  border: none !important;
+  color: var(--xzm-text-on-brand) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition:
+    filter var(--xzm-duration-fast) var(--xzm-ease-out) !important;
+}
+.auth-container .submit-btn:hover,
+.user-management-container .primary-btn:hover,
+.not-found-container .home-btn:hover {
+  filter: brightness(1.06) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* 面试页 / 报告页 */
+.gemini-interview-page,
+.report-page {
+  background: var(--xzm-surface-0) !important;
+  color: var(--xzm-text-primary) !important;
+}
+
+.gemini-interview-page .resume-card,
+.gemini-interview-page .preparing-card,
+.gemini-interview-page .input-card,
+.gemini-interview-page .action-card,
+.gemini-interview-page .evaluation-card,
+.report-page .report-cover,
+.report-page .summary-section,
+.report-page .round-card,
+.report-page .retry-card,
+.report-page .stats-card {
+  background-color: var(--xzm-surface-1) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  border: 1px solid var(--xzm-border-color) !important;
+  border-radius: var(--xzm-radius-lg) !important;
+  box-shadow: var(--xzm-shadow-soft) !important;
+}
+
+.report-page .report-header,
+.gemini-interview-page .top-bar {
+  background-color: var(--xzm-surface-1) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  border-bottom: 1px solid var(--xzm-border-color) !important;
+}
+
+/* ============================================
+   11) 全局 reset：禁用 transform: scale 反馈，统一为色彩反馈
+        优先级用 !important 覆盖任何 scoped 样式。
+   ============================================ */
+
+/* PromptBar 内部按钮 —— 全部禁止 scale */
+.gemini-prompt-bar .send-btn,
+.gemini-prompt-bar .send-btn:hover,
+.gemini-prompt-bar .send-btn:active,
+.gemini-prompt-bar .send-btn:focus {
+  transform: none !important;
+}
+
+/* Sidebar 展开按钮 */
+.sidebar-expand-btn,
+.sidebar-expand-btn:hover,
+.sidebar-expand-btn:active,
+.sidebar-expand-btn:focus {
+  transform: none !important;
+  box-shadow: var(--xzm-shadow-soft) !important;
+  background-color: var(--xzm-surface-1) !important;
+  border-color: var(--xzm-border-color) !important;
+  transition:
+    background-color var(--xzm-duration-fast) var(--xzm-ease-out),
+    border-color var(--xzm-duration-fast) var(--xzm-ease-out) !important;
+}
+.sidebar-expand-btn:hover {
+  background-color: var(--xzm-hover-bg) !important;
+  border-color: var(--xzm-border-color-hover) !important;
+}
+
+/* PromptBar 整体 transition：禁用 transition: all（避免 box-shadow 拖尾） */
+.gemini-prompt-bar .send-btn {
+  transition:
+    background-color var(--xzm-duration-fast) var(--xzm-ease-out),
+    border-color var(--xzm-duration-fast) var(--xzm-ease-out),
+    color var(--xzm-duration-fast) var(--xzm-ease-out),
+    filter var(--xzm-duration-fast) var(--xzm-ease-out) !important;
+}
+
+/* 兜底：xzm-no-scale 工具类 */
+.xzm-no-scale,
+.xzm-no-scale * {
+  transform: none !important;
+}
+
+/* 全局禁用 hover/active 的 scale 反馈（不影响 keyframes 内的 transform） */
+.gemini-prompt-bar *:hover,
+.gemini-prompt-bar *:active,
+.gemini-sidebar *:hover,
+.gemini-sidebar *:active,
+.text-edit-modal *:hover,
+.text-edit-modal *:active,
+.xzm-user-avatar:hover,
+.xzm-user-avatar:active,
+.xzm-user-avatar *:hover,
+.xzm-user-avatar *:active,
+.voice-recorder-btn:hover,
+.voice-recorder-btn:active {
+  transform: none !important;
+}

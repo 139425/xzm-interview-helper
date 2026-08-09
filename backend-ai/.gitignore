@@ -1,0 +1,50 @@
+# Environment variables
+.env
+deepseek.local.json
+/.local-secrets/
+/xzm_interview_helper_backend_ai.zip
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.hypothesis/
+chroma_db/rag_v2_lexical_cache.json
+chroma_db/rag_v2_lexical_cache.json.tmp
+
+# Logs
+*.log

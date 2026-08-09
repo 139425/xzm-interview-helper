@@ -1,0 +1,313 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>在线简历编辑器</title>
+  <style>
+    :root{--bg:#eef2f7;--panel:#fff;--line:#d7dee8;--text:#1f2937;--muted:#6b7280;--accent:#1d4a85;--fs:11.5px;--lh:1.6;--sg:14px;--rc:#222}
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;height:100%;font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;background:var(--bg);color:var(--text)}
+    button,input,textarea,select{font:inherit}
+    .top{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;gap:8px;padding:10px 14px;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+    .grp{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .top button{padding:7px 10px;border-radius:8px;border:1px solid #c8d1df;background:#fff;cursor:pointer}
+    .top button:hover{background:#f5f8fd}
+    .top .pri{background:var(--accent);border-color:var(--accent);color:#fff}
+    .top .pri:hover{background:#183b6a}
+    .status{font-size:12px;color:var(--muted);white-space:nowrap}
+    .wrap{display:grid;grid-template-columns:370px 1fr;height:calc(100vh - 61px)}
+    .editor{overflow:auto;border-right:1px solid var(--line);padding:12px;background:#f8fafe}
+    .box{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:10px;margin-bottom:10px}
+    .box h3{margin:0 0 8px;font-size:14px}
+    .module{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;border:1px solid #e2e8f1;border-radius:10px;padding:7px;margin-bottom:7px;background:#fff}
+    .module.hide{opacity:.58}
+    .module .t{border:0;background:transparent;padding:0;text-align:left;cursor:pointer;font-size:13px;font-weight:600}
+    .ops{display:flex;gap:5px}
+    .ops button{padding:2px 7px;font-size:12px;border-radius:7px}
+    .f{width:100%;padding:7px 8px;border-radius:8px;border:1px solid #cfd8e6;background:#fff;outline:none}
+    .f:focus{border-color:#3f76bc}
+    textarea.f{resize:vertical;min-height:42px}
+    .g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .field{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#4b5563}
+    .arr{border:1px solid #e1e7f0;border-radius:10px;padding:8px;background:#fff;margin-bottom:8px}
+    .arr.dragover{outline:1px dashed #2563eb}
+    .arrh{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#677085;font-weight:600;margin-bottom:6px}
+    .add{width:100%;padding:6px 9px;border:1px dashed #7c90af;background:#f6faff;color:#204f90;border-radius:8px;cursor:pointer}
+    .add:hover{background:#edf5ff}
+    .pre{overflow:auto;padding:16px}
+    .page{width:210mm;max-width:100%;min-height:297mm;margin:0 auto;background:#fff;border:1px solid #d9dee7;box-shadow:0 8px 24px rgba(0,0,0,.08);padding:14mm 13mm 12mm;font-size:var(--fs);line-height:var(--lh);overflow-wrap:anywhere}
+    .hd{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start}
+    .nrow{display:flex;justify-content:flex-start;align-items:flex-end;gap:16px;flex-wrap:wrap}
+    .nm{font-size:26px;font-weight:700;line-height:1.1}
+    .mi{font-size:12px;color:#4b5563;white-space:nowrap;line-height:1.3;padding-bottom:0;display:inline-flex;align-items:center;gap:7px}
+    .crow{display:flex;gap:16px;flex-wrap:wrap;margin-top:7px}
+    .crow span{display:inline-flex;align-items:center;gap:5px}
+    .av{width:23mm;height:30mm;border:1px solid #333;background:#fafafa;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#6b7280;font-size:12px}
+    .av img{width:100%;height:100%;object-fit:cover}
+    .sec{margin-top:var(--sg);break-inside:avoid;page-break-inside:avoid}
+    .st{display:flex;align-items:flex-end;gap:10px;margin-bottom:6px}
+    .st h2{margin:0;font-size:17px;font-weight:800;color:var(--rc);white-space:nowrap}
+    .st .ln{flex:1;border-bottom:1px solid #2c2c2c;transform:translateY(-2px)}
+    .eh{display:grid;grid-template-columns:1.5fr 1fr auto;gap:10px;align-items:baseline}
+    .el{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+    .tag{font-size:11px;color:#6b7280}
+    .dt{font-size:11px;color:#6b7280;white-space:nowrap;text-align:right}
+    .aw{margin:4px 0 0;padding-left:14px;display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));gap:2px 14px}
+    .ent{margin-top:6px}
+    .ehd{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center}
+    .cmp{display:flex;align-items:center;gap:6px;font-weight:700}
+    .logo{width:14px;height:14px;border-radius:3px;object-fit:cover;border:1px solid #d5d9e2}
+    .role{font-weight:600;white-space:nowrap}
+    .ttl{margin-top:2px;font-weight:700}
+    .bul{margin:3px 0 0 16px;padding:0}
+    .bul li{margin:2px 0}
+    .plink{font-size:11px;color:#1f4f8f;text-decoration:none}
+    .plink:hover{text-decoration:underline}
+    .skill{margin:4px 0}
+    .clk{cursor:pointer}
+    .clk:hover{outline:1px dashed #89a2c4;outline-offset:1px}
+    .theme{position:fixed;top:72px;right:16px;z-index:25;width:290px;padding:11px;border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:0 8px 24px rgba(15,23,42,.16);display:none}
+    .theme.open{display:block}
+    .th{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:700;margin-bottom:8px}
+    .toastw{position:fixed;right:16px;top:16px;z-index:99;display:grid;gap:8px;pointer-events:none}
+    .toast{background:#111827;color:#fff;padding:8px 12px;border-radius:9px;font-size:12px;opacity:0;transform:translateY(-5px);transition:.2s}
+    .toast.show{opacity:1;transform:none}
+    .toast.err{background:#9f1239}
+    .mode-preview .editor,.mode-preview .edit-only{display:none!important}
+    .mode-preview .wrap{grid-template-columns:1fr}
+    .mode-preview .pre{padding:10px 0 20px}
+    @media (max-width:1100px){.wrap{grid-template-columns:1fr;height:auto}.editor{border-right:0;border-bottom:1px solid var(--line);max-height:52vh}}
+    @media print{
+      @page{size:A4;margin:0}
+      html,body{background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      .top,.editor,.theme,.toastw{display:none!important}
+      .wrap{display:block!important;height:auto!important}
+      .pre{padding:0!important;overflow:visible!important}
+      .page{width:210mm!important;max-width:210mm!important;min-height:297mm!important;margin:0!important;border:0!important;box-shadow:none!important;padding:14mm 13mm 12mm!important}
+      a{color:#111!important;text-decoration:none!important}
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="mode-edit">
+    <header class="top">
+      <div class="grp">
+        <button id="modeBtn" class="pri" type="button">预览模式</button>
+        <button id="printBtn" type="button">打印 / 导出 PDF</button>
+      </div>
+      <div class="grp edit-only">
+        <button id="boldBtn" type="button">加粗 Ctrl/⌘+B</button>
+        <button id="importBtn" type="button">导入 JSON</button>
+        <button id="exportBtn" type="button">导出 JSON</button>
+        <button id="themeBtn" type="button">主题/版式</button>
+        <button id="sampleBtn" type="button">示例模板</button>
+        <button id="resetBtn" type="button">清空为空白</button>
+      </div>
+      <div class="status" id="saveStatus">未保存模式（刷新后清空）</div>
+    </header>
+    <div class="wrap">
+      <aside id="editor" class="editor"></aside>
+      <main class="pre"><div id="page" class="page"></div></main>
+    </div>
+  </div>
+
+  <div id="theme" class="theme edit-only">
+    <div class="th"><span>主题/版式设置</span><button id="themeClose" type="button">关闭</button></div>
+    <div class="single-col">
+      <label class="field">字号<select id="tFont" class="f"><option value="sm">小</option><option value="md">中</option><option value="lg">大</option></select></label>
+      <label class="field">行距<select id="tLine" class="f"><option value="compact">紧凑</option><option value="normal">标准</option><option value="loose">宽松</option></select></label>
+      <label class="field">强调色<select id="tAccent" class="f"><option value="mono">黑灰</option><option value="deepblue">深蓝</option></select></label>
+      <label class="field">模块间距<select id="tGap" class="f"><option value="sm">小</option><option value="md">中</option><option value="lg">大</option></select></label>
+      <label class="field">头像显示<select id="tAvatar" class="f"><option value="true">显示</option><option value="false">隐藏</option></select></label>
+    </div>
+  </div>
+
+  <div id="toastw" class="toastw" aria-live="polite"></div>
+  <input id="importInput" type="file" accept=".json,application/json" hidden>
+  <input id="avatarInput" type="file" accept="image/*" hidden>
+  <input id="logoInput" type="file" accept="image/*" hidden>
+
+  <script>
+    (()=>{
+      "use strict";
+      const SCHEMA="resume-editor-v1";
+      const DEFAULT={
+        schema:"resume-editor-v1",version:1,
+        theme:{fontScale:"md",lineHeight:"normal",accent:"mono",showAvatar:true,sectionGap:"md"},
+        header:{name:"张三",gender:"男",age:"21",phone:"13800000000",email:"zhangsan@example.com",status:"在校生",targetTitle:"后端开发实习生",avatarDataUrl:""},
+        sections:[
+          {id:"edu_awards",type:"educationAwards",title:"教育经历/竞赛奖项",hidden:false,education:{school:"某重点大学",tags:["211","双一流"],major:"计算机科学与技术",degree:"本科",timeRange:"2023-09 ~ 2027-06"},awards:["2025 ACM-ICPC国际大学生程序设计竞赛全国邀请赛(陕西) **银奖**","2025 CCPC中国大学生程序设计竞赛全国邀请赛(东北) **银奖**","第十届团体程序设计天梯赛 **全国二等奖**","大学英语六级（CET-6）"],layout:{columns:2}},
+          {id:"internships",type:"experienceList",title:"实习经历",hidden:false,items:[
+            {company:"甲方科技有限公司",companyLogoDataUrl:"",role:"后端开发实习生",timeRange:"2025-10 ~ 2026-01",highlightsTitle:"主要工作：",bullets:["针对设备控制历史的**高频查询**，通过**联合索引排序 + UNION ALL**消除了 **filesort** 瓶颈，实测相关接口响应速度提高 **40%+**。","基于 **MQTT v5** 协议 + **SSE**，开发 SCADA 项目中的设备实时推送模块，通过 **ConcurrentHashMap、CopyOnWriteArrayList** 等管理并发订阅，支持千级设备并发数据采集与实时展示，实现设备状态变化的毫秒级推送。","开发物联网 SCADA 项目中设备控制管理模块；在设备控制接口中基于 **Redis + Lua** 解决 HTTP/MQTT 双通道消息乱序问题，实现异步消息原子合并，确保状态流转顺序无误以及消息正确入库。"]},
+            {company:"乙方汽车电子有限公司",companyLogoDataUrl:"",role:"后端开发实习生",timeRange:"2025-06 ~ 2025-09",highlightsTitle:"主要工作：",bullets:["完成需求推送模块开发：对新增加的车灯计划，接收上游生产计划，结合子项物料信息进行需求分解计算；使用 **RocketMQ** 针对不同产线/部门进行多 topic 消息实时推送，完成数据分发。","对上游生产计划数据以及需求分解后的数据先存储到数据库；设计合适的数据表承载数据，并为下游不同业务方提供从数据库查询数据的接口。"]}
+          ]},
+          {id:"projects",type:"projectList",title:"项目经历",hidden:false,items:[
+            {name:"AI智能面试助手",linkLabel:"项目在线地址",linkUrl:"https://example.com/demo",intro:"介绍：基于 **LangChain + SpringBoot + FastAPI + RAG + Redis + MySQL + Vibe Coding** 实现的 AI 智能面试助手，支持面试题问答、AI模拟面试等功能，支持在线生成/下载面试报告；支持会话记忆、记录保存、流式对话。",highlightsTitle:"主要工作：",bullets:["基于 **LangChain** 实现 **RAG** 检索增强生成，构建面试知识库向量化检索，显著提高 AI 回答质量与准确性。","**Java + Python** 多语言架构：Java 层实现用户认证/数据管理，Python 层负责 AI 推理与服务调用，基于 **gRPC** 实现内部服务远程调用。","基于 **AOP** 设计声明式限流/熔断/降级组件，通过自定义注解实现限流与熔断降级，统一保护 AI 服务接口。","基于 **Docker** 实现 Python 端容器化部署。"]}
+          ]},
+          {id:"skills",type:"skillLines",title:"专业技能",hidden:false,items:[
+            {label:"Java基础",value:"熟悉 Java，如常见集合类及底层数据结构、面向对象特性（封装/继承/多态）、反射等。"},
+            {label:"Redis",value:"熟悉 Redis 常见数据结构及应用场景，了解 IO 模型、集群、持久化策略、哨兵机制、常见缓存问题等。"},
+            {label:"MySQL",value:"熟悉索引、事务、锁机制、MVCC 等，有结合业务进行 SQL 优化的实践经历。"},
+            {label:"Java并发",value:"熟悉线程池、JMM、Volatile、Synchronized、ReentrantLock、CAS、AQS、ThreadLocal 等。"},
+            {label:"JVM",value:"熟悉 JVM 内存模型、GC 算法、类加载机制、双亲委派模型、常见垃圾回收器 CMS、G1 工作原理等。"},
+            {label:"计算机网络",value:"熟悉 TCP/UDP/HTTP 等协议，熟悉 TCP 三次握手四次挥手，了解 OSI 七层网络模型。"},
+            {label:"AI",value:"了解大模型工作原理，熟悉并应用过 RAG、SKILLS、Agent 等，了解 Transformer 架构、A2A、MCP、LoRA 等。"},
+            {label:"消息队列",value:"熟悉 RocketMQ、MQTT 等消息中间件/协议，了解 RocketMQ 架构组件、消息队列模型、死信队列、消息可靠性原理等。"},
+            {label:"框架",value:"熟悉 Spring Boot，熟悉 IOC、AOP，了解 LangChain、SpringAI 等 AI 框架。"}
+          ]}
+        ]
+      };
+      const EMPTY={
+        schema:"resume-editor-v1",version:1,
+        theme:{fontScale:"md",lineHeight:"normal",accent:"mono",showAvatar:true,sectionGap:"md"},
+        header:{name:"",gender:"",age:"",phone:"",email:"",status:"",targetTitle:"",avatarDataUrl:""},
+        sections:[
+          {id:"edu_awards",type:"educationAwards",title:"教育经历/竞赛奖项",hidden:false,education:{school:"",tags:[],major:"",degree:"",timeRange:""},awards:[],layout:{columns:2}},
+          {id:"internships",type:"experienceList",title:"实习经历",hidden:false,items:[]},
+          {id:"projects",type:"projectList",title:"项目经历",hidden:false,items:[]},
+          {id:"skills",type:"skillLines",title:"专业技能",hidden:false,items:[]}
+        ]
+      };
+
+      const $=id=>document.getElementById(id);
+      const refs={app:$("app"),editor:$("editor"),page:$("page"),modeBtn:$("modeBtn"),printBtn:$("printBtn"),boldBtn:$("boldBtn"),importBtn:$("importBtn"),exportBtn:$("exportBtn"),themeBtn:$("themeBtn"),sampleBtn:$("sampleBtn"),resetBtn:$("resetBtn"),saveStatus:$("saveStatus"),theme:$("theme"),themeClose:$("themeClose"),tFont:$("tFont"),tLine:$("tLine"),tAccent:$("tAccent"),tGap:$("tGap"),tAvatar:$("tAvatar"),toastw:$("toastw"),importInput:$("importInput"),avatarInput:$("avatarInput"),logoInput:$("logoInput")};
+
+      let state;
+      let ui={mode:"edit",selected:{type:"header",sid:""},focusPath:"",themeOpen:false,drag:null,logoTarget:null,lastBold:null,modeBeforePrint:"edit"};
+      let saveTimer=null;
+
+      const clone=o=>JSON.parse(JSON.stringify(o));
+      const s=v=>v==null?"":String(v);
+      const esc=v=>s(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#39;");
+      const cesc=v=>window.CSS&&CSS.escape?CSS.escape(v):s(v).replace(/["\\]/g,"\\$&");
+      const isImg=v=>/^data:image\/[a-zA-Z0-9.+-]+;base64,/.test(s(v).trim());
+      const safeImg=v=>isImg(v)?s(v).trim():"";
+      const pAttr=p=>`data-path="${esc(p)}"`;
+      const fAttr=p=>`data-field-path="${esc(p)}"`;
+
+      function toast(msg,err=false){const d=document.createElement("div");d.className="toast"+(err?" err":"");d.textContent=msg;refs.toastw.appendChild(d);requestAnimationFrame(()=>d.classList.add("show"));setTimeout(()=>{d.classList.remove("show");setTimeout(()=>d.remove(),180)},2200)}
+
+      function saveNow(){refs.saveStatus.textContent="未保存模式（刷新后清空）"}
+      function saveLater(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{saveNow()},180)}
+
+      function normTheme(t){const o=clone(DEFAULT.theme);const map={tight:"compact",relaxed:"loose",wide:"loose"};const lh=map[t&&t.lineHeight]||(t&&t.lineHeight);if(t&&["sm","md","lg"].includes(t.fontScale))o.fontScale=t.fontScale;if(["compact","normal","loose"].includes(lh))o.lineHeight=lh;if(t&&["mono","deepblue"].includes(t.accent))o.accent=t.accent;if(t&&typeof t.showAvatar==="boolean")o.showAvatar=t.showAvatar;if(t&&["sm","md","lg"].includes(t.sectionGap))o.sectionGap=t.sectionGap;return o}
+      function normHeader(h){const o=clone(DEFAULT.header);if(!h||typeof h!=="object")return o;o.name=s(h.name);o.gender=s(h.gender);o.age=s(h.age);o.phone=s(h.phone);o.email=s(h.email);o.status=s(h.status);o.targetTitle=s(h.targetTitle);o.avatarDataUrl=safeImg(h.avatarDataUrl);return o}
+      function normBul(arr){if(!Array.isArray(arr))return[""];const o=arr.map(s);return o.length?o:[""]}
+      function normSec(sec,idx){const r=sec&&typeof sec==="object"?sec:{};const type=s(r.type)||(DEFAULT.sections[idx]?DEFAULT.sections[idx].type:"skillLines");const tm={educationAwards:"教育经历/竞赛奖项",experienceList:"实习经历",projectList:"项目经历",skillLines:"专业技能"};const o={id:s(r.id)||`${type}_${idx}`,type,title:s(r.title)||tm[type]||"模块",hidden:!!r.hidden};if(type==="educationAwards"){const e=r.education&&typeof r.education==="object"?r.education:{};o.education={school:s(e.school),tags:Array.isArray(e.tags)?e.tags.map(s).filter(Boolean):[],major:s(e.major),degree:s(e.degree),timeRange:s(e.timeRange)};o.awards=Array.isArray(r.awards)?r.awards.map(s):[];o.layout={columns:r.layout&&Number(r.layout.columns)===1?1:2};return o}if(type==="experienceList"){o.items=Array.isArray(r.items)?r.items.map(i=>({company:s(i&&i.company),companyLogoDataUrl:safeImg(i&&i.companyLogoDataUrl),role:s(i&&i.role),timeRange:s(i&&i.timeRange),highlightsTitle:s(i&&i.highlightsTitle)||"主要工作：",bullets:normBul(i&&i.bullets)})):[];return o}if(type==="projectList"){o.items=Array.isArray(r.items)?r.items.map(i=>({name:s(i&&i.name),linkLabel:s(i&&i.linkLabel)||"项目在线地址",linkUrl:s(i&&i.linkUrl),intro:s(i&&i.intro),highlightsTitle:s(i&&i.highlightsTitle)||"主要工作：",bullets:normBul(i&&i.bullets)})):[];return o}if(type==="skillLines"){o.items=Array.isArray(r.items)?r.items.map(i=>({label:s(i&&i.label),value:s(i&&i.value)})):[];return o}return o}
+      function normalize(raw){const d=clone(DEFAULT);if(!raw||typeof raw!=="object")return d;d.schema=SCHEMA;d.version=Number(raw.version)||1;d.theme=normTheme(raw.theme||{});d.header=normHeader(raw.header||{});d.sections=Array.isArray(raw.sections)&&raw.sections.length?raw.sections.map((x,i)=>normSec(x,i)):clone(DEFAULT.sections);return d}
+      state=normalize(EMPTY);
+
+      function seg(path){return s(path).replace(/\[(\d+)\]/g,".$1").split(".").filter(Boolean).map(v=>/^\d+$/.test(v)?Number(v):v)}
+      function getp(obj,path){let cur=obj;for(const k of seg(path)){if(cur==null)return undefined;cur=cur[k]}return cur}
+      function setp(obj,path,val){const a=seg(path);if(!a.length)return;let cur=obj;for(let i=0;i<a.length-1;i++){if(cur[a[i]]==null)return;cur=cur[a[i]]}cur[a[a.length-1]]=val}
+      function mov(arr,from,to){if(!Array.isArray(arr))return false;if(from<0||from>=arr.length||to<0||to>=arr.length||from===to)return false;const [x]=arr.splice(from,1);arr.splice(to,0,x);return true}
+
+      function md(txt){let v=esc(txt);v=v.replace(/\*\*([\s\S]+?)\*\*/g,"<strong>$1</strong>");v=v.replace(/(https?:\/\/[^\s<]+)/g,m=>`<a href="${esc(m)}" target="_blank" rel="noopener noreferrer">${esc(m)}</a>`);return v.replace(/\n/g,"<br>")}
+      function cleanUrl(u){const raw=s(u).trim();if(!raw)return"";try{const x=new URL(raw,location.href);if(["http:","https:","mailto:"].includes(x.protocol))return x.href}catch{}return""}
+
+      function secIdx(){if(ui.selected.type!=="section")return-1;return state.sections.findIndex(x=>x.id===ui.selected.sid)}
+      function applyTheme(){const fs={sm:"10.8px",md:"11.5px",lg:"12.2px"};const lh={compact:"1.48",normal:"1.6",loose:"1.74"};const ac={mono:"#222",deepblue:"#1b3f74"};const sg={sm:"10px",md:"14px",lg:"18px"};refs.page.style.setProperty("--fs",fs[state.theme.fontScale]||fs.md);refs.page.style.setProperty("--lh",lh[state.theme.lineHeight]||lh.normal);refs.page.style.setProperty("--rc",ac[state.theme.accent]||ac.mono);refs.page.style.setProperty("--sg",sg[state.theme.sectionGap]||sg.md)}
+      function syncTheme(){refs.tFont.value=state.theme.fontScale;refs.tLine.value=state.theme.lineHeight;refs.tAccent.value=state.theme.accent;refs.tGap.value=state.theme.sectionGap;refs.tAvatar.value=String(state.theme.showAvatar)}
+
+      function setMode(mode,silent=false){ui.mode=mode==="preview"?"preview":"edit";refs.app.classList.toggle("mode-preview",ui.mode==="preview");refs.modeBtn.textContent=ui.mode==="edit"?"预览模式":"返回编辑";if(ui.mode==="preview"){ui.themeOpen=false;refs.theme.classList.remove("open")}if(!silent)toast(ui.mode==="preview"?"已进入预览模式":"已返回编辑模式")}
+
+      function renderHeaderEditor(){const h=state.header;return `<div class="box"><h3>顶部信息编辑</h3><div class="g2"><label class="field">姓名<input class="f supports-bold" ${fAttr("header.name")} value="${esc(h.name)}"></label><label class="field">性别<input class="f supports-bold" ${fAttr("header.gender")} value="${esc(h.gender)}"></label><label class="field">年龄<input class="f supports-bold" ${fAttr("header.age")} value="${esc(h.age)}"></label><label class="field">电话<input class="f supports-bold" ${fAttr("header.phone")} value="${esc(h.phone)}"></label><label class="field">邮箱<input class="f supports-bold" ${fAttr("header.email")} value="${esc(h.email)}"></label><label class="field">身份标签<input class="f supports-bold" ${fAttr("header.status")} value="${esc(h.status)}"></label><label class="field" style="grid-column:span 2;">意向职位<input class="f supports-bold" ${fAttr("header.targetTitle")} value="${esc(h.targetTitle)}"></label></div><div class="box" style="margin:10px 0 0;padding:10px;"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><div class="av" style="width:26mm;height:34mm;">${h.avatarDataUrl?`<img src="${esc(h.avatarDataUrl)}" alt="avatar">`:"证件照"}</div><div class="ops"><button type="button" data-action="upload-avatar">上传/替换头像</button><button type="button" data-action="remove-avatar">删除头像</button></div></div></div></div>`}
+
+      function renderEdu(si,sec){const tp=`sections[${si}]`;const ap=`${tp}.awards`;const tags=(sec.education.tags||[]).join(" ");return `<div class="box"><h3>${esc(sec.title)}</h3><div class="single-col"><label class="field">模块标题<input class="f supports-bold" ${fAttr(`${tp}.title`)} value="${esc(sec.title)}"></label><div class="g2"><label class="field">学校<input class="f supports-bold" ${fAttr(`${tp}.education.school`)} value="${esc(sec.education.school)}"></label><label class="field">标签（空格分隔）<input class="f supports-bold" ${fAttr(`${tp}.education.tags`)} data-kind="tags" value="${esc(tags)}"></label><label class="field">专业<input class="f supports-bold" ${fAttr(`${tp}.education.major`)} value="${esc(sec.education.major)}"></label><label class="field">学历<input class="f supports-bold" ${fAttr(`${tp}.education.degree`)} value="${esc(sec.education.degree)}"></label><label class="field" style="grid-column:span 2;">起止时间<input class="f supports-bold" ${fAttr(`${tp}.education.timeRange`)} value="${esc(sec.education.timeRange)}"></label></div><label class="field">奖项分栏<select class="f" ${fAttr(`${tp}.layout.columns`)} data-kind="number"><option value="1" ${sec.layout.columns===1?"selected":""}>1 列</option><option value="2" ${sec.layout.columns===2?"selected":""}>2 列</option></select></label></div><div class="box" style="margin:10px 0 0;padding:10px;"><h3 style="margin-bottom:8px;">奖项条目</h3>${sec.awards.map((a,i)=>`<div class="arr" draggable="true" data-drag-array-path="${ap}" data-drag-index="${i}"><div class="arrh"><span>奖项 ${i+1}</span><div class="ops"><button type="button" data-action="move-up" data-array-path="${ap}" data-index="${i}">↑</button><button type="button" data-action="move-down" data-array-path="${ap}" data-index="${i}">↓</button><button type="button" data-action="del-item" data-array-path="${ap}" data-index="${i}">删除</button></div></div><textarea class="f supports-bold" rows="2" ${fAttr(`${ap}[${i}]`)}>${esc(a)}</textarea></div>`).join("")}<button type="button" class="add" data-action="add-item" data-array-path="${ap}" data-template="award">+ 新增奖项</button></div></div>`}
+
+      function renderExp(si,sec,isProject){const sp=`sections[${si}]`;const ip=`${sp}.items`;return `<div class="box"><h3>${esc(sec.title)}</h3><label class="field">模块标题<input class="f supports-bold" ${fAttr(`${sp}.title`)} value="${esc(sec.title)}"></label><div class="box" style="margin:10px 0 0;padding:10px;">${sec.items.map((it,i)=>{const p=`${ip}[${i}]`;const bp=`${p}.bullets`;return `<div class="arr" draggable="true" data-drag-array-path="${ip}" data-drag-index="${i}"><div class="arrh"><span>${isProject?"项目":"实习"} ${i+1}</span><div class="ops"><button type="button" data-action="move-up" data-array-path="${ip}" data-index="${i}">↑</button><button type="button" data-action="move-down" data-array-path="${ip}" data-index="${i}">↓</button><button type="button" data-action="del-item" data-array-path="${ip}" data-index="${i}">删除</button></div></div>${isProject?`<div class="g2"><label class="field">项目名<input class="f supports-bold" ${fAttr(`${p}.name`)} value="${esc(it.name)}"></label><label class="field">链接标签<input class="f supports-bold" ${fAttr(`${p}.linkLabel`)} value="${esc(it.linkLabel)}"></label><label class="field" style="grid-column:span 2;">链接URL<input class="f supports-bold" ${fAttr(`${p}.linkUrl`)} value="${esc(it.linkUrl)}"></label></div><label class="field">项目介绍<textarea class="f supports-bold" rows="3" ${fAttr(`${p}.intro`)}>${esc(it.intro)}</textarea></label>`:`<div class="g2"><label class="field">公司名<input class="f supports-bold" ${fAttr(`${p}.company`)} value="${esc(it.company)}"></label><label class="field">职位<input class="f supports-bold" ${fAttr(`${p}.role`)} value="${esc(it.role)}"></label><label class="field" style="grid-column:span 2;">起止时间<input class="f supports-bold" ${fAttr(`${p}.timeRange`)} value="${esc(it.timeRange)}"></label></div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0;"><div class="av" style="width:16px;height:16px;font-size:9px;border-radius:3px;">${it.companyLogoDataUrl?`<img src="${esc(it.companyLogoDataUrl)}" alt="logo">`:"L"}</div><div class="ops"><button type="button" data-action="upload-logo" data-si="${si}" data-ii="${i}">上传Logo</button><button type="button" data-action="remove-logo" data-si="${si}" data-ii="${i}">删除Logo</button></div></div>`}<label class="field">要点标题<input class="f supports-bold" ${fAttr(`${p}.highlightsTitle`)} value="${esc(it.highlightsTitle)}"></label>${it.bullets.map((b,bi)=>`<div class="arr" style="margin:0 0 7px;" draggable="true" data-drag-array-path="${bp}" data-drag-index="${bi}"><div class="arrh"><span>要点 ${bi+1}</span><div class="ops"><button type="button" data-action="move-up" data-array-path="${bp}" data-index="${bi}">↑</button><button type="button" data-action="move-down" data-array-path="${bp}" data-index="${bi}">↓</button><button type="button" data-action="del-item" data-array-path="${bp}" data-index="${bi}">删除</button></div></div><textarea class="f supports-bold bullet" rows="2" ${fAttr(`${bp}[${bi}]`)} data-bullet="1">${esc(b)}</textarea></div>`).join("")}<button type="button" class="add" data-action="add-item" data-array-path="${bp}" data-template="bullet">+ 新增要点</button></div>`}).join("")}<button type="button" class="add" data-action="add-item" data-array-path="${ip}" data-template="${isProject?"project":"internship"}">+ 新增${isProject?"项目":"实习"}</button></div></div>`}
+
+      function renderSkills(si,sec){const sp=`sections[${si}]`;const ip=`${sp}.items`;return `<div class="box"><h3>${esc(sec.title)}</h3><label class="field">模块标题<input class="f supports-bold" ${fAttr(`${sp}.title`)} value="${esc(sec.title)}"></label><div class="box" style="margin-top:10px;padding:10px;">${sec.items.map((it,i)=>`<div class="arr" draggable="true" data-drag-array-path="${ip}" data-drag-index="${i}"><div class="arrh"><span>技能 ${i+1}</span><div class="ops"><button type="button" data-action="move-up" data-array-path="${ip}" data-index="${i}">↑</button><button type="button" data-action="move-down" data-array-path="${ip}" data-index="${i}">↓</button><button type="button" data-action="del-item" data-array-path="${ip}" data-index="${i}">删除</button></div></div><div class="g2"><label class="field">技能项<input class="f supports-bold" ${fAttr(`${ip}[${i}].label`)} value="${esc(it.label)}"></label><label class="field">描述<textarea class="f supports-bold" rows="2" ${fAttr(`${ip}[${i}].value`)}>${esc(it.value)}</textarea></label></div></div>`).join("")}<button type="button" class="add" data-action="add-item" data-array-path="${ip}" data-template="skill">+ 新增技能行</button></div></div>`}
+
+      function renderEditor(){const idx=secIdx();if(ui.selected.type==="section"&&idx<0)ui.selected={type:"header",sid:""};refs.editor.innerHTML=`<div class="box"><h3>模块结构</h3><button type="button" class="t" data-action="sel-header">顶部信息</button>${state.sections.map((sec,i)=>`<div class="module ${sec.hidden?"hide":""} ${ui.selected.type==="section"&&ui.selected.sid===sec.id?"active":""}" draggable="true" data-drag-array-path="sections" data-drag-index="${i}"><button type="button" class="t" data-action="sel-sec" data-si="${i}">${esc(sec.title)}</button><div class="ops"><button type="button" data-action="move-up" data-array-path="sections" data-index="${i}">↑</button><button type="button" data-action="move-down" data-array-path="sections" data-index="${i}">↓</button><button type="button" data-action="toggle-sec" data-si="${i}">${sec.hidden?"显示":"隐藏"}</button></div></div>`).join("")}</div>${ui.selected.type==="header"?renderHeaderEditor():(()=>{const i=secIdx();if(i<0)return"<div class=\"box\"><h3>未选择模块</h3></div>";const sec=state.sections[i];if(sec.type==="educationAwards")return renderEdu(i,sec);if(sec.type==="experienceList")return renderExp(i,sec,false);if(sec.type==="projectList")return renderExp(i,sec,true);if(sec.type==="skillLines")return renderSkills(i,sec);return"<div class=\"box\"><h3>未知模块</h3></div>"})()}`;if(ui.focusPath)requestAnimationFrame(()=>focusField(ui.focusPath))}
+
+      function renderPreview(){const h=state.header;const hd=`<div class="hd"><div><div class="nrow"><div class="nm clk" ${pAttr("header.name")}>姓名：${esc(h.name)}</div><div class="mi"><span class="clk" ${pAttr("header.gender")}>性别：${esc(h.gender)}</span><span style="color:#9ca3af;">｜</span><span class="clk" ${pAttr("header.age")}>年龄：${esc(h.age)}</span></div></div><div class="crow"><span class="clk" ${pAttr("header.phone")}><b>☎</b>${esc(h.phone)}</span><span class="clk" ${pAttr("header.email")}><b>✉</b>${esc(h.email)}</span></div><div class="crow"><span class="clk" ${pAttr("header.status")}><b>▣</b>${esc(h.status)}</span><span class="clk" ${pAttr("header.targetTitle")}><b>⌁</b>意向职位：${esc(h.targetTitle)}</span></div></div>${state.theme.showAvatar?`<div class="av clk" ${pAttr("header.avatarDataUrl")}>${h.avatarDataUrl?`<img src="${esc(h.avatarDataUrl)}" alt="avatar">`:"证件照"}</div>`:""}</div>`;
+        const sections=state.sections.map((sec,si)=>{if(sec.hidden)return"";const st=`<div class="st clk" ${pAttr(`sections[${si}].title`)}><h2>${esc(sec.title)}</h2><div class="ln"></div></div>`;if(sec.type==="educationAwards"){const e=sec.education;return `<section class="sec" ${pAttr(`sections[${si}]`)}>${st}<div class="eh"><div class="el clk" ${pAttr(`sections[${si}].education.school`)}><strong>${esc(e.school)}</strong>${(e.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div><div class="clk" ${pAttr(`sections[${si}].education.major`)}>${esc(e.major)} / ${esc(e.degree)}</div><div class="dt clk" ${pAttr(`sections[${si}].education.timeRange`)}>${esc(e.timeRange)}</div></div><ul class="aw" style="--cols:${sec.layout.columns===1?1:2};">${sec.awards.map((a,i)=>`<li class="clk" ${pAttr(`sections[${si}].awards[${i}]`)}>${md(a)}</li>`).join("")}</ul></section>`}if(sec.type==="experienceList"){return `<section class="sec" ${pAttr(`sections[${si}]`)}>${st}${sec.items.map((it,i)=>`<article class="ent" ${pAttr(`sections[${si}].items[${i}]`)}><div class="ehd"><div class="cmp clk" ${pAttr(`sections[${si}].items[${i}].company`)}>${it.companyLogoDataUrl?`<img src="${esc(it.companyLogoDataUrl)}" class="logo" alt="logo">`:""}${esc(it.company)}</div><div class="role clk" ${pAttr(`sections[${si}].items[${i}].role`)}>${esc(it.role)}</div><div class="dt clk" ${pAttr(`sections[${si}].items[${i}].timeRange`)}>${esc(it.timeRange)}</div></div><div class="ttl clk" ${pAttr(`sections[${si}].items[${i}].highlightsTitle`)}>${esc(it.highlightsTitle)}</div><ul class="bul">${it.bullets.map((b,bi)=>`<li class="clk" ${pAttr(`sections[${si}].items[${i}].bullets[${bi}]`)}>${md(b)}</li>`).join("")}</ul></article>`).join("")}</section>`}if(sec.type==="projectList"){return `<section class="sec" ${pAttr(`sections[${si}]`)}>${st}${sec.items.map((it,i)=>{const href=cleanUrl(it.linkUrl);return `<article class="ent" ${pAttr(`sections[${si}].items[${i}]`)}><div class="ehd"><div class="cmp clk" ${pAttr(`sections[${si}].items[${i}].name`)}>${esc(it.name)}</div><div></div><div></div></div><div>${it.linkUrl?(href?`<a class="plink clk" ${pAttr(`sections[${si}].items[${i}].linkUrl`)} href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(it.linkLabel||"项目在线地址")}：${esc(it.linkUrl)}</a>`:`<span class="muted clk" ${pAttr(`sections[${si}].items[${i}].linkUrl`)}>${esc(it.linkLabel||"项目在线地址")}：${esc(it.linkUrl)}</span>`):""}</div><div class="clk" ${pAttr(`sections[${si}].items[${i}].intro`)}>${md(it.intro)}</div><div class="ttl clk" ${pAttr(`sections[${si}].items[${i}].highlightsTitle`)}>${esc(it.highlightsTitle)}</div><ul class="bul">${it.bullets.map((b,bi)=>`<li class="clk" ${pAttr(`sections[${si}].items[${i}].bullets[${bi}]`)}>${md(b)}</li>`).join("")}</ul></article>`}).join("")}</section>`}if(sec.type==="skillLines"){return `<section class="sec" ${pAttr(`sections[${si}]`)}>${st}${sec.items.map((it,i)=>`<p class="skill" ${pAttr(`sections[${si}].items[${i}]`)}><strong class="clk" ${pAttr(`sections[${si}].items[${i}].label`)}>${esc(it.label)}：</strong><span class="clk" ${pAttr(`sections[${si}].items[${i}].value`)}>${md(it.value)}</span></p>`).join("")}</section>`}return""}).join("");
+        refs.page.innerHTML=hd+sections;applyTheme();
+      }
+
+      function focusField(path){let el=refs.editor.querySelector(`[data-field-path="${cesc(path)}"]`);if(!el)el=refs.editor.querySelector(`[data-field-path^="${cesc(path)}"]`);if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.classList.add("focus-flash");setTimeout(()=>el.classList.remove("focus-flash"),900);el.focus&&el.focus()}}
+      function renderAll(){renderEditor();renderPreview();syncTheme()}
+
+      function tpl(name){if(name==="award")return"新奖项";if(name==="bullet")return"";if(name==="internship")return{company:"新公司",companyLogoDataUrl:"",role:"岗位名称",timeRange:"开始 ~ 结束",highlightsTitle:"主要工作：",bullets:[""]};if(name==="project")return{name:"新项目",linkLabel:"项目在线地址",linkUrl:"",intro:"介绍：",highlightsTitle:"主要工作：",bullets:[""]};if(name==="skill")return{label:"技能项",value:""};return""}
+      function newFocus(path,name,idx){if(name==="internship")return`${path}[${idx}].company`;if(name==="project")return`${path}[${idx}].name`;if(name==="skill")return`${path}[${idx}].label`;return`${path}[${idx}]`}
+
+      function onEditClick(e){const b=e.target.closest("button[data-action]");if(!b)return;const a=b.dataset.action;
+        if(a==="sel-header"){ui.selected={type:"header",sid:""};renderEditor();return}
+        if(a==="sel-sec"){const i=Number(b.dataset.si);const sec=state.sections[i];if(sec){ui.selected={type:"section",sid:sec.id};renderEditor()}return}
+        if(a==="toggle-sec"){const i=Number(b.dataset.si);if(state.sections[i]){state.sections[i].hidden=!state.sections[i].hidden;renderAll();saveLater();toast(state.sections[i].hidden?"模块已隐藏":"模块已显示")}return}
+        if(a==="move-up"||a==="move-down"){const path=b.dataset.arrayPath;const i=Number(b.dataset.index);const arr=getp(state,path);if(!Array.isArray(arr))return;const to=i+(a==="move-up"?-1:1);if(mov(arr,i,to)){ui.focusPath=`${path}[${to}]`;renderAll();saveLater()}return}
+        if(a==="del-item"){const path=b.dataset.arrayPath;const i=Number(b.dataset.index);const arr=getp(state,path);if(!Array.isArray(arr)||i<0||i>=arr.length)return;const isBullet=path.endsWith(".bullets");if(!isBullet&&!confirm("确认删除该条目？"))return;arr.splice(i,1);if(isBullet&&arr.length===0)arr.push("");ui.focusPath=`${path}[${Math.max(0,i-1)}]`;renderAll();saveLater();toast("已删除");return}
+        if(a==="add-item"){const path=b.dataset.arrayPath;const name=b.dataset.template;const arr=getp(state,path);if(!Array.isArray(arr))return;arr.push(tpl(name));const i=arr.length-1;ui.focusPath=newFocus(path,name,i);renderAll();saveLater();toast("已新增");return}
+        if(a==="upload-avatar"){refs.avatarInput.value="";refs.avatarInput.click();return}
+        if(a==="remove-avatar"){state.header.avatarDataUrl="";renderAll();saveLater();toast("头像已删除");return}
+        if(a==="upload-logo"){ui.logoTarget={si:Number(b.dataset.si),ii:Number(b.dataset.ii)};refs.logoInput.value="";refs.logoInput.click();return}
+        if(a==="remove-logo"){const si=Number(b.dataset.si),ii=Number(b.dataset.ii);if(state.sections[si]&&state.sections[si].items&&state.sections[si].items[ii]){state.sections[si].items[ii].companyLogoDataUrl="";renderAll();saveLater();toast("Logo 已删除")}return}
+      }
+
+      function onEditInput(e){const t=e.target;const path=t.dataset.fieldPath;if(!path)return;let val=t.value;if(t.dataset.kind==="tags")val=s(val).split(/[\s,，]+/).map(x=>x.trim()).filter(Boolean);if(t.dataset.kind==="number")val=Number(val)===1?1:2;setp(state,path,val);renderPreview();saveLater()}
+
+      function onEditKeydown(e){const t=e.target;if(!t.classList.contains("bullet"))return;const path=t.dataset.fieldPath;const m=path.match(/^(.*)\[(\d+)\]$/);if(!m)return;const arrPath=m[1],idx=Number(m[2]);const arr=getp(state,arrPath);if(!Array.isArray(arr))return;
+        if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();arr.splice(idx+1,0,"");ui.focusPath=`${arrPath}[${idx+1}]`;renderAll();saveLater();return}
+        if(e.key==="Backspace"&&!t.value.trim()&&arr.length>1){e.preventDefault();arr.splice(idx,1);ui.focusPath=`${arrPath}[${Math.max(0,idx-1)}]`;renderAll();saveLater();return}
+      }
+
+      function onPreviewClick(e){if(e.target.closest("a"))return;const n=e.target.closest("[data-path]");if(!n)return;const path=n.dataset.path;if(!path)return;const m=path.match(/^sections\[(\d+)\]/);if(m){const sec=state.sections[Number(m[1])];if(sec)ui.selected={type:"section",sid:sec.id}}else if(path.startsWith("header.")){ui.selected={type:"header",sid:""}}ui.focusPath=path;if(ui.mode==="preview")setMode("edit",true);renderEditor()}
+
+      function onDragStart(e){const r=e.target.closest("[data-drag-array-path][data-drag-index]");if(!r)return;ui.drag={path:r.dataset.dragArrayPath,index:Number(r.dataset.dragIndex)};r.dataset.dragging="1"}
+      function clearDrag(){refs.editor.querySelectorAll("[data-dragging='1']").forEach(x=>x.removeAttribute("data-dragging"));refs.editor.querySelectorAll(".dragover").forEach(x=>x.classList.remove("dragover"))}
+      function onDragOver(e){const t=e.target.closest("[data-drag-array-path][data-drag-index]");if(!t||!ui.drag)return;if(t.dataset.dragArrayPath!==ui.drag.path)return;e.preventDefault();clearDrag();t.classList.add("dragover")}
+      function onDrop(e){const t=e.target.closest("[data-drag-array-path][data-drag-index]");if(!t||!ui.drag)return;const path=t.dataset.dragArrayPath,from=ui.drag.index,to=Number(t.dataset.dragIndex);if(path===ui.drag.path){const arr=getp(state,path);if(Array.isArray(arr)&&mov(arr,from,to)){ui.focusPath=`${path}[${to}]`;renderAll();saveLater()}}ui.drag=null;clearDrag()}
+      function onDragEnd(){ui.drag=null;clearDrag()}
+
+      function fileToDataURL(file){return new Promise((res,rej)=>{const rd=new FileReader();rd.onload=()=>res(s(rd.result));rd.onerror=()=>rej(new Error("读取文件失败"));rd.readAsDataURL(file)})}
+      async function onAvatarChange(e){const f=e.target.files&&e.target.files[0];if(!f)return;try{const d=await fileToDataURL(f);if(!isImg(d))throw new Error("仅支持图片文件");state.header.avatarDataUrl=d;renderAll();saveLater();toast("头像已更新")}catch(err){toast("头像上传失败："+err.message,true)}}
+      async function onLogoChange(e){const f=e.target.files&&e.target.files[0];if(!f||!ui.logoTarget)return;try{const d=await fileToDataURL(f);if(!isImg(d))throw new Error("仅支持图片文件");const {si,ii}=ui.logoTarget;if(state.sections[si]&&state.sections[si].items&&state.sections[si].items[ii]){state.sections[si].items[ii].companyLogoDataUrl=d;renderAll();saveLater();toast("Logo 已更新")}}catch(err){toast("Logo 上传失败："+err.message,true)}finally{ui.logoTarget=null}}
+
+      function validImport(data){if(!data||typeof data!=="object")throw new Error("JSON 顶层结构无效");if(data.schema!==SCHEMA)throw new Error(`schema 错误，期望 ${SCHEMA}`);if(typeof data.version!=="number")throw new Error("version 字段缺失或非法");if(!data.header||typeof data.header!=="object")throw new Error("header 字段缺失");if(!Array.isArray(data.sections))throw new Error("sections 必须是数组")}
+      async function onImport(e){const f=e.target.files&&e.target.files[0];if(!f)return;try{const txt=await f.text();const data=JSON.parse(txt);validImport(data);state=normalize(data);ui.selected={type:"header",sid:""};ui.focusPath="";saveNow();renderAll();toast("导入成功")}catch(err){toast("导入失败："+err.message,true)}finally{refs.importInput.value=""}}
+
+      function exportJson(){const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="resume.json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);refs.saveStatus.textContent="已导出 JSON";toast("已导出 resume.json")}
+      function loadSample(){state=normalize(DEFAULT);ui.selected={type:"header",sid:""};ui.focusPath="";saveNow();renderAll();toast("已加载示例模板")}
+      function resetAll(){if(!confirm("确认清空为默认空白模板？未导出的修改会丢失。"))return;state=normalize(EMPTY);ui.selected={type:"header",sid:""};ui.focusPath="";saveNow();renderAll();toast("已清空为空白模板")}
+
+      function bold(el){const t=el||document.activeElement||ui.lastBold;if(!t||!(t.tagName==="TEXTAREA"||t.tagName==="INPUT")){toast("请先在可编辑文本中选择内容",true);return}const st=t.selectionStart,ed=t.selectionEnd;if(st==null||ed==null){toast("当前字段不支持加粗",true);return}const v=t.value;const sel=st===ed?"关键词":v.slice(st,ed);const nv=v.slice(0,st)+"**"+sel+"**"+v.slice(ed);t.value=nv;t.setSelectionRange(st+2,st+2+sel.length);const p=t.dataset.fieldPath;if(p){setp(state,p,nv);renderPreview();saveLater()}t.focus()}
+      function printResume(){ui.modeBeforePrint=ui.mode;setMode("preview",true);setTimeout(()=>window.print(),80)}
+
+      function bind(){
+        refs.modeBtn.addEventListener("click",()=>setMode(ui.mode==="edit"?"preview":"edit"));
+        refs.printBtn.addEventListener("click",printResume);
+        refs.boldBtn.addEventListener("click",()=>bold());
+        refs.importBtn.addEventListener("click",()=>refs.importInput.click());
+        refs.exportBtn.addEventListener("click",exportJson);
+        refs.sampleBtn.addEventListener("click",loadSample);
+        refs.resetBtn.addEventListener("click",resetAll);
+        refs.themeBtn.addEventListener("click",()=>{ui.themeOpen=!ui.themeOpen;refs.theme.classList.toggle("open",ui.themeOpen)});
+        refs.themeClose.addEventListener("click",()=>{ui.themeOpen=false;refs.theme.classList.remove("open")});
+        refs.theme.addEventListener("change",()=>{state.theme.fontScale=refs.tFont.value;state.theme.lineHeight=refs.tLine.value;state.theme.accent=refs.tAccent.value;state.theme.sectionGap=refs.tGap.value;state.theme.showAvatar=refs.tAvatar.value==="true";renderPreview();saveLater();toast("主题设置已更新")});
+        refs.editor.addEventListener("click",onEditClick);
+        refs.editor.addEventListener("input",onEditInput);
+        refs.editor.addEventListener("keydown",onEditKeydown);
+        refs.editor.addEventListener("focusin",e=>{const t=e.target;if(t&&t.classList.contains("supports-bold"))ui.lastBold=t});
+        refs.editor.addEventListener("dragstart",onDragStart);
+        refs.editor.addEventListener("dragover",onDragOver);
+        refs.editor.addEventListener("drop",onDrop);
+        refs.editor.addEventListener("dragend",onDragEnd);
+        refs.page.addEventListener("click",onPreviewClick);
+        refs.importInput.addEventListener("change",onImport);
+        refs.avatarInput.addEventListener("change",onAvatarChange);
+        refs.logoInput.addEventListener("change",onLogoChange);
+        window.addEventListener("beforeprint",()=>{ui.modeBeforePrint=ui.mode;setMode("preview",true)});
+        window.addEventListener("afterprint",()=>{if(ui.modeBeforePrint==="edit")setMode("edit",true)});
+        document.addEventListener("keydown",e=>{const meta=e.ctrlKey||e.metaKey;if(!meta)return;const k=e.key.toLowerCase();if(k==="s"){e.preventDefault();exportJson()}else if(k==="p"){e.preventDefault();printResume()}else if(k==="b"){e.preventDefault();bold()}});
+        document.addEventListener("click",e=>{if(ui.themeOpen&&!refs.theme.contains(e.target)&&e.target!==refs.themeBtn){ui.themeOpen=false;refs.theme.classList.remove("open")}});
+      }
+
+      function init(){bind();setMode("edit",true);renderAll();saveNow()}
+      init();
+    })();
+  </script>
+</body>
+</html>
+

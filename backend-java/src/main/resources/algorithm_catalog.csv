@@ -1,0 +1,201 @@
+# source|rank|frontend_id|slug|title|difficulty
+HOT100|1|1|two-sum|两数之和|EASY
+HOT100|2|49|group-anagrams|字母异位词分组|MEDIUM
+HOT100|3|128|longest-consecutive-sequence|最长连续序列|MEDIUM
+HOT100|4|283|move-zeroes|移动零|EASY
+HOT100|5|11|container-with-most-water|盛最多水的容器|MEDIUM
+HOT100|6|15|3sum|三数之和|MEDIUM
+HOT100|7|42|trapping-rain-water|接雨水|HARD
+HOT100|8|3|longest-substring-without-repeating-characters|无重复字符的最长子串|MEDIUM
+HOT100|9|438|find-all-anagrams-in-a-string|找到字符串中所有字母异位词|MEDIUM
+HOT100|10|560|subarray-sum-equals-k|和为 K 的子数组|MEDIUM
+HOT100|11|76|minimum-window-substring|最小覆盖子串|HARD
+HOT100|12|239|sliding-window-maximum|滑动窗口最大值|HARD
+HOT100|13|53|maximum-subarray|最大子数组和|MEDIUM
+HOT100|14|56|merge-intervals|合并区间|MEDIUM
+HOT100|15|189|rotate-array|轮转数组|MEDIUM
+HOT100|16|238|product-of-array-except-self|除自身以外数组的乘积|MEDIUM
+HOT100|17|41|first-missing-positive|缺失的第一个正数|HARD
+HOT100|18|73|set-matrix-zeroes|矩阵置零|MEDIUM
+HOT100|19|54|spiral-matrix|螺旋矩阵|MEDIUM
+HOT100|20|48|rotate-image|旋转图像|MEDIUM
+HOT100|21|240|search-a-2d-matrix-ii|搜索二维矩阵 II|MEDIUM
+HOT100|22|160|intersection-of-two-linked-lists|相交链表|EASY
+HOT100|23|206|reverse-linked-list|反转链表|EASY
+HOT100|24|234|palindrome-linked-list|回文链表|EASY
+HOT100|25|141|linked-list-cycle|环形链表|EASY
+HOT100|26|142|linked-list-cycle-ii|环形链表 II|MEDIUM
+HOT100|27|21|merge-two-sorted-lists|合并两个有序链表|EASY
+HOT100|28|2|add-two-numbers|两数相加|MEDIUM
+HOT100|29|19|remove-nth-node-from-end-of-list|删除链表的倒数第 N 个结点|MEDIUM
+HOT100|30|24|swap-nodes-in-pairs|两两交换链表中的节点|MEDIUM
+HOT100|31|25|reverse-nodes-in-k-group|K 个一组翻转链表|HARD
+HOT100|32|138|copy-list-with-random-pointer|随机链表的复制|MEDIUM
+HOT100|33|148|sort-list|排序链表|MEDIUM
+HOT100|34|23|merge-k-sorted-lists|合并 K 个升序链表|HARD
+HOT100|35|146|lru-cache|LRU 缓存|MEDIUM
+HOT100|36|94|binary-tree-inorder-traversal|二叉树的中序遍历|EASY
+HOT100|37|104|maximum-depth-of-binary-tree|二叉树的最大深度|EASY
+HOT100|38|226|invert-binary-tree|翻转二叉树|EASY
+HOT100|39|101|symmetric-tree|对称二叉树|EASY
+HOT100|40|543|diameter-of-binary-tree|二叉树的直径|EASY
+HOT100|41|102|binary-tree-level-order-traversal|二叉树的层序遍历|MEDIUM
+HOT100|42|108|convert-sorted-array-to-binary-search-tree|将有序数组转换为二叉搜索树|EASY
+HOT100|43|98|validate-binary-search-tree|验证二叉搜索树|MEDIUM
+HOT100|44|230|kth-smallest-element-in-a-bst|二叉搜索树中第 K 小的元素|MEDIUM
+HOT100|45|199|binary-tree-right-side-view|二叉树的右视图|MEDIUM
+HOT100|46|114|flatten-binary-tree-to-linked-list|二叉树展开为链表|MEDIUM
+HOT100|47|105|construct-binary-tree-from-preorder-and-inorder-traversal|从前序与中序遍历序列构造二叉树|MEDIUM
+HOT100|48|437|path-sum-iii|路径总和 III|MEDIUM
+HOT100|49|236|lowest-common-ancestor-of-a-binary-tree|二叉树的最近公共祖先|MEDIUM
+HOT100|50|124|binary-tree-maximum-path-sum|二叉树中的最大路径和|HARD
+HOT100|51|200|number-of-islands|岛屿数量|MEDIUM
+HOT100|52|994|rotting-oranges|腐烂的橘子|MEDIUM
+HOT100|53|207|course-schedule|课程表|MEDIUM
+HOT100|54|208|implement-trie-prefix-tree|实现 Trie 前缀树|MEDIUM
+HOT100|55|46|permutations|全排列|MEDIUM
+HOT100|56|78|subsets|子集|MEDIUM
+HOT100|57|17|letter-combinations-of-a-phone-number|电话号码的字母组合|MEDIUM
+HOT100|58|39|combination-sum|组合总和|MEDIUM
+HOT100|59|22|generate-parentheses|括号生成|MEDIUM
+HOT100|60|79|word-search|单词搜索|MEDIUM
+HOT100|61|131|palindrome-partitioning|分割回文串|MEDIUM
+HOT100|62|51|n-queens|N 皇后|HARD
+HOT100|63|35|search-insert-position|搜索插入位置|EASY
+HOT100|64|74|search-a-2d-matrix|搜索二维矩阵|MEDIUM
+HOT100|65|34|find-first-and-last-position-of-element-in-sorted-array|在排序数组中查找元素的第一个和最后一个位置|MEDIUM
+HOT100|66|33|search-in-rotated-sorted-array|搜索旋转排序数组|MEDIUM
+HOT100|67|153|find-minimum-in-rotated-sorted-array|寻找旋转排序数组中的最小值|MEDIUM
+HOT100|68|4|median-of-two-sorted-arrays|寻找两个正序数组的中位数|HARD
+HOT100|69|20|valid-parentheses|有效的括号|EASY
+HOT100|70|155|min-stack|最小栈|MEDIUM
+HOT100|71|394|decode-string|字符串解码|MEDIUM
+HOT100|72|739|daily-temperatures|每日温度|MEDIUM
+HOT100|73|84|largest-rectangle-in-histogram|柱状图中最大的矩形|HARD
+HOT100|74|215|kth-largest-element-in-an-array|数组中的第 K 个最大元素|MEDIUM
+HOT100|75|347|top-k-frequent-elements|前 K 个高频元素|MEDIUM
+HOT100|76|295|find-median-from-data-stream|数据流的中位数|HARD
+HOT100|77|121|best-time-to-buy-and-sell-stock|买卖股票的最佳时机|EASY
+HOT100|78|55|jump-game|跳跃游戏|MEDIUM
+HOT100|79|45|jump-game-ii|跳跃游戏 II|MEDIUM
+HOT100|80|763|partition-labels|划分字母区间|MEDIUM
+HOT100|81|70|climbing-stairs|爬楼梯|EASY
+HOT100|82|118|pascals-triangle|杨辉三角|EASY
+HOT100|83|198|house-robber|打家劫舍|MEDIUM
+HOT100|84|279|perfect-squares|完全平方数|MEDIUM
+HOT100|85|322|coin-change|零钱兑换|MEDIUM
+HOT100|86|139|word-break|单词拆分|MEDIUM
+HOT100|87|300|longest-increasing-subsequence|最长递增子序列|MEDIUM
+HOT100|88|152|maximum-product-subarray|乘积最大子数组|MEDIUM
+HOT100|89|416|partition-equal-subset-sum|分割等和子集|MEDIUM
+HOT100|90|32|longest-valid-parentheses|最长有效括号|HARD
+HOT100|91|62|unique-paths|不同路径|MEDIUM
+HOT100|92|64|minimum-path-sum|最小路径和|MEDIUM
+HOT100|93|5|longest-palindromic-substring|最长回文子串|MEDIUM
+HOT100|94|1143|longest-common-subsequence|最长公共子序列|MEDIUM
+HOT100|95|72|edit-distance|编辑距离|MEDIUM
+HOT100|96|136|single-number|只出现一次的数字|EASY
+HOT100|97|169|majority-element|多数元素|EASY
+HOT100|98|75|sort-colors|颜色分类|MEDIUM
+HOT100|99|31|next-permutation|下一个排列|MEDIUM
+HOT100|100|287|find-the-duplicate-number|寻找重复数|MEDIUM
+CODETOP100|1|3|longest-substring-without-repeating-characters|无重复字符的最长子串|MEDIUM
+CODETOP100|2|146|lru-cache|LRU 缓存|MEDIUM
+CODETOP100|3|206|reverse-linked-list|反转链表|EASY
+CODETOP100|4|215|kth-largest-element-in-an-array|数组中的第 K 个最大元素|MEDIUM
+CODETOP100|5|25|reverse-nodes-in-k-group|K 个一组翻转链表|HARD
+CODETOP100|6|15|3sum|三数之和|MEDIUM
+CODETOP100|7|53|maximum-subarray|最大子数组和|MEDIUM
+CODETOP100|8|sort-an-array|sort-an-array|手撕快速排序|MEDIUM
+CODETOP100|9|5|longest-palindromic-substring|最长回文子串|MEDIUM
+CODETOP100|10|21|merge-two-sorted-lists|合并两个有序链表|EASY
+CODETOP100|11|102|binary-tree-level-order-traversal|二叉树的层序遍历|MEDIUM
+CODETOP100|12|200|number-of-islands|岛屿数量|MEDIUM
+CODETOP100|13|33|search-in-rotated-sorted-array|搜索旋转排序数组|MEDIUM
+CODETOP100|14|1|two-sum|两数之和|EASY
+CODETOP100|15|46|permutations|全排列|MEDIUM
+CODETOP100|16|20|valid-parentheses|有效的括号|EASY
+CODETOP100|17|88|merge-sorted-array|合并两个有序数组|EASY
+CODETOP100|18|121|best-time-to-buy-and-sell-stock|买卖股票的最佳时机|EASY
+CODETOP100|19|300|longest-increasing-subsequence|最长递增子序列|MEDIUM
+CODETOP100|20|92|reverse-linked-list-ii|反转链表 II|MEDIUM
+CODETOP100|21|103|binary-tree-zigzag-level-order-traversal|二叉树的锯齿形层序遍历|MEDIUM
+CODETOP100|22|236|lowest-common-ancestor-of-a-binary-tree|二叉树的最近公共祖先|MEDIUM
+CODETOP100|23|23|merge-k-sorted-lists|合并 K 个升序链表|HARD
+CODETOP100|24|54|spiral-matrix|螺旋矩阵|MEDIUM
+CODETOP100|25|143|reorder-list|重排链表|MEDIUM
+CODETOP100|26|141|linked-list-cycle|环形链表|EASY
+CODETOP100|27|415|add-strings|字符串相加|EASY
+CODETOP100|28|56|merge-intervals|合并区间|MEDIUM
+CODETOP100|29|72|edit-distance|编辑距离|HARD
+CODETOP100|30|160|intersection-of-two-linked-lists|相交链表|EASY
+CODETOP100|31|42|trapping-rain-water|接雨水|HARD
+CODETOP100|32|1143|longest-common-subsequence|最长公共子序列|MEDIUM
+CODETOP100|33|82|remove-duplicates-from-sorted-list-ii|删除排序链表中的重复元素 II|MEDIUM
+CODETOP100|34|93|restore-ip-addresses|复原 IP 地址|MEDIUM
+CODETOP100|35|19|remove-nth-node-from-end-of-list|删除链表的倒数第 N 个结点|MEDIUM
+CODETOP100|36|124|binary-tree-maximum-path-sum|二叉树中的最大路径和|HARD
+CODETOP100|37|4|median-of-two-sorted-arrays|寻找两个正序数组的中位数|HARD
+CODETOP100|38|142|linked-list-cycle-ii|环形链表 II|MEDIUM
+CODETOP100|39|165|compare-version-numbers|比较版本号|MEDIUM
+CODETOP100|40|199|binary-tree-right-side-view|二叉树的右视图|MEDIUM
+CODETOP100|41|239|sliding-window-maximum|滑动窗口最大值|HARD
+CODETOP100|42|22|generate-parentheses|括号生成|MEDIUM
+CODETOP100|43|704|binary-search|二分查找|EASY
+CODETOP100|44|32|longest-valid-parentheses|最长有效括号|HARD
+CODETOP100|45|69|sqrtx|x 的平方根|EASY
+CODETOP100|46|148|sort-list|排序链表|MEDIUM
+CODETOP100|47|94|binary-tree-inorder-traversal|二叉树的中序遍历|EASY
+CODETOP100|48|232|implement-queue-using-stacks|用栈实现队列|EASY
+CODETOP100|49|31|next-permutation|下一个排列|MEDIUM
+CODETOP100|50|76|minimum-window-substring|最小覆盖子串|HARD
+CODETOP100|51|2|add-two-numbers|两数相加|MEDIUM
+CODETOP100|52|322|coin-change|零钱兑换|MEDIUM
+CODETOP100|53|43|multiply-strings|字符串相乘|MEDIUM
+CODETOP100|54|8|string-to-integer-atoi|字符串转换整数 atoi|MEDIUM
+CODETOP100|55|70|climbing-stairs|爬楼梯|EASY
+CODETOP100|56|105|construct-binary-tree-from-preorder-and-inorder-traversal|从前序与中序遍历序列构造二叉树|MEDIUM
+CODETOP100|57|41|first-missing-positive|缺失的第一个正数|HARD
+CODETOP100|58|151|reverse-words-in-a-string|反转字符串中的单词|MEDIUM
+CODETOP100|59|78|subsets|子集|MEDIUM
+CODETOP100|60|34|find-first-and-last-position-of-element-in-sorted-array|查找元素的第一个和最后一个位置|MEDIUM
+CODETOP100|61|offer-22|lian-biao-zhong-dao-shu-di-kge-jie-dian-lcof|链表中倒数第 k 个节点|EASY
+CODETOP100|62|394|decode-string|字符串解码|MEDIUM
+CODETOP100|63|129|sum-root-to-leaf-numbers|求根节点到叶节点数字之和|MEDIUM
+CODETOP100|64|155|min-stack|最小栈|EASY
+CODETOP100|65|101|symmetric-tree|对称二叉树|EASY
+CODETOP100|66|470|implement-rand10-using-rand7|用 Rand7 实现 Rand10|MEDIUM
+CODETOP100|67|39|combination-sum|组合总和|MEDIUM
+CODETOP100|68|64|minimum-path-sum|最小路径和|MEDIUM
+CODETOP100|69|695|max-area-of-island|岛屿的最大面积|MEDIUM
+CODETOP100|70|128|longest-consecutive-sequence|最长连续序列|MEDIUM
+CODETOP100|71|122|best-time-to-buy-and-sell-stock-ii|买卖股票的最佳时机 II|EASY
+CODETOP100|72|104|maximum-depth-of-binary-tree|二叉树的最大深度|EASY
+CODETOP100|73|221|maximal-square|最大正方形|MEDIUM
+CODETOP100|74|110|balanced-binary-tree|平衡二叉树|EASY
+CODETOP100|75|234|palindrome-linked-list|回文链表|EASY
+CODETOP100|76|240|search-a-2d-matrix-ii|搜索二维矩阵 II|MEDIUM
+CODETOP100|77|152|maximum-product-subarray|乘积最大子数组|MEDIUM
+CODETOP100|78|662|maximum-width-of-binary-tree|二叉树最大宽度|MEDIUM
+CODETOP100|79|14|longest-common-prefix|最长公共前缀|EASY
+CODETOP100|80|48|rotate-image|旋转图像|MEDIUM
+CODETOP100|81|98|validate-binary-search-tree|验证二叉搜索树|MEDIUM
+CODETOP100|82|144|binary-tree-preorder-traversal|二叉树的前序遍历|EASY
+CODETOP100|83|179|largest-number|最大数|MEDIUM
+CODETOP100|84|543|diameter-of-binary-tree|二叉树的直径|EASY
+CODETOP100|85|162|find-peak-element|寻找峰值|MEDIUM
+CODETOP100|86|560|subarray-sum-equals-k|和为 K 的子数组|MEDIUM
+CODETOP100|87|113|path-sum-ii|路径总和 II|MEDIUM
+CODETOP100|88|62|unique-paths|不同路径|MEDIUM
+CODETOP100|89|209|minimum-size-subarray-sum|长度最小的子数组|MEDIUM
+CODETOP100|90|198|house-robber|打家劫舍|MEDIUM
+CODETOP100|91|24|swap-nodes-in-pairs|两两交换链表中的节点|MEDIUM
+CODETOP100|92|112|path-sum|路径总和|EASY
+CODETOP100|93|83|remove-duplicates-from-sorted-list|删除排序链表中的重复元素|EASY
+CODETOP100|94|139|word-break|单词拆分|MEDIUM
+CODETOP100|95|227|basic-calculator-ii|基本计算器 II|MEDIUM
+CODETOP100|96|718|maximum-length-of-repeated-subarray|最长重复子数组|MEDIUM
+CODETOP100|97|226|invert-binary-tree|翻转二叉树|EASY
+CODETOP100|98|169|majority-element|多数元素|EASY
+CODETOP100|99|207|course-schedule|课程表|MEDIUM
+CODETOP100|100|283|move-zeroes|移动零|EASY
