@@ -44,6 +44,14 @@ const routes = [
     }
   },
   {
+    path: '/recruitment',
+    name: 'RecruitmentDirectory',
+    component: () => import('@/views/RecruitmentDirectory.vue'),
+    meta: {
+      title: '求职信息 · 每日更新'
+    }
+  },
+  {
     path: '/login',
     name: 'Login',
     component: Auth,

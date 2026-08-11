@@ -135,11 +135,12 @@
           </div>
           <div class="wechat-body">
             <img
-              src="/image/微信图片_20250829204419_54_2.jpg"
+              v-if="wechatQrUrl"
+              :src="wechatQrUrl"
               alt="微信二维码"
               class="wechat-qr"
             />
-            <p class="wechat-tip">扫码添加微信好友</p>
+            <p class="wechat-tip">{{ wechatQrUrl ? '扫码添加微信好友' : '暂未配置联系二维码' }}</p>
           </div>
         </div>
       </div>
@@ -163,6 +164,7 @@ defineEmits(['scroll-to-bottom'])
 const drawerOpen = ref(false)
 const activeTool = ref(null)
 const showWechat = ref(false)
+const wechatQrUrl = String(import.meta.env.VITE_WECHAT_QR_URL || '').trim()
 const iframeLoading = ref(false)
 const fabTop = ref(50)
 

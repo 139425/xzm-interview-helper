@@ -117,11 +117,12 @@
       <el-dialog v-model="showWechatModal" title="扫码加微信" width="90%" style="max-width: 380px">
         <div class="xzm-wechat-modal">
           <img
-            src="/image/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250829204419_54_2.jpg"
+            v-if="wechatQrUrl"
+            :src="wechatQrUrl"
             alt="微信二维码"
             class="xzm-wechat-modal__qr"
           />
-          <p class="xzm-wechat-modal__caption">扫描添加微信</p>
+          <p class="xzm-wechat-modal__caption">{{ wechatQrUrl ? '扫描添加微信' : '暂未配置联系二维码' }}</p>
         </div>
       </el-dialog>
 
@@ -197,6 +198,7 @@ const savedModelId = localStorage.getItem(CHAT_MODEL_STORAGE_KEY)
 const currentModelId = ref(getChatModel(savedModelId || DEFAULT_CHAT_MODEL_ID).id)
 const currentModel = computed(() => getChatModel(currentModelId.value))
 const deepThinkingEnabled = ref(localStorage.getItem('chatThinkingEnabled') === 'true')
+const wechatQrUrl = String(import.meta.env.VITE_WECHAT_QR_URL || '').trim()
 const showWechatModal = ref(false)
 const showQuestionNav = ref(false)
 

@@ -102,6 +102,8 @@ public class SecurityConfig {
                                 DispatcherType.ASYNC
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // 招聘目录是公开的只读信息，服务端会限制分页大小与查询范围。
+                        .requestMatchers(HttpMethod.GET, "/api/recruitments/**").permitAll()
                         // 白名单路径允许匿名访问
                         .requestMatchers(WHITE_LIST).permitAll()
                         // 其他所有请求需要认证

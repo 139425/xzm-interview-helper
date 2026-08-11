@@ -101,6 +101,7 @@
 
 <script setup>
 import { ref, computed, h, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElPopover } from 'element-plus'
 
 const props = defineProps({
@@ -119,6 +120,7 @@ const emit = defineEmits([
 
 const drawerOpen = ref(false)
 const mobileVisible = ref(false)
+const router = useRouter()
 
 // Reset drawer state when switching between mobile/desktop
 watch(() => props.isMobile, () => {
@@ -134,6 +136,7 @@ function makeIcon(d) {
 }
 
 const allItems = [
+  { id: 'recruitment', label: '求职信息', desc: '每日更新校招、实习与官网岗位', color: 'career', icon: makeIcon('M4 7h16v13H4z|M8 3v4|M16 3v4|M4 11h16') },
   { id: 'code', label: '代码编辑器', desc: 'Python / C++ / Java 在线运行', color: 'purple', icon: makeIcon('m16 18 6-6-6-6|m8 6-6 6 6 6'), url: '/code-editor.html' },
   { id: 'md', label: '文档编辑器', desc: 'Markdown 所见即所得笔记', color: 'green', icon: makeIcon('M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z|M14 2v6h6|M16 13H8|M16 17H8|M10 9H8'), url: '/markdown-editor.html' },
   { id: 'resume', label: '简历编辑器', desc: '在线简历排版与导出', color: 'blue', icon: makeIcon('M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z|M14 2v6h6|M12 18v-6|M9 15h6'), url: '/resume_editor.html' },
@@ -145,8 +148,12 @@ const allItems = [
 
 const toolGroups = computed(() => [
   {
+    label: '求职',
+    items: allItems.filter(i => ['recruitment', 'resume'].includes(i.id)),
+  },
+  {
     label: '编辑工具',
-    items: allItems.filter(i => ['code', 'md', 'resume'].includes(i.id)),
+    items: allItems.filter(i => ['code', 'md'].includes(i.id)),
   },
   {
     label: '学习资料',
@@ -171,6 +178,7 @@ function handleAction(id) {
   }
 
   switch (id) {
+    case 'recruitment': router.push('/recruitment'); break
     case 'wechat': emit('open-wechat-modal'); break
     case 'scroll': emit('scroll-to-bottom'); break
     case 'nav':    emit('toggle-question-nav'); break
@@ -367,6 +375,7 @@ function onFabUp() {
 .xzm-toolbar-card__icon--wechat  { background: linear-gradient(135deg, #07c160, #06ad56); }
 .xzm-toolbar-card__icon--yellow  { background: linear-gradient(135deg, #eab308, #ca8a04); }
 .xzm-toolbar-card__icon--gray    { background: linear-gradient(135deg, #6b7280, #4b5563); }
+.xzm-toolbar-card__icon--career  { background: #1769e0; }
 .xzm-toolbar-card__info {
   flex: 1;
   min-width: 0;
@@ -444,6 +453,7 @@ function onFabUp() {
 .xzm-toolbar-mobile__dot--wechat  { background: #07c160; }
 .xzm-toolbar-mobile__dot--yellow  { background: #eab308; }
 .xzm-toolbar-mobile__dot--gray    { background: #6b7280; }
+.xzm-toolbar-mobile__dot--career  { background: #1769e0; }
 
 /* ===== Transitions ===== */
 .fade-enter-active, .fade-leave-active { transition: opacity 0.25s ease; }
