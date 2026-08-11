@@ -79,6 +79,22 @@ class JwtAuthenticationFilterTest {
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
     }
 
+    @Test
+    void allowsAnonymousRecruitmentDirectoryRequests() throws Exception {
+        MockHttpServletRequest request =
+                new MockHttpServletRequest("GET", "/api/recruitments");
+        request.setServletPath("/api/recruitments");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilter(request, response, chain);
+
+        verify(chain).doFilter(request, response);
+        verify(jwtUtil, never()).validateToken(any());
+        verify(helperUserMapper, never()).selectOne(any(Wrapper.class));
+        assertThat(response.getStatus()).isEqualTo(200);
+    }
+
     private MockHttpServletRequest authorizedRequest() {
         MockHttpServletRequest request =
                 new MockHttpServletRequest("GET", "/algorithm/problems");
