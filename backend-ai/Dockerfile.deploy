@@ -1,7 +1,13 @@
 ARG BASE_IMAGE=xzm-python-ai-base:latest
-FROM ${BASE_IMAGE}
+FROM ${BASE_IMAGE} AS dependencies
+
+# Start from a clean runtime so an older dependency image cannot carry stale
+# /app/docs, resumes, or Chroma indexes into the new image's filesystem layers.
+FROM python:3.11-slim
 
 WORKDIR /app
+COPY --from=dependencies /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=dependencies /usr/local/bin /usr/local/bin
 COPY . /app
 
 EXPOSE 9090
