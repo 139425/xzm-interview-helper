@@ -1,7 +1,7 @@
 /**
- * theme.css — XZM 主题语义层 (V2 · Minimalism)
+ * theme.css — XZM 主题语义层 (V3 · Fluid clarity)
  *
- * V2 默认主题：light（白纸感）。
+ * V3 默认主题：light（柔和空气感）。
  * 通过 [data-theme="dark"] 切换到深色。
  * 桥接旧 --gemini-* / --primary-* / --bg-* / --el-* 变量，使存量组件零侵入获得新主题。
  *
@@ -17,34 +17,38 @@
   color-scheme: light;
 
   /* ========== Surface ========== */
-  --xzm-surface-0:        #FFFFFF;   /* 页面 */
-  --xzm-surface-1:        #FAFAF9;   /* sidebar / topbar / 卡片 */
-  --xzm-surface-2:        #F4F4F3;   /* 用户气泡 / hover */
-  --xzm-surface-3:        #ECECEB;   /* pressed / 分隔区 */
+  --xzm-surface-0:        #F8FAFD;
+  --xzm-surface-1:        #F2F6FC;
+  --xzm-surface-2:        #EAF0F8;
+  --xzm-surface-3:        #DEE7F2;
   --xzm-surface-elevated: #FFFFFF;
   --xzm-surface-overlay:  rgba(15, 15, 16, 0.36);
 
   /* ========== Text ========== */
-  --xzm-text-primary:   #18181B;
-  --xzm-text-secondary: #3F3F46;
-  --xzm-text-tertiary:  #71717A;
-  --xzm-text-muted:     #A1A1AA;
+  --xzm-text-primary:   #162033;
+  --xzm-text-secondary: #3C4B60;
+  --xzm-text-tertiary:  #65748A;
+  --xzm-text-muted:     #8996A8;
   --xzm-text-inverse:   #FAFAFA;
-  --xzm-text-link:      #4F46E5;
+  --xzm-text-link:      var(--xzm-brand);
   --xzm-text-on-brand:  #FFFFFF;
 
   /* ========== 边框 ========== */
-  --xzm-border-color:        #E5E5E4;
-  --xzm-border-color-strong: #D4D4D3;
-  --xzm-border-color-hover:  #B4B4B3;
+  --xzm-border-color:        #DDE5F0;
+  --xzm-border-color-strong: #C8D4E3;
+  --xzm-border-color-hover:  #9CAEC3;
 
   /* ========== 阴影（克制） ========== */
   --xzm-shadow-soft:
-    0 1px 2px rgba(0, 0, 0, 0.04);
+    0 1px 2px rgba(31, 50, 76, 0.05), 0 4px 12px rgba(31, 50, 76, 0.03);
   --xzm-shadow-medium:
-    0 2px 8px rgba(0, 0, 0, 0.06);
+    0 2px 5px rgba(31, 50, 76, 0.06), 0 12px 30px rgba(31, 50, 76, 0.07);
   --xzm-shadow-lifted:
-    0 8px 24px rgba(0, 0, 0, 0.08);
+    0 8px 18px rgba(31, 50, 76, 0.08), 0 24px 60px rgba(31, 50, 76, 0.10);
+  --xzm-shadow-floating:
+    0 14px 36px rgba(31, 50, 76, 0.14), 0 2px 8px rgba(31, 50, 76, 0.07);
+  --xzm-shadow-brand: 0 5px 14px color-mix(in srgb, var(--xzm-brand) 22%, transparent);
+  --xzm-shadow-brand-hover: 0 8px 22px color-mix(in srgb, var(--xzm-brand) 30%, transparent);
 
   /* ========== 思考态（中性灰） ========== */
   --xzm-thinking-bg:        var(--xzm-surface-1);
@@ -54,10 +58,11 @@
   --xzm-thinking-accent:    var(--xzm-text-tertiary);
 
   /* ========== State ========== */
-  --xzm-hover-bg:        rgba(0, 0, 0, 0.04);
-  --xzm-hover-bg-strong: rgba(0, 0, 0, 0.07);
-  --xzm-active-bg:       rgba(0, 0, 0, 0.06);
-  --xzm-focus-ring:      rgba(79, 70, 229, 0.40);
+  --xzm-hover-bg:        rgba(26, 115, 232, 0.055);
+  --xzm-hover-bg-strong: rgba(26, 115, 232, 0.095);
+  --xzm-active-bg:       rgba(26, 115, 232, 0.12);
+  --xzm-focus-ring:      rgba(26, 115, 232, 0.48);
+  --xzm-focus-ring-soft: rgba(26, 115, 232, 0.14);
 
   /* ========== 滚动条 ========== */
   --xzm-scrollbar-track: transparent;
@@ -78,7 +83,7 @@
   --xzm-bg-aurora:          var(--xzm-surface-0);
   --xzm-shadow-glow:        var(--xzm-shadow-medium);
 
-  --xzm-grad-primary:       var(--xzm-brand);
+  --xzm-grad-primary:       var(--xzm-brand-gradient);
   --xzm-grad-soft:          var(--xzm-brand-soft);
   --xzm-grad-violet:        var(--xzm-brand);
 
@@ -88,10 +93,10 @@
   --xzm-brand-300: #A5B4FC;
   --xzm-brand-400: #818CF8;
   --xzm-brand-500: var(--xzm-brand);
-  --xzm-brand-600: #4338CA;
-  --xzm-brand-700: #3730A3;
-  --xzm-brand-800: #312E81;
-  --xzm-brand-900: #1E1B4B;
+  --xzm-brand-600: var(--xzm-brand-hover);
+  --xzm-brand-700: var(--xzm-brand-strong);
+  --xzm-brand-800: #0E478F;
+  --xzm-brand-900: #0A356C;
   --xzm-accent-violet: var(--xzm-brand);
   --xzm-accent-cyan:   #38BDF8;
   --xzm-accent-pink:   #EC4899;
@@ -134,16 +139,16 @@
 
   /* PromptBar 专属变量（原 gemini-theme.css 已删除，需补桥接） */
   --gemini-prompt-bar-padding:       16px 18px;
-  --gemini-prompt-bar-border-radius: var(--xzm-radius-lg);
-  --gemini-prompt-bar-max-width:     720px;
+  --gemini-prompt-bar-border-radius: var(--xzm-radius-2xl);
+  --gemini-prompt-bar-max-width:     760px;
 
   /* Sidebar 宽度变量（兼容旧组件） */
-  --gemini-sidebar-width-expanded:   240px;
-  --gemini-sidebar-width-collapsed:  72px;
+  --gemini-sidebar-width-expanded:   224px;
+  --gemini-sidebar-width-collapsed:  64px;
 
   /* 旧 --primary-* / --bg-* / --text-* */
   --primary-color: var(--xzm-brand);
-  --primary-hover: #4338CA;
+  --primary-hover: var(--xzm-brand-hover);
   --bg-primary:    var(--xzm-surface-0);
   --bg-secondary:  var(--xzm-surface-1);
   --bg-tertiary:   var(--xzm-surface-2);
@@ -159,11 +164,11 @@
 
   /* Element Plus 桥接 */
   --el-color-primary:           var(--xzm-brand);
-  --el-color-primary-light-3:   #6366F1;
-  --el-color-primary-light-5:   #818CF8;
-  --el-color-primary-light-7:   #A5B4FC;
+  --el-color-primary-light-3:   #4C8DF6;
+  --el-color-primary-light-5:   #7AAAFA;
+  --el-color-primary-light-7:   #A9C8FD;
   --el-color-primary-light-9:   var(--xzm-brand-soft);
-  --el-color-primary-dark-2:    #3730A3;
+  --el-color-primary-dark-2:    var(--xzm-brand-strong);
   --el-color-success: var(--xzm-success);
   --el-color-warning: var(--xzm-warning);
   --el-color-danger:  var(--xzm-danger);
@@ -181,6 +186,16 @@
   --el-border-color-lighter: var(--xzm-border-color);
   --el-fill-color-light:     var(--xzm-hover-bg);
   --el-fill-color-blank:     var(--xzm-surface-1);
+}
+
+::selection {
+  color: #102044;
+  background: #BFDBFE;
+}
+
+::-moz-selection {
+  color: #102044;
+  background: #BFDBFE;
 }
 
 /* ============================================
@@ -214,6 +229,10 @@
     0 2px 8px rgba(0, 0, 0, 0.40);
   --xzm-shadow-lifted:
     0 8px 24px rgba(0, 0, 0, 0.50);
+  --xzm-shadow-floating:
+    0 14px 36px rgba(0, 0, 0, 0.58), 0 2px 8px rgba(0, 0, 0, 0.38);
+  --xzm-shadow-brand: 0 5px 14px rgba(129, 140, 248, 0.22);
+  --xzm-shadow-brand-hover: 0 8px 22px rgba(129, 140, 248, 0.30);
 
   --xzm-thinking-bg:        var(--xzm-surface-1);
   --xzm-thinking-bg-strong: var(--xzm-surface-2);
@@ -225,6 +244,7 @@
   --xzm-hover-bg-strong: rgba(255, 255, 255, 0.08);
   --xzm-active-bg:       rgba(255, 255, 255, 0.06);
   --xzm-focus-ring:      rgba(129, 140, 248, 0.45);
+  --xzm-focus-ring-soft: rgba(129, 140, 248, 0.16);
 
   --xzm-scrollbar-track: transparent;
   --xzm-scrollbar-thumb: rgba(255, 255, 255, 0.14);

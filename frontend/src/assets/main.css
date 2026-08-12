@@ -337,8 +337,8 @@ body {
 /* 模式切换按钮 */
 [data-theme="light"] .mode-btn {
   background-color: transparent !important;
-  color: #475569 !important;
-  border-color: #e2e8f0 !important;
+  color: var(--xzm-text-secondary) !important;
+  border-color: transparent !important;
 }
 
 [data-theme="light"] .mode-btn:hover {
@@ -346,8 +346,15 @@ body {
 }
 
 [data-theme="light"] .mode-btn.active {
-  background-color: #2563eb !important;
-  color: #ffffff !important;
+  background-color: var(--xzm-brand-soft) !important;
+  color: var(--xzm-brand) !important;
+  border-color: #BFDBFE !important;
+}
+
+[data-theme="light"] .mode-btn.active .mode-copy strong,
+[data-theme="light"] .mode-btn.active .mode-copy small,
+[data-theme="light"] .mode-btn.active .mode-icon {
+  color: var(--xzm-brand) !important;
 }
 
 /* 用户菜单 */

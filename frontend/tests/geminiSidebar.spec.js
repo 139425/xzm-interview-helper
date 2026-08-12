@@ -117,7 +117,7 @@ describe("GeminiSidebar workspaces", () => {
     expect(wrapper.find(".logo-section").exists()).toBe(false);
     expect(wrapper.find(".workspace-label").exists()).toBe(false);
     expect(wrapper.find(".mode-copy").exists()).toBe(false);
-    expect(wrapper.findAll(".mode-btn")).toHaveLength(3);
+    expect(wrapper.findAll(".mode-btn")).toHaveLength(6);
     expect(wrapper.find(".algorithm-context").exists()).toBe(false);
   });
 });

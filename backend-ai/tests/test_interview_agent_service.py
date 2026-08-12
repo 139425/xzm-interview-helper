@@ -276,10 +276,11 @@ async def test_algorithm_review_timeout_fails_without_fabricating_judge_result(
 
 
 @pytest.mark.asyncio
-async def test_target_role_guides_rag_query_and_model_payload(test_settings):
+async def test_start_is_grounded_only_in_submitted_candidate_material(test_settings):
     service, gateway, rag = make_service(
         '{"action":"ASK_PRIMARY","question":"How did you design the service?"}',
         test_settings,
+        rag_hits=["I interned at SecretCorp and built a payment platform."],
     )
 
     result = await service.run(
@@ -291,9 +292,44 @@ async def test_target_role_guides_rag_query_and_model_payload(test_settings):
     )
 
     assert result.success is True
-    assert "Platform Reliability Engineer" in rag.queries[0]
+    assert rag.queries == []
     payload = json.loads(gateway.calls[0]["messages"][1]["content"])
     assert payload["target_role"] == "Platform Reliability Engineer"
+    assert payload["candidate_submission"]["resume_text"] == "Java engineer"
+    assert payload["public_technical_knowledge"]["chunks"] == []
+    assert "SecretCorp" not in str(gateway.calls[0]["messages"])
+
+
+@pytest.mark.asyncio
+async def test_answer_rag_is_labeled_as_non_candidate_public_knowledge(test_settings):
+    service, gateway, rag = make_service(
+        '{"action":"ASK_PRIMARY","question":"How does MySQL indexing work?",'
+        '"score":7,"evaluation":"Correct core idea."}',
+        test_settings,
+        rag_hits=["I interned at SecretCorp. A B+ tree keeps ordered index keys."],
+    )
+
+    result = await service.run(
+        InterviewAgentRequestData(
+            operation="ANSWER",
+            resume_text="MySQL indexes and transaction isolation",
+            target_role="Backend Engineer",
+            current_question="Explain a MySQL B+ tree index.",
+            candidate_answer="Internal nodes guide lookup and leaves store ordered keys.",
+            total_question_count=1,
+            primary_question_count=1,
+        )
+    )
+
+    assert result.success is True
+    assert rag.queries
+    system_prompt = gateway.calls[0]["messages"][0]["content"]
+    payload = json.loads(gateway.calls[0]["messages"][1]["content"])
+    assert payload["candidate_submission"]["resume_text"].startswith("MySQL")
+    assert payload["public_technical_knowledge"]["author_is_not_candidate"] is True
+    assert "SecretCorp" in payload["public_technical_knowledge"]["chunks"][0]
+    assert "Public knowledge is never evidence about the candidate" in system_prompt
+    assert "never attribute its first-person statements" in system_prompt
 
 
 @pytest.mark.asyncio

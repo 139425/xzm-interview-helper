@@ -24,6 +24,7 @@ backend-ai/reports/
 frontend/tests/e2e/
 frontend/image/
 frontend/public/image/
+frontend/test-artifacts/
 
 # Dependencies and build outputs
 **/node_modules/

@@ -1,5 +1,8 @@
 package com.xzm.xzm_interview_helper.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.xzm.xzm_interview_helper.career.PersonalKnowledgeService;
 import com.xzm.xzm_interview_helper.grpc.client.PythonAiGrpcClient;
 import com.xzm.xzm_interview_helper.model.dto.LongCatChatRequest;
 import com.xzm.xzm_interview_helper.model.entity.AiConversation;
@@ -63,6 +66,8 @@ public class LongCatChatController {
     private final PythonAiGrpcClient pythonAiGrpcClient;
     private final AiConversationService aiConversationService;
     private final AiOperationGate aiOperationGate;
+    private final PersonalKnowledgeService personalKnowledgeService;
+    private final ObjectMapper objectMapper;
 
     @PostMapping(value = "/streamChat", consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -128,7 +133,9 @@ public class LongCatChatController {
     ) {
         int memoryId = request.getUserMemoryId();
         String message = request.getMessage();
-        String systemPrompt = buildSystemPrompt(userId, memoryId);
+        List<PersonalKnowledgeService.Hit> personalHits = personalKnowledgeService.search(userId, message);
+        String systemPrompt = buildSystemPrompt(userId, memoryId)
+                + personalKnowledgeService.promptContext(personalHits);
         ChatModelSelection selection = resolveModelSelection(request);
         log.info(
                 "LongCat stream selected: userId={}, memoryId={}, promptMode={}, provider={}, model={}, thinking={}",
@@ -147,7 +154,11 @@ public class LongCatChatController {
                 ? pythonAiGrpcClient.streamThinkChat(message, systemPrompt, selection.promptMode(), selection.provider(), selection.modelName())
                 : pythonAiGrpcClient.streamChat(message, systemPrompt, selection.promptMode(), selection.provider(), selection.modelName());
 
-        return stream
+        Flux<ServerSentEvent<String>> retrievalFrame = Flux.just(ServerSentEvent.builder(
+                personalRetrievalFrame(personalHits)
+        ).build());
+
+        return Flux.concat(retrievalFrame, stream)
                 .doOnNext(sse -> captureStreamFrame(sse, thinking, content, terminal))
                 // A transport completion is not a successful model completion. Persist only a
                 // stream that sent its explicit DONE frame, never an ERROR frame or a cancelled
@@ -164,7 +175,9 @@ public class LongCatChatController {
     private String directAndPersist(int userId, LongCatChatRequest request) {
         int memoryId = request.getUserMemoryId();
         String message = request.getMessage();
-        String systemPrompt = buildSystemPrompt(userId, memoryId);
+        List<PersonalKnowledgeService.Hit> personalHits = personalKnowledgeService.search(userId, message);
+        String systemPrompt = buildSystemPrompt(userId, memoryId)
+                + personalKnowledgeService.promptContext(personalHits);
         ChatModelSelection selection = resolveModelSelection(request);
         StringBuilder thinking = new StringBuilder();
         StringBuilder content = new StringBuilder();
@@ -261,6 +274,30 @@ public class LongCatChatController {
             prompt.append(entry);
         }
         return prompt.append("</untrusted_conversation_history>").toString();
+    }
+
+    private String personalRetrievalFrame(List<PersonalKnowledgeService.Hit> hits) {
+        List<Map<String, Object>> sources = hits.stream()
+                .map(hit -> Map.<String, Object>of(
+                        "id", hit.documentId(),
+                        "title", hit.title(),
+                        "sourceType", hit.sourceType(),
+                        "score", hit.score()
+                ))
+                .toList();
+        Map<String, Object> stage = Map.of(
+                "phase", "retrieval",
+                "status", hits.isEmpty() ? "running" : "done",
+                "title", hits.isEmpty() ? "未命中个人资料，继续检索公共知识" : "个人资料检索完成",
+                "personalHitCount", hits.size(),
+                "sources", sources
+        );
+        try {
+            return "[STAGE]" + objectMapper.writeValueAsString(stage);
+        } catch (JsonProcessingException exception) {
+            log.warn("Unable to serialize personal retrieval stage", exception);
+            return "[STAGE]{\"phase\":\"retrieval\",\"status\":\"degraded\",\"title\":\"个人资料来源暂时无法展示\"}";
+        }
     }
 
     private List<AiConversation> loadRecentHistory(int userId, int memoryId, int limit) {

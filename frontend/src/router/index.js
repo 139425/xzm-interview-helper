@@ -44,6 +44,26 @@ const routes = [
     }
   },
   {
+    path: '/recruitment',
+    name: 'RecruitmentDirectory',
+    component: () => import('@/views/RecruitmentDirectory.vue'),
+    meta: {
+      title: '求职信息 · 每日更新'
+    }
+  },
+  {
+    path: '/applications',
+    name: 'ApplicationTracker',
+    component: () => import('@/views/ApplicationTracker.vue'),
+    meta: { title: '投递追踪' }
+  },
+  {
+    path: '/knowledge',
+    name: 'KnowledgeBase',
+    component: () => import('@/views/KnowledgeBase.vue'),
+    meta: { title: '个人资料' }
+  },
+  {
     path: '/login',
     name: 'Login',
     component: Auth,

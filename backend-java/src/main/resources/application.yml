@@ -35,6 +35,17 @@ app:
     # runner merely because deployment omitted PISTON_API_URL.
     piston-url: ${PISTON_API_URL:http://127.0.0.1:2000/api/v2/execute}
     piston-token: ${PISTON_API_TOKEN:}
+
+recruitment:
+  crawler:
+    # 启动后 20 秒检查一次；此后每小时检查，距离上次成功更新超过 20 小时才抓取。
+    # 抓取失败会在下一小时自动重试，从而保证服务运行期间至少每日成功更新一次。
+    initial-delay-ms: ${RECRUITMENT_INITIAL_DELAY_MS:20000}
+    fixed-delay-ms: ${RECRUITMENT_CHECK_INTERVAL_MS:3600000}
+    minimum-refresh-hours: ${RECRUITMENT_MINIMUM_REFRESH_HOURS:20}
+    stale-after-days: ${RECRUITMENT_STALE_AFTER_DAYS:60}
+    graduate-year: ${RECRUITMENT_GRADUATE_YEAR:0}
+    playoffer-pages: ${RECRUITMENT_PLAYOFFER_PAGES:20}
 spring:
   application:
     name: xzm_interview_helper

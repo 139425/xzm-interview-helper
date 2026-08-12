@@ -26,7 +26,7 @@ export const useUIStore = defineStore('ui', () => {
   const rightPanelDragging = ref(false) // 是否正在拖动
   
   // ========== 当前模式 ==========
-  const currentMode = ref('chat') // 'chat' | 'interview' | 'algorithm'
+  const currentMode = ref('chat')
   
   // ========== 侧边栏刷新触发器 ==========
   const sidebarRefreshTrigger = ref(0) // 每次+1触发侧边栏刷新
@@ -67,7 +67,7 @@ export const useUIStore = defineStore('ui', () => {
   // 侧边栏宽度
   const sidebarWidth = computed(() => {
     if (sidebarMode.value === 'full') {
-      return 240
+      return 272
     } else if (sidebarMode.value === 'icons') {
       return 72
     }
@@ -162,7 +162,7 @@ export const useUIStore = defineStore('ui', () => {
   
   // 切换模式
   const switchMode = (mode) => {
-    if (mode === 'chat' || mode === 'interview' || mode === 'algorithm') {
+    if (['chat', 'interview', 'algorithm', 'recruitment', 'applications', 'knowledge'].includes(mode)) {
       currentMode.value = mode
     }
   }

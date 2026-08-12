@@ -1,12 +1,27 @@
 <template>
-  <div 
+  <div
     class="gemini-prompt-bar"
     :class="{
       'position-center': uiStore.promptBarPosition === 'center',
       'position-bottom': uiStore.promptBarPosition === 'bottom',
-      'focused': isFocused
+      'focused': isFocused,
+      'is-dragging': isDragging
     }"
+    @dragenter.prevent="isDragging = true"
+    @dragover.prevent="isDragging = true"
+    @dragleave.prevent="handleDragLeave"
+    @drop.prevent="handleDrop"
   >
+    <section v-if="ocrPreview.visible" class="ocr-preview" aria-label="图片识别结果">
+      <header>
+        <div><span>OCR</span><strong>{{ ocrPreview.filename || '剪贴板图片' }}</strong></div>
+        <button type="button" aria-label="移除图片识别结果" @click="clearOcr">×</button>
+      </header>
+      <p v-if="ocrPreview.loading">正在本机服务器识别文字…</p>
+      <textarea v-else v-model="ocrPreview.text" rows="4" aria-label="可编辑的图片识别文本"></textarea>
+      <small v-if="ocrPreview.error">{{ ocrPreview.error }}</small>
+      <small v-else>图片只做临时识别；你确认发送后，AI 才会读取这里的文字。</small>
+    </section>
     <!-- 输入区域 -->
     <div class="input-wrapper">
       <el-input
@@ -19,6 +34,7 @@
         @focus="handleFocus"
         @blur="handleBlur"
         @keydown="handleKeyDown"
+        @paste="handlePaste"
         class="prompt-input"
       />
     </div>
@@ -29,12 +45,14 @@
       <div class="toolbar-left">
         <!-- 添加按钮 -->
         <button 
+          type="button"
           class="tool-btn"
           @click="handleAddAttachment"
-          title="添加附件"
+          title="上传图片并识别文字"
         >
           <el-icon :size="20"><Plus /></el-icon>
         </button>
+        <input ref="imageInput" class="visually-hidden" type="file" accept="image/png,image/jpeg,image/bmp" @change="handleFileInput">
         
         <!-- 模型选择器 - 已隐藏 -->
         <div class="model-selector">
@@ -151,9 +169,9 @@
           v-else
           class="send-btn"
           @click="handleSend"
-          :disabled="disabled || !inputText.trim()"
+          :disabled="disabled || ocrPreview.loading || (!inputText.trim() && !ocrPreview.text.trim())"
           title="发送消息"
-          v-show="inputText.trim()"
+          v-show="inputText.trim() || ocrPreview.text.trim()"
         >
           <el-icon :size="20"><Promotion /></el-icon>
         </button>
@@ -176,6 +194,7 @@ import { Plus, ArrowDown, Promotion, Document, Close, Star, Compass, Cpu, VideoP
 import VoiceRecorder from './VoiceRecorder.vue'
 import { ElMessage } from 'element-plus'
 import { CHAT_MODELS } from '../config/models'
+import { mediaApi } from '../api/career'
 
 // Props
 const props = defineProps({
@@ -231,6 +250,9 @@ const inputRef = ref(null)
 const inputText = ref(props.modelValue)
 const isFocused = ref(false)
 const showModelMenu = ref(false)
+const imageInput = ref(null)
+const isDragging = ref(false)
+const ocrPreview = ref({ visible: false, loading: false, filename: '', text: '', error: '' })
 
 // 模型列表
 const models = CHAT_MODELS
@@ -273,10 +295,16 @@ const handleKeyDown = (event) => {
 
 // 发送消息
 const handleSend = () => {
-  if (!inputText.value.trim() || props.disabled) return
+  if (props.disabled || ocrPreview.value.loading) return
 
-  const message = inputText.value.trim()
+  const typedText = inputText.value.trim()
+  const recognizedText = ocrPreview.value.text.trim()
+  if (!typedText && !recognizedText) return
+  const message = recognizedText
+    ? `${typedText}${typedText ? '\n\n' : ''}[用户确认的图片识别文本]\n${recognizedText}\n[/用户确认的图片识别文本]`
+    : typedText
   inputText.value = ''
+  clearOcr()
   emit('send', message)
   
   // 发送后聚焦输入框
@@ -292,7 +320,49 @@ const handleStop = () => {
 
 // 添加附件
 const handleAddAttachment = () => {
-  ElMessage.info('附件功能开发中')
+  imageInput.value?.click()
+}
+
+async function recognizeImage(file) {
+  if (!file || !file.type?.startsWith('image/')) {
+    ElMessage.warning('请选择 PNG、JPG 或 BMP 图片')
+    return
+  }
+  ocrPreview.value = { visible: true, loading: true, filename: file.name || '剪贴板图片', text: '', error: '' }
+  try {
+    const result = await mediaApi.ocr(file)
+    ocrPreview.value = { ...ocrPreview.value, loading: false, text: result.text || '' }
+    ElMessage.success('图片文字已识别，请检查并修改后发送')
+  } catch (error) {
+    ocrPreview.value = { ...ocrPreview.value, loading: false, error: error.response?.data?.message || '图片识别失败，请重试' }
+  }
+}
+
+function handleFileInput(event) {
+  const file = event.target.files?.[0]
+  event.target.value = ''
+  if (file) recognizeImage(file)
+}
+
+function handlePaste(event) {
+  const image = Array.from(event.clipboardData?.items || []).find((item) => item.type.startsWith('image/'))
+  if (!image) return
+  event.preventDefault()
+  recognizeImage(image.getAsFile())
+}
+
+function handleDrop(event) {
+  isDragging.value = false
+  const file = event.dataTransfer?.files?.[0]
+  if (file) recognizeImage(file)
+}
+
+function handleDragLeave(event) {
+  if (!event.currentTarget.contains(event.relatedTarget)) isDragging.value = false
+}
+
+function clearOcr() {
+  ocrPreview.value = { visible: false, loading: false, filename: '', text: '', error: '' }
 }
 
 // 切换模型菜单
@@ -391,6 +461,32 @@ onUnmounted(() => {
   border-color: var(--gemini-accent-blue);
   box-shadow: 0 0 0 3px rgba(138, 180, 248, 0.1);
 }
+
+.gemini-prompt-bar.is-dragging {
+  border-color: var(--gemini-accent-blue);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--gemini-accent-blue) 13%, transparent);
+}
+
+.ocr-preview {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 10px;
+  padding: 11px;
+  border: 1px solid color-mix(in srgb, var(--gemini-accent-blue) 30%, var(--gemini-border-color));
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--gemini-accent-blue) 5%, var(--gemini-bg-secondary));
+}
+
+.ocr-preview header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ocr-preview header div { display: flex; min-width: 0; align-items: center; gap: 8px; }
+.ocr-preview header span { padding: 2px 6px; border-radius: 5px; color: var(--gemini-accent-blue); background: color-mix(in srgb, var(--gemini-accent-blue) 12%, transparent); font-size: 9px; font-weight: 800; }
+.ocr-preview header strong { overflow: hidden; color: var(--gemini-text-secondary); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.ocr-preview header button { border: 0; color: var(--gemini-text-tertiary); background: transparent; font-size: 19px; cursor: pointer; }
+.ocr-preview textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--gemini-border-color); border-radius: 8px; outline: 0; color: var(--gemini-text-primary); background: var(--gemini-bg-primary); font: inherit; font-size: 12px; line-height: 1.55; resize: vertical; }
+.ocr-preview textarea:focus { border-color: var(--gemini-accent-blue); }
+.ocr-preview p,.ocr-preview small { margin: 0; color: var(--gemini-text-tertiary); font-size: 10px; }
+.ocr-preview small:first-of-type { color: var(--gemini-accent-red); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
 
 /* 居中位置 */
 .gemini-prompt-bar.position-center {

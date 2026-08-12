@@ -10,6 +10,7 @@
 
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
+import markedKatex from 'marked-katex-extension'
 import { normalizeModelMarkdown } from './streamBuffer'
 
 // marked v17 renderer API：只覆盖原始 HTML token，Markdown 自身生成的标签仍走默认 renderer。
@@ -22,6 +23,7 @@ marked.setOptions({
   gfm: true,
   renderer: markdownRenderer,
 })
+marked.use(markedKatex({ throwOnError: false, nonStandard: true }))
 
 // 关闭 marked 默认对代码块的高亮，由 StreamingCodeBlock 单独处理
 // （marked v17 不再有内建 highlight 选项，这里不调用即可）
