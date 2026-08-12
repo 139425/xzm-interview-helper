@@ -23,8 +23,8 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -148,7 +148,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 new UsernamePasswordAuthenticationToken(
                         currentUser.getUsername(),
                         null,
-                        Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                        java.util.List.of(new SimpleGrantedAuthority(
+                                isAdministrator(currentUser.getUser_type()) ? "ROLE_ADMIN" : "ROLE_USER"
+                        ))
                 );
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -162,6 +164,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
         return false;
+    }
+
+    static boolean isAdministrator(String userType) {
+        if (userType == null) return false;
+        String normalized = userType.strip().toUpperCase(Locale.ROOT);
+        return "管理员".equals(userType.strip()) || "ADMIN".equals(normalized) || "ROLE_ADMIN".equals(normalized);
     }
 
     private void sendErrorResponse(

@@ -106,6 +106,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/recruitments/**").permitAll()
                         // 白名单路径允许匿名访问
                         .requestMatchers(WHITE_LIST).permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         // 其他所有请求需要认证
                         .anyRequest().authenticated()
                 )

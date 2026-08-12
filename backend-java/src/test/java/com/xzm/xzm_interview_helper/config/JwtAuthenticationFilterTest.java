@@ -62,6 +62,27 @@ class JwtAuthenticationFilterTest {
         assertThat(request.getAttribute("userId")).isEqualTo(9518L);
         assertThat(request.getAttribute("username")).isEqualTo("candidate");
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNotNull();
+        assertThat(SecurityContextHolder.getContext().getAuthentication().getAuthorities())
+                .extracting("authority")
+                .containsExactly("ROLE_USER");
+    }
+
+    @Test
+    void derivesAdministratorAuthorityFromCurrentDatabaseRole() throws Exception {
+        HelperUser administrator = new HelperUser();
+        administrator.setUser_id(9518);
+        administrator.setUsername("candidate");
+        administrator.setUser_type("管理员");
+        when(helperUserMapper.selectOne(any(Wrapper.class))).thenReturn(administrator);
+
+        MockHttpServletRequest request = authorizedRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilter(request, response, mock(FilterChain.class));
+
+        assertThat(SecurityContextHolder.getContext().getAuthentication().getAuthorities())
+                .extracting("authority")
+                .containsExactly("ROLE_ADMIN");
     }
 
     @Test
