@@ -314,7 +314,7 @@ class ZhipuService:
     async def _retrieve_rag_chunks(
         message: str,
         keywords: list[str],
-    ) -> tuple[list[str], bool]:
+    ) -> tuple[list[str], bool, list[dict[str, object]]]:
         # Keep the original question in the query so a hallucinated keyword planner cannot
         # erase the user's actual retrieval intent.
         query = f"{message[:4_000]}\n检索关键词：{' '.join(keywords)}"
@@ -330,18 +330,38 @@ class ZhipuService:
                 timeout=10.0,
             )
             if hasattr(retrieval, "chunks"):
-                chunks = [candidate.content for candidate in retrieval.chunks]
+                candidates = list(retrieval.chunks)
+                chunks = [candidate.content for candidate in candidates]
                 degraded = bool(getattr(retrieval, "degraded", False))
+                sources = []
+                for candidate in candidates[:5]:
+                    metadata = getattr(candidate, "metadata", {}) or {}
+                    title = str(
+                        metadata.get("file_name")
+                        or metadata.get("document_title")
+                        or metadata.get("source_path")
+                        or "公共知识库"
+                    ).strip()[:160]
+                    source_path = str(metadata.get("source_path") or "").strip()[:300]
+                    section = str(metadata.get("section_path") or "").strip()[:200]
+                    source = {"title": title, "sourceType": "PUBLIC_KNOWLEDGE"}
+                    if source_path:
+                        source["path"] = source_path
+                    if section:
+                        source["section"] = section
+                    sources.append(source)
             else:
                 chunks = retrieval
                 degraded = False
+                sources = []
             return (
                 [str(chunk)[:2_400] for chunk in (chunks or [])[:5] if str(chunk).strip()],
                 degraded,
+                sources,
             )
         except Exception as exc:
             logger.warning("Keyword RAG retrieval failed (%s)", type(exc).__name__)
-            return [], True
+            return [], True, []
 
     @classmethod
     def _prepare_conversation_context(
@@ -453,7 +473,7 @@ class ZhipuService:
             title="正在检索相关信息",
             keywords=keywords,
         )
-        rag_chunks, retrieval_degraded = await self._retrieve_rag_chunks(message, keywords)
+        rag_chunks, retrieval_degraded, public_sources = await self._retrieve_rag_chunks(message, keywords)
         yield self._stage_frame(
             "retrieval",
             "degraded" if retrieval_degraded else "done",
@@ -462,6 +482,7 @@ class ZhipuService:
             else "相关信息检索完成",
             keywords=keywords,
             hitCount=len(rag_chunks),
+            publicSources=public_sources,
         )
         selected_mode, merged_prompt = self._compose_chat_system_prompt(
             message,

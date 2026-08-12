@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -211,6 +212,18 @@ public class RecruitmentPostingRepository {
                 Map.of("kind", "WEB_SEARCH", "label", "公开检索", "priority", 40)
         ));
         return result;
+    }
+
+    public Optional<Posting> findById(long id) {
+        List<Posting> rows = jdbcTemplate.query(
+                "SELECT id, company, title, company_type, industry, locations, positions, recruitment_type, "
+                        + "target_graduates, published_date, deadline, apply_url, announcement_url, "
+                        + "source_name, source_url, source_kind, source_priority, first_seen_at, last_seen_at "
+                        + "FROM recruitment_posting WHERE id = ? AND active = 1",
+                POSTING_ROW_MAPPER,
+                id
+        );
+        return rows.stream().findFirst();
     }
 
     public Map<String, Object> summary() {

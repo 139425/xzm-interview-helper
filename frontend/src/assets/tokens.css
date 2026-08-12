@@ -1,18 +1,19 @@
 /**
- * tokens.css — XZM Design Tokens (V2 · Minimalism)
+ * tokens.css — XZM Design Tokens (V3 · Fluid clarity)
  * 单一来源的设计令牌，与具体主题无关。
  * 主题切换由 theme.css 通过 [data-theme] 选择器完成。
- *
- * V2 删除：所有玻璃 token、aurora 渐变、品牌渐变、accent 多色、brand 阶梯、
- *        slow/slower 时长、spring 缓动、shadow-glow。
+ * V3 恢复克制的品牌色阶、强调缓动与渐变，但保持单一蓝色主轴。
  */
 
 :root {
   /* ============================================
-     1) 品牌色（单点强调，不再使用阶梯/渐变）
+     1) 品牌色（蓝色主轴 + 一条受控强调渐变）
      ============================================ */
-  --xzm-brand:      #4F46E5; /* indigo-600，浅色主题强调 */
-  --xzm-brand-soft: #EEF2FF; /* 浅色 hover/selected */
+  --xzm-brand:        #1A73E8;
+  --xzm-brand-hover:  #1765CC;
+  --xzm-brand-strong: #1558B0;
+  --xzm-brand-soft:   #EAF2FF;
+  --xzm-brand-gradient: linear-gradient(135deg, #1A73E8 0%, #4C8DF6 52%, #38A7D8 100%);
 
   /* ============================================
      2) 功能色
@@ -45,17 +46,17 @@
      ============================================ */
   --xzm-radius-xs:    4px;
   --xzm-radius-sm:    6px;
-  --xzm-radius-md:    10px;
-  --xzm-radius-lg:    14px;
-  --xzm-radius-xl:    20px;
-  --xzm-radius-2xl:   24px;
+  --xzm-radius-md:    12px;
+  --xzm-radius-lg:    16px;
+  --xzm-radius-xl:    22px;
+  --xzm-radius-2xl:   28px;
   --xzm-radius-full:  9999px;
 
   /* ============================================
      5) 字体
      ============================================ */
-  --xzm-font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'PingFang SC',
-                   'Noto Sans SC', 'Segoe UI', 'Hiragino Sans GB',
+  --xzm-font-sans: 'Google Sans', 'Aptos', 'Segoe UI Variable', 'PingFang SC',
+                   'Noto Sans SC', 'Hiragino Sans GB',
                    'Microsoft YaHei', system-ui, sans-serif;
   --xzm-font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, 'Fira Code',
                    monospace;
@@ -86,20 +87,22 @@
   /* ============================================
      6) 动效 timing —— 仅保留 fast / normal 两档，统一 ease-out
      ============================================ */
-  --xzm-ease-linear:  linear;
-  --xzm-ease-out:     cubic-bezier(0.16, 1, 0.3, 1);
-  --xzm-ease-in:      cubic-bezier(0.55, 0, 1, 0.45);
-  --xzm-ease-in-out:  cubic-bezier(0.65, 0, 0.35, 1);
+  --xzm-ease-linear:     linear;
+  --xzm-ease-standard:   cubic-bezier(0.2, 0, 0, 1);
+  --xzm-ease-emphasized: cubic-bezier(0.32, 0.72, 0, 1);
+  --xzm-ease-out:        var(--xzm-ease-emphasized);
+  --xzm-ease-in:         cubic-bezier(0.4, 0, 1, 1);
+  --xzm-ease-in-out:     var(--xzm-ease-standard);
 
-  --xzm-duration-instant: 100ms;
-  --xzm-duration-fast:    140ms;
-  --xzm-duration-normal:  200ms;
+  --xzm-duration-instant: 90ms;
+  --xzm-duration-fast:    150ms;
+  --xzm-duration-normal:  220ms;
+  --xzm-duration-slow:    300ms;
 
   /* 兼容残留：旧代码引用 slow/slower/spring 时降级到 normal/ease-out，
      避免硬性失败；新代码不应再使用这些。 */
-  --xzm-duration-slow:    200ms;
-  --xzm-duration-slower:  200ms;
-  --xzm-ease-spring:      cubic-bezier(0.16, 1, 0.3, 1);
+  --xzm-duration-slower:  380ms;
+  --xzm-ease-spring:      var(--xzm-ease-emphasized);
 
   /* ============================================
      7) Z-index 标度
@@ -116,7 +119,7 @@
   /* ============================================
      8) 布局
      ============================================ */
-  --xzm-sidebar-width:           260px;
+  --xzm-sidebar-width:           224px;
   --xzm-sidebar-width-collapsed: 64px;
   --xzm-content-max-width:       880px;
   --xzm-prompt-bar-height:       96px;

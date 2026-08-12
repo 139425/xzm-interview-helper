@@ -7,6 +7,7 @@
     <h1 class="xzm-welcome__title">
       你好，<span class="xzm-welcome__name">{{ userName }}</span>
     </h1>
+    <p class="xzm-welcome__subtitle">今天想一起解决什么？</p>
   </section>
 </template>
 
@@ -35,26 +36,26 @@ const userName = computed(() => {
   position: fixed;
   top: 50%;
   left: calc(var(--sidebar-width, 0px) / 2 + 50%);
-  transform: translate(-50%, calc(-50% + 15vh - 130px));
+  transform: translate(-50%, calc(-50% + 15vh - 156px));
   z-index: 90;
   width: calc(100% - var(--sidebar-width, 0px));
   max-width: var(--xzm-content-max-width);
   padding: 0 24px;
   text-align: center;
   pointer-events: none;
-  animation: xzm-welcome-in 260ms var(--xzm-ease-out) both;
+  animation: xzm-welcome-in var(--xzm-duration-slow) var(--xzm-ease-emphasized) both;
   transition:
-    left 260ms cubic-bezier(0.4, 0.0, 0.2, 1),
-    width 260ms cubic-bezier(0.4, 0.0, 0.2, 1);
+    left var(--xzm-duration-normal) var(--xzm-ease-standard),
+    width var(--xzm-duration-normal) var(--xzm-ease-standard);
 }
 
 .xzm-welcome.is-animating-out {
-  animation: xzm-welcome-out 200ms var(--xzm-ease-out) forwards;
+  animation: xzm-welcome-out var(--xzm-duration-normal) var(--xzm-ease-standard) forwards;
 }
 
 @keyframes xzm-welcome-in {
-  from { opacity: 0; transform: translate(-50%, calc(-50% + 15vh - 122px)); }
-  to   { opacity: 1; transform: translate(-50%, calc(-50% + 15vh - 130px)); }
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 15vh - 146px)); }
+  to   { opacity: 1; transform: translate(-50%, calc(-50% + 15vh - 156px)); }
 }
 
 @keyframes xzm-welcome-out {
@@ -63,25 +64,38 @@ const userName = computed(() => {
 
 .xzm-welcome__title {
   margin: 0;
-  font-size: clamp(1.75rem, 3.6vw, 2.5rem); /* 28px → 40px */
+  font-size: clamp(1.85rem, 3.7vw, 2.65rem);
   font-weight: var(--xzm-fw-semibold);
-  letter-spacing: -0.02em;
-  line-height: 1.2;
+  letter-spacing: -0.035em;
+  line-height: 1.16;
   color: var(--xzm-text-primary);
   user-select: none;
 }
 
 .xzm-welcome__name {
-  color: var(--xzm-text-primary);
+  color: var(--xzm-brand);
+  background: var(--xzm-brand-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.xzm-welcome__subtitle {
+  margin-top: 10px;
+  color: var(--xzm-text-tertiary);
+  font-size: clamp(0.92rem, 1.4vw, 1.02rem);
+  font-weight: var(--xzm-fw-regular);
+  letter-spacing: 0.01em;
 }
 
 @media (max-width: 768px) {
   .xzm-welcome {
     padding: 0 16px;
-    transform: translate(-50%, calc(-50% + 15vh - 110px));
+    transform: translate(-50%, calc(-50% + 8vh - 180px));
+    animation: none;
   }
   .xzm-welcome__title {
-    font-size: 1.75rem;
+    font-size: clamp(1.75rem, 8vw, 2rem);
   }
 }
 </style>

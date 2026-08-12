@@ -25,6 +25,15 @@
         <div v-if="stage.phase === 'retrieval' && stage.keywords?.length" class="chat-process__keywords">
           <span v-for="keyword in stage.keywords.slice(0, 6)" :key="keyword">{{ keyword }}</span>
         </div>
+        <details v-if="stage.phase === 'retrieval' && allSources(stage).length" class="chat-process__sources">
+          <summary>查看来源 {{ allSources(stage).length }} 条</summary>
+          <ul>
+            <li v-for="(source, sourceIndex) in allSources(stage)" :key="source.id || `${source.title}-${sourceIndex}`">
+              <span>{{ sourceLabel(source) }}</span>
+              <strong :title="source.section || source.path || source.title">{{ source.title }}<template v-if="source.section"> · {{ source.section }}</template></strong>
+            </li>
+          </ul>
+        </details>
       </li>
     </ol>
   </section>
@@ -64,12 +73,24 @@ function stageLabel(stage) {
 }
 
 function retrievalSummary(stage) {
+  const personal = Number(stage.personalHitCount || 0)
   if (Number.isFinite(Number(stage.hitCount))) {
-    return Number(stage.hitCount) > 0
-      ? `已找到 ${stage.hitCount} 条相关资料`
-      : '未命中资料，使用模型知识回答'
+    const publicHits = Number(stage.hitCount)
+    if (personal || publicHits) return `个人 ${personal} 条 · 公共 ${publicHits} 条`
+    return '未命中资料，使用模型知识回答'
   }
+  if (personal) return `已找到 ${personal} 条个人资料`
   return '检索完成'
+}
+
+function allSources(stage) {
+  return [...(stage.sources || []), ...(stage.publicSources || [])]
+}
+
+function sourceLabel(source) {
+  if (source.sourceType === 'CAREER_CONTEXT') return '岗位上下文'
+  if (source.sourceType === 'PUBLIC_KNOWLEDGE') return '公共知识'
+  return '个人资料'
 }
 </script>
 
@@ -216,6 +237,12 @@ function retrievalSummary(stage) {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.chat-process__sources { grid-column: 1 / -1; margin: 4px 0 0 29px; color: var(--xzm-text-tertiary); font-size: 9px; }
+.chat-process__sources summary { width: fit-content; color: var(--xzm-brand); cursor: pointer; }
+.chat-process__sources ul { display: grid; gap: 4px; margin: 7px 0 0; padding: 0; list-style: none; }
+.chat-process__sources li { display: flex; gap: 6px; min-width: 0; }
+.chat-process__sources li span { flex: 0 0 auto; color: var(--xzm-text-tertiary); }
+.chat-process__sources li strong { overflow: hidden; color: var(--xzm-text-secondary); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 
 @keyframes process-pulse {
   50% { opacity: .35; transform: scale(.72); }

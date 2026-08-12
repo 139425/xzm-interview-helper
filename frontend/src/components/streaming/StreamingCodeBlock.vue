@@ -5,8 +5,8 @@
         <span class="xzm-code-block__dot" :style="{ background: dotColor }"></span>
         {{ displayLang }}
       </span>
+      <div v-if="!isStreaming" class="xzm-code-block__actions">
       <button
-        v-if="!isStreaming"
         type="button"
         class="xzm-code-block__copy"
         :class="{ 'is-copied': copied }"
@@ -44,13 +44,16 @@
         </svg>
         <span>{{ copied ? '已复制' : '复制' }}</span>
       </button>
+      <button type="button" class="xzm-code-block__copy" :aria-pressed="wrap" @click="wrap = !wrap">{{ wrap ? '不换行' : '换行' }}</button>
+      <button type="button" class="xzm-code-block__copy" @click="downloadCode">下载</button>
+      </div>
       <span v-else class="xzm-code-block__streaming-tag">
         <span class="xzm-code-block__streaming-dot"></span>
         生成中
       </span>
     </div>
 
-    <pre class="xzm-code-block__pre"><code
+    <pre class="xzm-code-block__pre" :class="{ 'is-wrapped': wrap }"><code
       v-if="isStreaming"
       class="xzm-code-block__code"
       v-text="code"
@@ -170,6 +173,7 @@ const props = defineProps({
 const emit = defineEmits(['copied'])
 
 const copied = ref(false)
+const wrap = ref(false)
 const highlightedHtml = ref('')
 
 const resolvedLang = computed(() => {
@@ -273,6 +277,17 @@ function fallbackCopy(text) {
     return false
   }
 }
+
+function downloadCode() {
+  const extensions = { javascript: 'js', typescript: 'ts', python: 'py', java: 'java', go: 'go', rust: 'rs', cpp: 'cpp', c: 'c', csharp: 'cs', sql: 'sql', html: 'html', css: 'css', json: 'json', yaml: 'yml', bash: 'sh', powershell: 'ps1', markdown: 'md' }
+  const blob = new Blob([props.code || ''], { type: 'text/plain;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = `answer.${extensions[resolvedLang.value] || 'txt'}`
+  anchor.click()
+  URL.revokeObjectURL(url)
+}
 </script>
 
 <style scoped>
@@ -355,6 +370,7 @@ function fallbackCopy(text) {
   border-color: transparent;
   color: var(--xzm-success);
 }
+.xzm-code-block__actions { display: flex; align-items: center; gap: 2px; }
 
 .xzm-code-block__streaming-tag {
   display: inline-flex;
@@ -396,6 +412,7 @@ function fallbackCopy(text) {
   white-space: pre;
   tab-size: 4;
 }
+.xzm-code-block__pre.is-wrapped .xzm-code-block__code { white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* hljs 配色（极简：单色基调 + 浅蓝/绿/灰强调） */
 .xzm-code-block :deep(.hljs-keyword),

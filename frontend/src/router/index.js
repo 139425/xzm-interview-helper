@@ -52,6 +52,18 @@ const routes = [
     }
   },
   {
+    path: '/applications',
+    name: 'ApplicationTracker',
+    component: () => import('@/views/ApplicationTracker.vue'),
+    meta: { title: '投递追踪' }
+  },
+  {
+    path: '/knowledge',
+    name: 'KnowledgeBase',
+    component: () => import('@/views/KnowledgeBase.vue'),
+    meta: { title: '个人资料' }
+  },
+  {
     path: '/login',
     name: 'Login',
     component: Auth,

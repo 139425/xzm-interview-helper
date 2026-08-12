@@ -2,46 +2,38 @@
   <div class="voice-recorder">
     <button 
       class="voice-btn"
-      :class="{ 'recording': isRecording, 'processing': isProcessing }"
+      :class="{ 'recording': isRecording }"
       @click="toggleRecording"
-      :disabled="isProcessing"
       :title="isRecording ? '点击停止录音' : '点击开始录音'"
+      :aria-pressed="isRecording"
     >
       <el-icon :size="16">
-        <Microphone v-if="!isRecording && !isProcessing" />
-        <Loading v-else-if="isProcessing" />
-        <VideoPlay v-else />
+        <Microphone v-if="!isRecording" />
+        <VideoPause v-else />
       </el-icon>
     </button>
     
     <!-- 录音状态提示 -->
     <div v-if="isRecording" class="recording-indicator">
-      <span class="recording-text">录音中...</span>
+      <span class="recording-text">正在听…</span>
       <span class="recording-time">{{ formatTime(recordingTime) }}</span>
-    </div>
-    
-    <!-- 处理状态提示 -->
-    <div v-if="isProcessing" class="processing-indicator">
-      <span>正在识别语音...</span>
+      <span v-if="interimText" class="interim-text">{{ interimText }}</span>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onUnmounted } from 'vue'
-import { Microphone, VideoPlay, Loading } from '@element-plus/icons-vue'
+import { Microphone, VideoPause } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { chatApi } from '../api/chat'
 
 const emit = defineEmits(['voice-result'])
 
 const isRecording = ref(false)
-const isProcessing = ref(false)
 const recordingTime = ref(0)
-let mediaRecorder = null
-let audioChunks = []
+const interimText = ref('')
+let recognition = null
 let recordingTimer = null
-let stream = null
 
 // 格式化时间显示
 const formatTime = (seconds) => {
@@ -58,52 +50,50 @@ const startRecording = async () => {
       throw new Error('语音功能需要HTTPS环境，请确保网站使用HTTPS访问')
     }
     
-    // 检查浏览器是否支持getUserMedia
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      throw new Error('当前浏览器不支持语音录制功能')
-    }
-    
-    // 请求麦克风权限
-    stream = await navigator.mediaDevices.getUserMedia({ 
-      audio: {
-        sampleRate: 16000,
-        channelCount: 1,
-        echoCancellation: true,
-        noiseSuppression: true
-      } 
-    })
-    
-    // 创建MediaRecorder实例
-    mediaRecorder = new MediaRecorder(stream, {
-      mimeType: 'audio/webm;codecs=opus'
-    })
-    
-    audioChunks = []
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!Recognition) throw new Error('当前浏览器不支持实时语音转文字，请使用最新版 Chrome 或 Edge')
+
+    recognition = new Recognition()
+    recognition.lang = 'zh-CN'
+    recognition.continuous = true
+    recognition.interimResults = true
+    recognition.maxAlternatives = 1
     recordingTime.value = 0
-    
-    // 监听数据可用事件
-    mediaRecorder.ondataavailable = (event) => {
-      if (event.data.size > 0) {
-        audioChunks.push(event.data)
+    interimText.value = ''
+    let finalText = ''
+    recognition.onresult = (event) => {
+      let interim = ''
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        const transcript = event.results[index][0]?.transcript || ''
+        if (event.results[index].isFinal) finalText += transcript
+        else interim += transcript
+      }
+      interimText.value = interim
+      if (finalText.trim()) {
+        emit('voice-result', finalText.trim())
+        finalText = ''
       }
     }
-    
-    // 监听录音停止事件
-    mediaRecorder.onstop = async () => {
-      await processAudio()
+    recognition.onerror = (event) => {
+      const messages = {
+        'not-allowed': '麦克风权限被拒绝，请在浏览器地址栏中允许麦克风',
+        'no-speech': '没有听到清晰语音，请靠近麦克风重试',
+        network: '语音识别网络暂时不可用',
+      }
+      if (event.error !== 'aborted') ElMessage.error(messages[event.error] || `语音识别失败：${event.error}`)
+      stopRecording()
     }
-    
-    // 开始录音
-    mediaRecorder.start()
+    recognition.onend = () => {
+      if (isRecording.value) stopRecording()
+    }
+
+    recognition.start()
     isRecording.value = true
     
     // 开始计时
     recordingTimer = setInterval(() => {
       recordingTime.value++
-      // 60秒自动停止
-      if (recordingTime.value >= 60) {
-        stopRecording()
-      }
+      if (recordingTime.value >= 60) stopRecording()
     }, 1000)
     
     ElMessage.success('开始录音')
@@ -113,10 +103,6 @@ const startRecording = async () => {
     // 根据错误类型提供具体的解决方案
     if (error.name === 'NotAllowedError') {
       ElMessage.error('麦克风权限被拒绝，请在浏览器设置中允许麦克风访问')
-    } else if (error.name === 'NotFoundError') {
-      ElMessage.error('未找到麦克风设备，请检查设备连接')
-    } else if (error.name === 'NotSupportedError') {
-      ElMessage.error('当前浏览器不支持语音录制功能')
     } else if (error.message.includes('HTTPS')) {
       ElMessage.error('语音功能需要HTTPS环境，请联系管理员配置SSL证书')
     } else {
@@ -127,14 +113,8 @@ const startRecording = async () => {
 
 // 停止录音
 const stopRecording = () => {
-  if (mediaRecorder && mediaRecorder.state === 'recording') {
-    mediaRecorder.stop()
-  }
-  
-  if (stream) {
-    stream.getTracks().forEach(track => track.stop())
-    stream = null
-  }
+  try { recognition?.stop() } catch { /* noop */ }
+  recognition = null
   
   if (recordingTimer) {
     clearInterval(recordingTimer)
@@ -142,94 +122,7 @@ const stopRecording = () => {
   }
   
   isRecording.value = false
-}
-
-// 处理语音识别结果字符串
-const parseVoiceResult = (rawResult) => {
-  if (!rawResult || typeof rawResult !== 'string') {
-    return ''
-  }
-  
-  // 使用正则表达式匹配 [时间戳] 后面的文本内容
-  // 匹配模式：[数字:数字.数字,数字:数字.数字] 后面的文本
-  const regex = /\[\d+:\d+\.\d+,\d+:\d+\.\d+\]\s*([^\[]*)/g
-  const matches = []
-  let match
-  
-  while ((match = regex.exec(rawResult)) !== null) {
-    const text = match[1].trim()
-    if (text) {
-      matches.push(text)
-    }
-  }
-  
-  // 将所有提取的文本用空格连接
-  return matches.join(' ').trim()
-}
-
-// 处理音频数据
-const processAudio = async () => {
-  if (audioChunks.length === 0) {
-    ElMessage.warning('录音数据为空')
-    return
-  }
-  
-  isProcessing.value = true
-  
-  try {
-    // 创建音频Blob
-    const audioBlob = new Blob(audioChunks, { type: 'audio/webm;codecs=opus' })
-    
-    // 转换为WAV格式（更适合语音识别）
-    const wavBlob = await convertToWav(audioBlob)
-    
-    // 转换为Base64
-    const base64Data = await blobToBase64(wavBlob)
-    
-    // 计算原始数据长度
-    const dataLen = wavBlob.size
-    
-    // 调用语音识别API
-    const rawResult = await chatApi.voiceRecognition(base64Data, dataLen)
-    
-    // 处理识别结果，提取纯文本
-    const cleanText = parseVoiceResult(rawResult)
-    
-    if (cleanText) {
-      // 发送处理后的识别结果
-      emit('voice-result', cleanText)
-      ElMessage.success('语音识别成功')
-    } else {
-      ElMessage.warning('未识别到有效内容')
-    }
-  } catch (error) {
-    console.error('语音处理失败:', error)
-    ElMessage.error('语音识别失败，请重试')
-  } finally {
-    isProcessing.value = false
-    audioChunks = []
-  }
-}
-
-// 将Blob转换为Base64
-const blobToBase64 = (blob) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      // 移除data:audio/wav;base64,前缀
-      const base64 = reader.result.split(',')[1]
-      resolve(base64)
-    }
-    reader.onerror = reject
-    reader.readAsDataURL(blob)
-  })
-}
-
-// 转换为WAV格式（简化版本，实际项目中可能需要更复杂的转换）
-const convertToWav = async (webmBlob) => {
-  // 这里简化处理，直接返回原始blob
-  // 在实际项目中，可能需要使用Web Audio API进行格式转换
-  return webmBlob
+  interimText.value = ''
 }
 
 // 切换录音状态
@@ -289,11 +182,6 @@ onUnmounted(() => {
   animation: pulse 1.5s infinite;
 }
 
-.voice-btn.processing {
-  background: #3742fa;
-  color: white;
-}
-
 .voice-btn:disabled {
   cursor: not-allowed;
   opacity: 0.6;
@@ -328,6 +216,8 @@ onUnmounted(() => {
   z-index: 1000;
 }
 
+.interim-text { display:block;max-width:240px;margin-top:3px;overflow:hidden;color:#dce7ff;text-overflow:ellipsis;white-space:nowrap; }
+
 .recording-indicator::after {
   content: '';
   position: absolute;
@@ -347,27 +237,4 @@ onUnmounted(() => {
   color: #ff4757;
 }
 
-.processing-indicator {
-  position: absolute;
-  top: -30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(55, 66, 250, 0.9);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
-  z-index: 1000;
-}
-
-.processing-indicator::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 4px solid transparent;
-  border-top-color: rgba(55, 66, 250, 0.9);
-}
 </style>

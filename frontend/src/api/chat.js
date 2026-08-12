@@ -39,6 +39,25 @@ export function normalizeStageEvent(value) {
   if (Number.isFinite(Number(value.hitCount))) {
     normalized.hitCount = Math.max(0, Math.min(100, Number(value.hitCount)))
   }
+  if (Number.isFinite(Number(value.personalHitCount))) {
+    normalized.personalHitCount = Math.max(0, Math.min(30, Number(value.personalHitCount)))
+  }
+  if (Array.isArray(value.sources)) {
+    normalized.sources = value.sources.slice(0, 8).map((source) => ({
+      id: Number(source?.id) || 0,
+      title: String(source?.title || '').trim().slice(0, 255),
+      sourceType: String(source?.sourceType || 'DOCUMENT').trim().slice(0, 32),
+      score: Number(source?.score) || 0,
+    })).filter((source) => source.title)
+  }
+  if (Array.isArray(value.publicSources)) {
+    normalized.publicSources = value.publicSources.slice(0, 8).map((source) => ({
+      title: String(source?.title || '公共知识库').trim().slice(0, 160),
+      sourceType: 'PUBLIC_KNOWLEDGE',
+      path: String(source?.path || '').trim().slice(0, 300),
+      section: String(source?.section || '').trim().slice(0, 200),
+    }))
+  }
   return normalized
 }
 

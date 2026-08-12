@@ -1,6 +1,8 @@
 package com.xzm.xzm_interview_helper.controller;
 
 import com.xzm.xzm_interview_helper.grpc.client.PythonAiGrpcClient;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.xzm.xzm_interview_helper.career.PersonalKnowledgeService;
 import com.xzm.xzm_interview_helper.model.dto.LongCatChatRequest;
 import com.xzm.xzm_interview_helper.model.dto.SubmitInterviewAgentAnswerRequest;
 import com.xzm.xzm_interview_helper.service.AiConversationService;
@@ -41,6 +43,8 @@ class AiControllerAdmissionTest {
     private ResumeTextExtractor resumeTextExtractor;
     @Mock
     private AiOperationGate aiOperationGate;
+    @Mock
+    private PersonalKnowledgeService personalKnowledgeService;
 
     private LongCatChatController chatController;
     private InterviewAgentController interviewController;
@@ -50,7 +54,9 @@ class AiControllerAdmissionTest {
         chatController = new LongCatChatController(
                 pythonAiGrpcClient,
                 aiConversationService,
-                aiOperationGate
+                aiOperationGate,
+                personalKnowledgeService,
+                new ObjectMapper()
         );
         interviewController = new InterviewAgentController(
                 interviewAgentOrchestrator,

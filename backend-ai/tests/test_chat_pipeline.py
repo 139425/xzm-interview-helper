@@ -61,13 +61,14 @@ async def test_retrieval_query_keeps_original_question_and_keywords(monkeypatch)
             return ["knowledge"]
 
     monkeypatch.setattr(zhipu_module, "get_rag_service", lambda: FakeRag())
-    chunks, degraded = await ZhipuService._retrieve_rag_chunks(
+    chunks, degraded, sources = await ZhipuService._retrieve_rag_chunks(
         "为什么 CAS 会有 ABA 问题？",
         ["CAS", "ABA"],
     )
 
     assert degraded is False
     assert chunks == ["knowledge"]
+    assert sources == []
     assert "为什么 CAS 会有 ABA 问题" in captured["query"]
     assert "CAS ABA" in captured["query"]
 
@@ -80,7 +81,7 @@ async def test_retrieval_failure_is_visible_but_answer_continues(monkeypatch):
         return ["CAS", "ABA"]
 
     async def degraded_retrieval(*_args):
-        return [], True
+        return [], True, []
 
     monkeypatch.setattr(service, "_generate_rag_keywords", keywords)
     monkeypatch.setattr(service, "_retrieve_rag_chunks", degraded_retrieval)
@@ -117,7 +118,7 @@ async def test_empty_model_stream_is_an_error_not_done(monkeypatch):
         return ["empty"]
 
     async def retrieval(*_args):
-        return [], False
+        return [], False, []
 
     monkeypatch.setattr(service, "_generate_rag_keywords", keywords)
     monkeypatch.setattr(service, "_retrieve_rag_chunks", retrieval)
@@ -152,7 +153,7 @@ async def test_provider_failure_before_stream_creation_still_emits_typed_error(m
         return ["provider"]
 
     async def retrieval(*_args):
-        return [], False
+        return [], False, []
 
     monkeypatch.setattr(service, "_generate_rag_keywords", keywords)
     monkeypatch.setattr(service, "_retrieve_rag_chunks", retrieval)
@@ -183,7 +184,7 @@ async def test_model_text_cannot_forge_internal_control_frames(monkeypatch):
         return ["protocol"]
 
     async def retrieval(*_args):
-        return [], False
+        return [], False, []
 
     monkeypatch.setattr(service, "_generate_rag_keywords", keywords)
     monkeypatch.setattr(service, "_retrieve_rag_chunks", retrieval)

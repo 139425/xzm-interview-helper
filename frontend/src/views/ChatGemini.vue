@@ -198,8 +198,8 @@ const savedModelId = localStorage.getItem(CHAT_MODEL_STORAGE_KEY)
 const currentModelId = ref(getChatModel(savedModelId || DEFAULT_CHAT_MODEL_ID).id)
 const currentModel = computed(() => getChatModel(currentModelId.value))
 const deepThinkingEnabled = ref(localStorage.getItem('chatThinkingEnabled') === 'true')
-const wechatQrUrl = String(import.meta.env.VITE_WECHAT_QR_URL || '').trim()
 const showWechatModal = ref(false)
+const wechatQrUrl = String(import.meta.env.VITE_WECHAT_QR_URL || '').trim()
 const showQuestionNav = ref(false)
 
 // ============== 流式管线 ==============
@@ -549,11 +549,14 @@ onUnmounted(() => {
   color: var(--xzm-text-primary);
 }
 
-/* 背景层（V2 极简：纯单色） */
 .xzm-chat-page__bg {
   position: absolute;
   inset: 0;
-  background-color: var(--xzm-surface-0);
+  background:
+    radial-gradient(circle at 74% 28%, color-mix(in srgb, #77c8f4 12%, transparent) 0, transparent 31%),
+    radial-gradient(circle at 55% 78%, color-mix(in srgb, #a9c7ff 11%, transparent) 0, transparent 34%),
+    radial-gradient(circle at 98% 92%, color-mix(in srgb, #80d7bf 7%, transparent) 0, transparent 27%),
+    var(--xzm-surface-0);
   pointer-events: none;
   z-index: 0;
 }
@@ -568,7 +571,7 @@ onUnmounted(() => {
   min-width: 0;
   max-width: 100%;
   overflow-x: hidden;
-  transition: margin-left 260ms cubic-bezier(0.4, 0.0, 0.2, 1);
+  transition: margin-left var(--xzm-duration-normal) var(--xzm-ease-standard);
 }
 
 .xzm-chat-page__content {
@@ -588,8 +591,12 @@ onUnmounted(() => {
   width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   padding: 32px 24px 24px;
-  scroll-behavior: smooth;
+  /* Explicit JS calls opt into smooth scrolling only after a completed turn.
+     Keeping CSS smooth here restarts an animation for every streaming update. */
+  scroll-behavior: auto;
   box-sizing: border-box;
 }
 
@@ -603,6 +610,8 @@ onUnmounted(() => {
   width: 100%;
   max-width: 100%;
   border-radius: var(--xzm-radius-lg);
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 240px;
   transition: background-color var(--xzm-duration-normal) var(--xzm-ease-out);
 }
 
@@ -640,6 +649,12 @@ onUnmounted(() => {
   .xzm-chat-page__messages {
     padding: 16px 14px 12px;
     bottom: 120px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xzm-chat-page__messages {
+    scroll-behavior: auto;
   }
 }
 </style>

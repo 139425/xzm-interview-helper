@@ -1,5 +1,5 @@
 /**
- * surface.css — V2 极简白纸风
+ * surface.css — V3 流畅清晰的界面原语
  *
  * 取代 V1 glass.css。保留同名类（.xzm-glass*）以确保存量组件零侵入：
  *   .xzm-glass          → 不透明 surface-1 + 1px border + 弱阴影
@@ -14,11 +14,8 @@
  *   - 实用类 (truncate / line-clamp / sr-only)
  *   - 动效辅助 (xzm-fade-in / xzm-spin)
  *
- * 严格遵循 docs/minimalism.md：
- *   - 无 backdrop-filter
- *   - 无 transform: scale 反馈
- *   - 无渐变背景/文字/边框
- *   - 仅 200ms ease-out 过渡
+ * V3 只在高价值交互上使用轻微位移、按压缩放和品牌渐变；所有动效都限制在
+ * 90–300ms，并优先使用 opacity / transform，避免大面积持续动画。
  */
 
 /* ============================================
@@ -255,109 +252,49 @@
 }
 
 /* ============================================
-   10) 旧组件 override —— 全部去玻璃、去渐变、去 scale
+   10) 存量页面兼容层
+
+   V3 不再用全局 !important 禁掉 transform。微幅位移和按压缩放只作用于
+   合成层，是建立触感、避免布局抖动的关键反馈。
    ============================================ */
-
-/* GeminiSidebar */
 .gemini-sidebar {
-  background-color: var(--xzm-surface-1) !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-  border-right: 1px solid var(--xzm-border-color) !important;
-  box-shadow: none !important;
+  border-right: 1px solid var(--xzm-border-color);
+  background: color-mix(in srgb, var(--xzm-surface-1) 96%, white);
 }
 
-/* GeminiPromptBar —— 浮岛白底 */
 .gemini-prompt-bar {
-  background-color: var(--xzm-surface-1) !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-  border: 1px solid var(--xzm-border-color) !important;
-  box-shadow: var(--xzm-shadow-medium) !important;
-  border-radius: var(--xzm-radius-lg) !important;
-  transition:
-    border-color var(--xzm-duration-fast) var(--xzm-ease-out),
-    box-shadow var(--xzm-duration-fast) var(--xzm-ease-out) !important;
+  border: 1px solid color-mix(in srgb, var(--xzm-border-color) 88%, transparent);
+  border-radius: var(--xzm-radius-2xl);
+  background: color-mix(in srgb, var(--xzm-surface-elevated) 96%, transparent);
+  box-shadow: var(--xzm-shadow-medium);
 }
+
 .gemini-prompt-bar.focused {
-  border-color: var(--xzm-brand) !important;
-  box-shadow: var(--xzm-shadow-medium) !important;
-}
-.gemini-prompt-bar.position-bottom {
-  bottom: 16px !important;
-  background-color: var(--xzm-surface-1) !important;
+  border-color: color-mix(in srgb, var(--xzm-brand) 48%, var(--xzm-border-color));
+  box-shadow: 0 0 0 4px var(--xzm-focus-ring-soft), var(--xzm-shadow-lifted);
 }
 
-/* PromptBar 内部按钮：去渐变、去 scale */
 .gemini-prompt-bar .send-btn {
-  background: var(--xzm-brand) !important;
-  border: none !important;
-  color: var(--xzm-text-on-brand) !important;
-  box-shadow: none !important;
-  transform: none !important;
-  transition:
-    filter var(--xzm-duration-fast) var(--xzm-ease-out),
-    background-color var(--xzm-duration-fast) var(--xzm-ease-out) !important;
-}
-.gemini-prompt-bar .send-btn:hover:not(:disabled) {
-  filter: brightness(1.06);
-  box-shadow: none !important;
-  transform: none !important;
-}
-.gemini-prompt-bar .send-btn:active:not(:disabled) {
-  filter: brightness(0.95);
-  transform: none !important;
+  color: var(--xzm-text-on-brand);
+  background: var(--xzm-brand-gradient);
+  box-shadow: var(--xzm-shadow-brand);
 }
 
-/* WelcomeSection 容器透明 */
 .welcome-section {
-  background: transparent !important;
+  background: transparent;
 }
 
-/* Auth / UserManagement / NotFound 页面 */
 .auth-container,
 .user-management-container,
-.not-found-container {
-  background: var(--xzm-surface-0) !important;
-  color: var(--xzm-text-primary) !important;
+.not-found-container,
+.gemini-interview-page,
+.report-page {
+  color: var(--xzm-text-primary);
+  background: var(--xzm-surface-0);
 }
 
 .auth-card,
-.not-found-content {
-  background-color: var(--xzm-surface-1) !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-  border: 1px solid var(--xzm-border-color) !important;
-  border-radius: var(--xzm-radius-lg) !important;
-  box-shadow: var(--xzm-shadow-medium) !important;
-}
-
-.auth-container .submit-btn,
-.user-management-container .primary-btn,
-.not-found-container .home-btn {
-  background: var(--xzm-brand) !important;
-  border: none !important;
-  color: var(--xzm-text-on-brand) !important;
-  box-shadow: none !important;
-  transform: none !important;
-  transition:
-    filter var(--xzm-duration-fast) var(--xzm-ease-out) !important;
-}
-.auth-container .submit-btn:hover,
-.user-management-container .primary-btn:hover,
-.not-found-container .home-btn:hover {
-  filter: brightness(1.06) !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
-/* 面试页 / 报告页 */
-.gemini-interview-page,
-.report-page {
-  background: var(--xzm-surface-0) !important;
-  color: var(--xzm-text-primary) !important;
-}
-
+.not-found-content,
 .gemini-interview-page .resume-card,
 .gemini-interview-page .preparing-card,
 .gemini-interview-page .input-card,
@@ -368,80 +305,38 @@
 .report-page .round-card,
 .report-page .retry-card,
 .report-page .stats-card {
-  background-color: var(--xzm-surface-1) !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-  border: 1px solid var(--xzm-border-color) !important;
-  border-radius: var(--xzm-radius-lg) !important;
-  box-shadow: var(--xzm-shadow-soft) !important;
+  border: 1px solid var(--xzm-border-color);
+  border-radius: var(--xzm-radius-xl);
+  background: var(--xzm-surface-elevated);
+  box-shadow: var(--xzm-shadow-soft);
 }
 
 .report-page .report-header,
 .gemini-interview-page .top-bar {
-  background-color: var(--xzm-surface-1) !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-  border-bottom: 1px solid var(--xzm-border-color) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--xzm-border-color) 80%, transparent);
+  background: color-mix(in srgb, var(--xzm-surface-elevated) 92%, transparent);
 }
 
-/* ============================================
-   11) 全局 reset：禁用 transform: scale 反馈，统一为色彩反馈
-        优先级用 !important 覆盖任何 scoped 样式。
-   ============================================ */
-
-/* PromptBar 内部按钮 —— 全部禁止 scale */
-.gemini-prompt-bar .send-btn,
-.gemini-prompt-bar .send-btn:hover,
-.gemini-prompt-bar .send-btn:active,
-.gemini-prompt-bar .send-btn:focus {
-  transform: none !important;
-}
-
-/* Sidebar 展开按钮 */
-.sidebar-expand-btn,
-.sidebar-expand-btn:hover,
-.sidebar-expand-btn:active,
-.sidebar-expand-btn:focus {
-  transform: none !important;
-  box-shadow: var(--xzm-shadow-soft) !important;
-  background-color: var(--xzm-surface-1) !important;
-  border-color: var(--xzm-border-color) !important;
+.auth-container .submit-btn,
+.user-management-container .primary-btn,
+.not-found-container .home-btn {
+  border: 0;
+  color: var(--xzm-text-on-brand);
+  background: var(--xzm-brand-gradient);
+  box-shadow: var(--xzm-shadow-brand);
   transition:
-    background-color var(--xzm-duration-fast) var(--xzm-ease-out),
-    border-color var(--xzm-duration-fast) var(--xzm-ease-out) !important;
-}
-.sidebar-expand-btn:hover {
-  background-color: var(--xzm-hover-bg) !important;
-  border-color: var(--xzm-border-color-hover) !important;
+    box-shadow var(--xzm-duration-fast) var(--xzm-ease-standard),
+    transform var(--xzm-duration-fast) var(--xzm-ease-emphasized);
 }
 
-/* PromptBar 整体 transition：禁用 transition: all（避免 box-shadow 拖尾） */
-.gemini-prompt-bar .send-btn {
-  transition:
-    background-color var(--xzm-duration-fast) var(--xzm-ease-out),
-    border-color var(--xzm-duration-fast) var(--xzm-ease-out),
-    color var(--xzm-duration-fast) var(--xzm-ease-out),
-    filter var(--xzm-duration-fast) var(--xzm-ease-out) !important;
+.auth-container .submit-btn:hover,
+.user-management-container .primary-btn:hover,
+.not-found-container .home-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--xzm-shadow-brand-hover);
 }
 
-/* 兜底：xzm-no-scale 工具类 */
 .xzm-no-scale,
 .xzm-no-scale * {
-  transform: none !important;
-}
-
-/* 全局禁用 hover/active 的 scale 反馈（不影响 keyframes 内的 transform） */
-.gemini-prompt-bar *:hover,
-.gemini-prompt-bar *:active,
-.gemini-sidebar *:hover,
-.gemini-sidebar *:active,
-.text-edit-modal *:hover,
-.text-edit-modal *:active,
-.xzm-user-avatar:hover,
-.xzm-user-avatar:active,
-.xzm-user-avatar *:hover,
-.xzm-user-avatar *:active,
-.voice-recorder-btn:hover,
-.voice-recorder-btn:active {
   transform: none !important;
 }

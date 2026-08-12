@@ -1,9 +1,15 @@
 <template>
   <div class="xzm-stream-md" :class="`xzm-stream-md--${variant}`">
-    <template v-for="block in blocks" :key="block.id">
+    <TransitionGroup name="stream-block" tag="div" class="xzm-stream-md__blocks">
+    <div v-for="block in blocks" :key="block.id" class="xzm-stream-md__block">
+      <MermaidDiagram
+        v-if="block.kind === 'code' && block.done && String(block.lang).toLowerCase() === 'mermaid'"
+        :code="block.raw"
+        :block-id="block.id"
+      />
       <!-- 代码块（done & pending 都用这个组件） -->
       <StreamingCodeBlock
-        v-if="block.kind === 'code'"
+        v-else-if="block.kind === 'code'"
         :lang="block.lang || ''"
         :code="block.raw"
         :is-streaming="!block.done"
@@ -38,7 +44,8 @@
         v-memo="[block.raw, block.kind]"
         v-html="renderDoneBlock(block)"
       />
-    </template>
+    </div>
+    </TransitionGroup>
 
     <!-- 完全空内容时仍要显示一个光标占位（流刚开始） -->
     <span
@@ -55,6 +62,7 @@ import { computed } from 'vue'
 import StreamingCodeBlock from './StreamingCodeBlock.vue'
 import StreamingTable from './StreamingTable.vue'
 import StreamingCursor from './StreamingCursor.vue'
+import MermaidDiagram from './MermaidDiagram.vue'
 import { renderMarkdown, escapeFallback } from '../../utils/markdownFormatter'
 
 const props = defineProps({
@@ -106,6 +114,10 @@ function renderDoneBlock(block) {
   font-size: var(--xzm-fs-sm);
   line-height: var(--xzm-lh-relaxed);
 }
+.xzm-stream-md__blocks { display: contents; }
+.xzm-stream-md__block { min-width: 0; }
+.stream-block-enter-active { transition: opacity 190ms ease-out, filter 190ms ease-out, transform 190ms ease-out; }
+.stream-block-enter-from { opacity: 0; filter: blur(2px); transform: translateY(4px); }
 
 /* 进行中段落（极克制透明度，节奏柔和） */
 .xzm-stream-md__pending {
@@ -252,4 +264,5 @@ function renderDoneBlock(block) {
   .xzm-stream-md :deep(h2) { font-size: var(--xzm-fs-lg); }
   .xzm-stream-md :deep(h3) { font-size: var(--xzm-fs-md); }
 }
+@media (prefers-reduced-motion: reduce) { .stream-block-enter-active { transition: none; } }
 </style>

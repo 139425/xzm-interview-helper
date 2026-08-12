@@ -93,6 +93,8 @@ export function useChatStream() {
     return source.map((stage) => ({
       ...stage,
       keywords: Array.isArray(stage.keywords) ? [...stage.keywords] : stage.keywords,
+      sources: Array.isArray(stage.sources) ? stage.sources.map((item) => ({ ...item })) : stage.sources,
+      publicSources: Array.isArray(stage.publicSources) ? stage.publicSources.map((item) => ({ ...item })) : stage.publicSources,
     }))
   }
 
@@ -251,9 +253,15 @@ export function useChatStream() {
         if (!isActive(context) || !event?.phase) return
         context.receivedStagePhases.add(event.phase)
         const index = stages.value.findIndex((stage) => stage.phase === event.phase)
+        const previous = index >= 0 ? stages.value[index] : {}
         const nextStage = {
-          ...(index >= 0 ? stages.value[index] : {}),
+          ...previous,
           ...event,
+          hitCount: event.hitCount ?? previous.hitCount,
+          personalHitCount: event.personalHitCount ?? previous.personalHitCount,
+          keywords: event.keywords?.length ? event.keywords : previous.keywords,
+          sources: event.sources?.length ? event.sources : previous.sources,
+          publicSources: event.publicSources?.length ? event.publicSources : previous.publicSources,
           phase: event.phase,
         }
         if (index >= 0) {

@@ -45,7 +45,7 @@
     </div>
     
     <!-- 新对话按钮 -->
-    <div v-if="activeMode !== 'algorithm'" class="sidebar-actions">
+    <div v-if="hasConversationHistory" class="sidebar-actions">
       <button 
         type="button"
         class="gemini-icon-button new-chat-btn"
@@ -93,7 +93,7 @@
     </section>
     
     <!-- 历史记录区域（仅展开时显示） -->
-    <div v-if="showExpandedContent && activeMode !== 'algorithm'" class="history-section">
+    <div v-if="showExpandedContent && hasConversationHistory" class="history-section">
       <!-- 历史记录头部 -->
       <div class="history-header">
         <span class="history-title">历史记录</span>
@@ -257,7 +257,10 @@ import {
   Document, 
   Loading, 
   Delete,
-  Cpu
+  Cpu,
+  Briefcase,
+  TrendCharts,
+  Collection
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
@@ -266,7 +269,7 @@ const props = defineProps({
   mode: {
     type: String,
     default: 'chat',
-    validator: (value) => ['chat', 'interview', 'algorithm'].includes(value)
+    validator: (value) => ['chat', 'interview', 'algorithm', 'recruitment', 'applications', 'knowledge'].includes(value)
   }
 })
 
@@ -294,6 +297,7 @@ let isUnmounted = false
 // clip-path 裁成 72px 后仍挤压图标，也是收起态错位的根因。
 const showExpandedContent = computed(() => uiStore.sidebarExpanded)
 const activeMode = computed(() => props.mode || uiStore.currentMode)
+const hasConversationHistory = computed(() => ['chat', 'interview'].includes(activeMode.value))
 const modeItems = [
   {
     id: 'chat',
@@ -315,6 +319,27 @@ const modeItems = [
     description: '题库 · 编码 · 评测',
     icon: Cpu,
     route: '/algorithms',
+  },
+  {
+    id: 'recruitment',
+    label: '秋招信息',
+    description: '每日更新 · 官网优先',
+    icon: Briefcase,
+    route: '/recruitment',
+  },
+  {
+    id: 'applications',
+    label: '投递追踪',
+    description: '流程 · 截止 · 提醒',
+    icon: TrendCharts,
+    route: '/applications',
+  },
+  {
+    id: 'knowledge',
+    label: '个人资料',
+    description: '隔离知识库 · 来源',
+    icon: Collection,
+    route: '/knowledge',
   },
 ]
 
@@ -361,7 +386,7 @@ const switchWorkspace = (item) => {
 
 // 加载历史记录（首次加载）
 const loadHistoryList = async (reset = true) => {
-  if (activeMode.value === 'algorithm') {
+  if (!hasConversationHistory.value) {
     historyRequestId += 1
     historyList.value = []
     loading.value = false
@@ -721,7 +746,7 @@ const refreshHistory = () => {
 // ========== 生命周期 ==========
 
 onMounted(() => {
-  if (activeMode.value !== 'algorithm') loadHistoryList()
+  if (hasConversationHistory.value) loadHistoryList()
 })
 
 onBeforeUnmount(() => {
@@ -732,7 +757,7 @@ onBeforeUnmount(() => {
 
 // 监听 store 的刷新触发器
 watch(() => uiStore.sidebarRefreshTrigger, (newVal) => {
-  if (newVal > 0 && activeMode.value !== 'algorithm') {
+  if (newVal > 0 && hasConversationHistory.value) {
     console.log('🔄 GeminiSidebar 收到刷新信号, trigger:', newVal)
     loadHistoryList(true)
   }
@@ -743,7 +768,7 @@ watch(activeMode, (newMode, oldMode) => {
   if (newMode !== oldMode) {
     if (newMode !== 'chat') exitBatchMode()
     console.log('🔄 模式切换:', oldMode, '->', newMode)
-    if (activeMode.value === 'algorithm') {
+    if (!hasConversationHistory.value) {
       historyList.value = []
       loading.value = false
       loadingMore.value = false
