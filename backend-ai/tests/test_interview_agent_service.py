@@ -327,7 +327,10 @@ async def test_answer_rag_is_labeled_as_non_candidate_public_knowledge(test_sett
     payload = json.loads(gateway.calls[0]["messages"][1]["content"])
     assert payload["candidate_submission"]["resume_text"].startswith("MySQL")
     assert payload["public_technical_knowledge"]["author_is_not_candidate"] is True
-    assert "SecretCorp" in payload["public_technical_knowledge"]["chunks"][0]
+    assert payload["public_technical_knowledge"]["chunks"] == [
+        "A B+ tree keeps ordered index keys."
+    ]
+    assert "SecretCorp" not in str(gateway.calls[0]["messages"])
     assert "Public knowledge is never evidence about the candidate" in system_prompt
     assert "never attribute its first-person statements" in system_prompt
 

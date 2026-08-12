@@ -44,11 +44,16 @@ const SANITIZE_CONFIG = {
     'a', 'img',
     'pre', 'code', 'kbd', 'samp', 'var',
     'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption', 'colgroup', 'col',
+    'math', 'semantics', 'annotation', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub',
+    'mfrac', 'mroot', 'msqrt', 'mtext', 'mspace', 'mtable', 'mtr', 'mtd', 'mover',
+    'munder', 'munderover', 'mpadded', 'menclose',
   ],
   ALLOWED_ATTR: [
     'href', 'title', 'target', 'rel',
     'src', 'alt', 'width', 'height',
     'align', 'class', 'colspan', 'rowspan', 'start', 'type',
+    'encoding', 'display', 'mathvariant', 'stretchy', 'accent', 'fence', 'separator',
+    'columnalign', 'aria-hidden',
   ],
   // 仅放行 http/https/mailto，以及站内相对路径与锚点
   ALLOWED_URI_REGEXP: /^(?:https?:\/\/|mailto:|\/|#|\.\/|\.\.\/)/i,

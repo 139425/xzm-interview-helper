@@ -98,7 +98,7 @@
       <div class="history-header">
         <span class="history-title">历史记录</span>
         <button 
-          v-if="historyList.length > 0 && !isBatchMode && activeMode === 'chat'"
+          v-if="historyList.length > 0 && !isBatchMode"
           type="button"
           class="batch-btn"
           @click="enterBatchMode"
@@ -109,7 +109,7 @@
       </div>
       
       <!-- 批量操作控制栏 -->
-      <div v-if="isBatchMode && activeMode === 'chat'" class="batch-controls">
+      <div v-if="isBatchMode" class="batch-controls">
         <button type="button" @click="selectAll" class="control-btn">
           {{ selectedItems.length === historyList.length ? '取消' : '全选' }}
         </button>
@@ -212,7 +212,7 @@
             
             <!-- 删除按钮 -->
             <button 
-              v-if="!isBatchMode && activeMode === 'chat'"
+              v-if="!isBatchMode"
               type="button"
               class="delete-btn-icon"
               @click.stop="confirmDelete(item.memoryId)"
@@ -274,7 +274,7 @@ const props = defineProps({
 })
 
 // Emits
-const emit = defineEmits(['new-chat', 'mode-change', 'interview-select', 'history-selecting'])
+const emit = defineEmits(['new-chat', 'mode-change', 'interview-select', 'interview-delete', 'history-selecting'])
 
 // Stores
 const router = useRouter()
@@ -599,10 +599,8 @@ const confirmDelete = async (memoryId) => {
   
   try {
     if (activeMode.value === 'interview') {
-      // The Agent API intentionally has no destructive session endpoint.
-      // Keep interview history immutable while an assessment may be resumed.
-      ElMessage.info('面试会话暂不支持在侧边栏删除。')
-      return
+      await interviewApi.deleteSession(memoryId)
+      emit('interview-delete', [memoryId])
     } else {
       if (userStore.isLoggedIn && userStore.userId) {
         await chatApi.clearChatHistoryByUser(memoryId, userStore.userId)
@@ -669,17 +667,16 @@ const selectAll = () => {
 const batchDelete = async () => {
   if (selectedItems.value.length === 0) return
 
-  if (activeMode.value === 'interview') {
-    ElMessage.info('面试会话暂不支持批量删除。')
-    return
-  }
-  
   const deleteCount = selectedItems.value.length
   const confirmed = confirm(`确认删除选中的 ${deleteCount} 条历史记录吗？删除后不可恢复。`)
   if (!confirmed) return
   
   try {
-    const deletePromises = selectedItems.value.map(memoryId => {
+    const deletedIds = [...selectedItems.value]
+    const deletePromises = deletedIds.map(memoryId => {
+      if (activeMode.value === 'interview') {
+        return interviewApi.deleteSession(memoryId)
+      }
       if (userStore.isLoggedIn && userStore.userId) {
         return chatApi.clearChatHistoryByUser(memoryId, userStore.userId)
       } else {
@@ -688,6 +685,10 @@ const batchDelete = async () => {
     })
     
     await Promise.all(deletePromises)
+
+    if (activeMode.value === 'interview') {
+      emit('interview-delete', deletedIds)
+    }
     
     // 如果删除的包含当前对话，重置状态并显示欢迎界面
     const deletedCurrentChat = selectedItems.value.includes(chatStore.currentMemoryId)

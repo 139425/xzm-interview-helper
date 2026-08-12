@@ -213,6 +213,12 @@ export const interviewApi = {
     return unwrapResponse(response);
   },
 
+  async deleteSession(sessionId) {
+    await request.delete(
+      `${AGENT_ROOT}/sessions/${encodeURIComponent(sessionId)}`,
+    );
+  },
+
   startSessionStream(sessionId, options = {}) {
     return streamInterviewAgent({
       ...options,

@@ -46,6 +46,7 @@ recruitment:
     stale-after-days: ${RECRUITMENT_STALE_AFTER_DAYS:60}
     graduate-year: ${RECRUITMENT_GRADUATE_YEAR:0}
     playoffer-pages: ${RECRUITMENT_PLAYOFFER_PAGES:20}
+    offershow-pages: ${RECRUITMENT_OFFERSHOW_PAGES:20}
 spring:
   application:
     name: xzm_interview_helper

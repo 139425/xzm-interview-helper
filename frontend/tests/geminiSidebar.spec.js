@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   chatHistory: vi.fn(),
   anonymousHistory: vi.fn(),
   interviewSessions: vi.fn(),
+  deleteInterviewSession: vi.fn(),
   createNewChat: vi.fn(),
   routerPush: vi.fn(),
   uiStore: null,
@@ -22,6 +23,7 @@ vi.mock("@/api/chat", () => ({
 vi.mock("@/api/interview", () => ({
   interviewApi: {
     listSessions: mocks.interviewSessions,
+    deleteSession: mocks.deleteInterviewSession,
   },
 }));
 
@@ -119,5 +121,33 @@ describe("GeminiSidebar workspaces", () => {
     expect(wrapper.find(".mode-copy").exists()).toBe(false);
     expect(wrapper.findAll(".mode-btn")).toHaveLength(6);
     expect(wrapper.find(".algorithm-context").exists()).toBe(false);
+  });
+
+  it("deletes an owned interview session from its history list", async () => {
+    mocks.uiStore.currentMode = "interview";
+    mocks.interviewSessions.mockResolvedValue([
+      {
+        sessionId: "session-owned-1",
+        targetRole: "后端开发工程师",
+        status: "AWAITING_ANSWER",
+        updatedAt: "2026-08-12T20:00:00Z",
+      },
+    ]);
+    mocks.deleteInterviewSession.mockResolvedValue(undefined);
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+
+    const wrapper = mount(GeminiSidebar, {
+      props: { mode: "interview" },
+      global: { stubs: { "el-icon": true } },
+    });
+    await flushPromises();
+
+    await wrapper.get('[aria-label^="删除会话："]').trigger("click");
+    await flushPromises();
+
+    expect(mocks.deleteInterviewSession).toHaveBeenCalledWith("session-owned-1");
+    expect(wrapper.emitted("interview-delete")?.[0]).toEqual([
+      ["session-owned-1"],
+    ]);
   });
 });

@@ -85,7 +85,7 @@ public class RecruitmentCrawlerService {
     }
 
     private RecruitmentCandidate mergeCandidates(RecruitmentCandidate left, RecruitmentCandidate right) {
-        RecruitmentCandidate primary = left.getSourcePriority() >= right.getSourcePriority() ? left : right;
+        RecruitmentCandidate primary = preferredCandidate(left, right);
         RecruitmentCandidate secondary = primary == left ? right : left;
         return RecruitmentCandidate.builder()
                 .externalId(nonBlank(primary.getExternalId(), secondary.getExternalId()))
@@ -106,6 +106,23 @@ public class RecruitmentCrawlerService {
                 .sourceKind(primary.getSourceKind())
                 .sourcePriority(primary.getSourcePriority())
                 .build();
+    }
+
+    private RecruitmentCandidate preferredCandidate(RecruitmentCandidate left, RecruitmentCandidate right) {
+        if (left.getSourcePriority() != right.getSourcePriority()) {
+            return left.getSourcePriority() > right.getSourcePriority() ? left : right;
+        }
+        boolean leftHasWechatAnnouncement = "mp.weixin.qq.com".equals(RecruitmentText.host(left.getAnnouncementUrl()));
+        boolean rightHasWechatAnnouncement = "mp.weixin.qq.com".equals(RecruitmentText.host(right.getAnnouncementUrl()));
+        if (leftHasWechatAnnouncement != rightHasWechatAnnouncement) {
+            return rightHasWechatAnnouncement ? right : left;
+        }
+        boolean leftHasOfficialApply = !RecruitmentText.safeHttpUrl(left.getApplyUrl()).isEmpty();
+        boolean rightHasOfficialApply = !RecruitmentText.safeHttpUrl(right.getApplyUrl()).isEmpty();
+        if (leftHasOfficialApply != rightHasOfficialApply) {
+            return rightHasOfficialApply ? right : left;
+        }
+        return left;
     }
 
     private boolean isUsable(RecruitmentCandidate candidate) {

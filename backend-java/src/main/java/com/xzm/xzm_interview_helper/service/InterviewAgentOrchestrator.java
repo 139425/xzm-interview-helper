@@ -78,6 +78,11 @@ public class InterviewAgentOrchestrator {
     private static final String STATUS_AWAITING_ALGORITHM = "AWAITING_ALGORITHM";
     private static final String STATUS_SUMMARY_FAILED = "SUMMARY_FAILED";
     private static final String STATUS_COMPLETED = "COMPLETED";
+    private static final Set<String> NON_DELETABLE_STATUSES = Set.of(
+            STATUS_GENERATING,
+            STATUS_EVALUATING,
+            STATUS_SUMMARIZING
+    );
 
     private static final String ACTION_PRIMARY = InterviewFlowPolicy.ASK_PRIMARY;
     private static final String ACTION_FOLLOW_UP = InterviewFlowPolicy.ASK_FOLLOW_UP;
@@ -528,6 +533,35 @@ public class InterviewAgentOrchestrator {
                 .stream()
                 .map(session -> toSessionResponse(session, false))
                 .toList();
+    }
+
+    /**
+     * Deletes one user-owned interview and its derived trajectory. Algorithm submissions are
+     * retained as user practice history, but detached from the deleted interview.
+     */
+    public void deleteSession(String publicId, int userId) {
+        inTransaction(() -> {
+            AiInterviewAgentSession session = lockOwnedSession(publicId, userId);
+            String status = String.valueOf(session.getStatus()).toUpperCase(Locale.ROOT);
+            if (NON_DELETABLE_STATUSES.contains(status)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "面试正在处理中，请停止或等待完成后再删除");
+            }
+
+            submissionService.lambdaUpdate()
+                    .eq(AlgorithmSubmission::getInterview_session_id, session.getId())
+                    .set(AlgorithmSubmission::getInterview_session_id, null)
+                    .update();
+            challengeService.lambdaUpdate()
+                    .eq(AlgorithmInterviewChallenge::getInterview_session_id, session.getId())
+                    .remove();
+            eventService.lambdaUpdate()
+                    .eq(AiInterviewAgentEvent::getSession_id, session.getId())
+                    .remove();
+            turnService.lambdaUpdate()
+                    .eq(AiInterviewAgentTurn::getSession_id, session.getId())
+                    .remove();
+            sessionService.removeById(session.getId());
+        });
     }
 
     private void advanceAfterAnswer(

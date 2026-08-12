@@ -380,3 +380,21 @@ export function finalizeBlocks(parseResult) {
   }
   return [...committedBlocks, finalBlock]
 }
+
+/**
+ * Keep most pending text stable and animate only its short trailing window.
+ * Re-keying this tail on each streamed update gives new text a restrained fade
+ * without making the whole paragraph flash or jump.
+ */
+export function splitStreamingTail(raw, maxTailLength = 14) {
+  const text = String(raw || '')
+  const tailLength = Math.max(1, Number(maxTailLength) || 14)
+  if (text.length <= tailLength) {
+    return { stable: '', tail: text }
+  }
+  const splitAt = text.length - tailLength
+  return {
+    stable: text.slice(0, splitAt),
+    tail: text.slice(splitAt),
+  }
+}
