@@ -76,6 +76,15 @@ describe('renderMarkdown', () => {
     expect(html).toContain('<h3>')
     expect(html).not.toContain('###a)')
   })
+
+  it('渲染行内与块级 KaTeX 公式', () => {
+    const html = renderMarkdown('行内 $E=mc^2$\n\n$$\\sum_{i=1}^{n} i$$')
+
+    expect(html).toContain('class="katex"')
+    expect(html).toContain('katex-display')
+    expect(html).toContain('<math')
+    expect(html).toContain('<munderover')
+  })
 })
 
 describe('escapeFallback', () => {

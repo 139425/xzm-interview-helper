@@ -321,6 +321,42 @@ def _safe_public_text(value: Any, limit: int) -> str:
     return _safe_text(text, limit)
 
 
+_PUBLIC_BIOGRAPHY_PATTERNS = (
+    re.compile(
+        r"\b(?:i|me|my|mine|we|our)\b.{0,120}\b(?:intern(?:ed|ship)?|work(?:ed|ing)?|"
+        r"employ(?:ed|ment)?|join(?:ed)?|built|led|responsible|project|company|team|"
+        r"graduat(?:ed|ion)|school|university)\b",
+        flags=re.IGNORECASE,
+    ),
+    re.compile(
+        r"(?:我|本人|我的|我们|笔者).{0,120}(?:实习|工作|任职|就职|入职|负责|参与|主导|"
+        r"项目|公司|团队|毕业|学校|大学|开发|搭建)"
+    ),
+    re.compile(r"(?:实习经历|工作经历|项目经历|实习于|任职于|就职于|毕业于|就读于)"),
+)
+
+
+def _sanitize_public_knowledge(value: Any, limit: int) -> str:
+    """Remove author biography from public RAG while preserving technical facts.
+
+    Prompt labels are useful guardrails, but they are probabilistic.  This filter
+    deterministically keeps first-person employment/project claims out of the
+    model context used by an interview session.
+    """
+
+    text = _safe_text(value, limit * 2)
+    if not text:
+        return ""
+    sentences = re.split(r"(?<=[。！？!?；;\n])|(?<=\.)\s+", text)
+    technical_sentences = [
+        sentence.strip()
+        for sentence in sentences
+        if sentence.strip()
+        and not any(pattern.search(sentence) for pattern in _PUBLIC_BIOGRAPHY_PATTERNS)
+    ]
+    return _safe_text(" ".join(technical_sentences), limit)
+
+
 def _clip_middle(value: Any, limit: int) -> str:
     """Bound a long data field while retaining its beginning and conclusion."""
 
@@ -738,11 +774,12 @@ class InterviewAgentService:
             )
             if not isinstance(raw_hits, list):
                 return []
-            return [
-                _safe_text(hit, MAX_RAG_CHUNK_CHARS)
-                for hit in raw_hits[:MAX_RAG_HITS]
-                if _safe_text(hit, MAX_RAG_CHUNK_CHARS)
-            ]
+            sanitized_hits = []
+            for hit in raw_hits[:MAX_RAG_HITS]:
+                sanitized = _sanitize_public_knowledge(hit, MAX_RAG_CHUNK_CHARS)
+                if sanitized:
+                    sanitized_hits.append(sanitized)
+            return sanitized_hits
         except Exception as exc:
             # RAG is an optional tool. Keep failure internal and continue with
             # the bounded interview workflow rather than exposing provider data.

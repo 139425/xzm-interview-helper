@@ -186,6 +186,8 @@ npm run dev
 | `/interview-report` | 面试报告 |
 | `/algorithms` | 算法练习工作台 |
 | `/recruitment` | 每日更新的校招与实习信息目录 |
+| `/applications` | 每个登录用户独立的投递追踪看板 |
+| `/knowledge` | 个人资料、公共知识库与职位上下文管理 |
 | `/login`、`/register` | 登录与注册 |
 | `/admin/users` | 管理员用户管理 |
 
@@ -209,6 +211,7 @@ Java 服务启动后会在 20 秒后进行首次新鲜度检查，此后每小�
 
 - `RECRUITMENT_GRADUATE_YEAR`：目标毕业年份，留空或 `0` 时自动取下一年。
 - `RECRUITMENT_PLAYOFFER_PAGES`：Offer 稳了每日扫描的最新页数，默认 `20`。
+- `RECRUITMENT_OFFERSHOW_PAGES`：OfferShow 每日扫描的最新页数，默认 `20`；公开的微信公告保留原文链接。
 - `RECRUITMENT_MINIMUM_REFRESH_HOURS`：两次成功同步之间的最短小时数，默认 `20`。
 - `RECRUITMENT_CHECK_INTERVAL_MS`：失败重试/新鲜度检查间隔，默认每小时。
 - `RECRUITMENT_STALE_AFTER_DAYS`：连续未发现后隐藏记录的天数，默认 `60`。
@@ -232,7 +235,7 @@ npm test
 npm run build
 ```
 
-当前验证结果：Java 101 项通过/5 项条件跳过，Python 77 项通过/3 项跳过，前端 129 项通过。
+当前验证结果：Java 111 项通过/6 项条件跳过，Python 78 项通过/3 项跳过，前端 134 项通过。
 
 ## 安全设计要点
 

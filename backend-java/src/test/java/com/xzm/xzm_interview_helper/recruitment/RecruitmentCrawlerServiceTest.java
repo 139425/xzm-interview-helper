@@ -39,6 +39,38 @@ class RecruitmentCrawlerServiceTest {
         verify(repository).markSucceeded(any(), anyInt(), anyInt(), anyLong());
     }
 
+    @Test
+    void prefersAWechatAnnouncementWhenSourcePriorityIsTied() throws Exception {
+        RecruitmentPostingRepository repository = mock(RecruitmentPostingRepository.class);
+        when(repository.upsertAll(any())).thenReturn(new RecruitmentPostingRepository.UpsertStats(1, 0));
+        RecruitmentCandidate aggregator = candidate(
+                "AGGREGATOR", 78, "岗位清单", "https://jobs.example.com/campus"
+        );
+        RecruitmentCandidate wechat = RecruitmentCandidate.builder()
+                .company("测试科技")
+                .title("测试科技2027届秋招")
+                .recruitmentType("秋招")
+                .targetGraduates("2027届")
+                .positions("岗位清单")
+                .applyUrl("https://offershow.cn/recruit-detail?uuid=1")
+                .announcementUrl("https://mp.weixin.qq.com/s/example")
+                .sourceName("微信公众号 · OfferShow收录")
+                .sourceUrl("https://offershow.cn/recruit")
+                .sourceKind("WECHAT")
+                .sourcePriority(78)
+                .build();
+
+        new RecruitmentCrawlerService(List.of(source("all", List.of(aggregator, wechat))), repository).refresh();
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<RecruitmentCandidate>> captor = ArgumentCaptor.forClass(List.class);
+        verify(repository).upsertAll(captor.capture());
+        assertThat(captor.getValue()).singleElement().satisfies(item -> {
+            assertThat(item.getSourceKind()).isEqualTo("WECHAT");
+            assertThat(item.getAnnouncementUrl()).contains("mp.weixin.qq.com");
+        });
+    }
+
     private static RecruitmentSource source(String name, List<RecruitmentCandidate> candidates) throws Exception {
         RecruitmentSource source = mock(RecruitmentSource.class);
         when(source.sourceName()).thenReturn(name);

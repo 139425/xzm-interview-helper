@@ -6,6 +6,7 @@
       @new-chat="resetInterview"
       @mode-change="handleModeChange"
       @interview-select="handleSessionSelect"
+      @interview-delete="handleSessionDelete"
     />
 
     <main
@@ -1046,6 +1047,13 @@ const handleSessionSelect = async (item) => {
   }
   if (agent.isAwaitingAnswer.value)
     await nextTick(() => answerInput.value?.focus());
+};
+
+const handleSessionDelete = (sessionIds) => {
+  const activeSessionId = agent.session.value?.id;
+  if (activeSessionId && sessionIds.map(String).includes(String(activeSessionId))) {
+    resetInterview();
+  }
 };
 
 const openReport = () => {

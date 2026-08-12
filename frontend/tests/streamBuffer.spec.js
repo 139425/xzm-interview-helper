@@ -3,7 +3,22 @@
  * 覆盖：基础切块 / 残缺代码块 / 残缺表格 / 列表 / {{SP}} 兜底 / 失败回退
  */
 import { describe, it, expect } from 'vitest'
-import { parseStream, finalizeBlocks, decodeSpaceMarker } from '../src/utils/streamBuffer'
+import {
+  parseStream,
+  finalizeBlocks,
+  decodeSpaceMarker,
+  splitStreamingTail,
+} from '../src/utils/streamBuffer'
+
+describe('splitStreamingTail', () => {
+  it('只把短尾段标记为新流入文本', () => {
+    expect(splitStreamingTail('正在逐字生成一段足够长的回答', 6)).toEqual({
+      stable: '正在逐字生成一段',
+      tail: '足够长的回答',
+    })
+    expect(splitStreamingTail('短文本', 6)).toEqual({ stable: '', tail: '短文本' })
+  })
+})
 
 describe('parseStream — 基础切块', () => {
   it('空输入返回空 committedBlocks 与空 pending', () => {

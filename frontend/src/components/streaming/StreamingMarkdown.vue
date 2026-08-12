@@ -35,7 +35,11 @@
       <p
         v-else-if="!block.done && (block.kind === 'paragraph' || block.kind === 'list' || block.kind === 'quote' || block.kind === 'heading')"
         class="xzm-stream-md__pending xzm-stream-md__pending-text"
-      ><span class="xzm-stream-md__pending-text-inner" v-text="block.raw"></span><StreamingCursor :variant="variant" /></p>
+      ><span class="xzm-stream-md__pending-text-inner" v-text="streamingTail(block.raw).stable"></span><span
+        :key="`tail-${block.id}-${block.raw.length}`"
+        class="xzm-stream-md__pending-tail"
+        v-text="streamingTail(block.raw).tail"
+      ></span><StreamingCursor :variant="variant" /></p>
 
       <!-- 已完成段落 / 列表 / 引用 / 标题 / 水平线 / html → marked 单 block 渲染 -->
       <div
@@ -64,6 +68,7 @@ import StreamingTable from './StreamingTable.vue'
 import StreamingCursor from './StreamingCursor.vue'
 import MermaidDiagram from './MermaidDiagram.vue'
 import { renderMarkdown, escapeFallback } from '../../utils/markdownFormatter'
+import { splitStreamingTail } from '../../utils/streamBuffer'
 
 const props = defineProps({
   /**
@@ -93,6 +98,10 @@ function renderDoneBlock(block) {
     console.warn('[stream-md] render done block failed', err)
     return escapeFallback(block.raw)
   }
+}
+
+function streamingTail(raw) {
+  return splitStreamingTail(raw)
 }
 </script>
 
@@ -130,6 +139,15 @@ function renderDoneBlock(block) {
   opacity: 0.95;
 }
 .xzm-stream-md__pending-text-inner { display: inline; }
+.xzm-stream-md__pending-tail {
+  display: inline;
+  animation: xzm-stream-tail-reveal 180ms ease-out both;
+}
+
+@keyframes xzm-stream-tail-reveal {
+  from { opacity: 0.28; filter: blur(1.5px); }
+  to { opacity: 1; filter: blur(0); }
+}
 
 .xzm-stream-md__empty {
   display: inline-block;
@@ -264,5 +282,8 @@ function renderDoneBlock(block) {
   .xzm-stream-md :deep(h2) { font-size: var(--xzm-fs-lg); }
   .xzm-stream-md :deep(h3) { font-size: var(--xzm-fs-md); }
 }
-@media (prefers-reduced-motion: reduce) { .stream-block-enter-active { transition: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .stream-block-enter-active { transition: none; }
+  .xzm-stream-md__pending-tail { animation: none; }
+}
 </style>

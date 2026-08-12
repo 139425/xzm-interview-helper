@@ -261,6 +261,58 @@ class InterviewAgentOrchestratorIntegrationTest {
                 .runInterviewAgent(any(InterviewAgentRequest.class), any(AtomicBoolean.class));
     }
 
+    @Test
+    void deletesOnlyAnOwnedIdleSessionAndDetachesSubmissions() {
+        CreateInterviewAgentSessionRequest request = new CreateInterviewAgentSessionRequest();
+        request.setResumeText("MySQL isolation levels and index design.");
+        InterviewAgentSessionResponse created = orchestrator.createSession(
+                TEST_USER_ID,
+                request,
+                null
+        );
+        publicSessionId = created.getSessionId();
+
+        ResponseStatusException hiddenFromOtherUser = assertThrows(
+                ResponseStatusException.class,
+                () -> orchestrator.deleteSession(publicSessionId, TEST_USER_ID + 1)
+        );
+        assertEquals(HttpStatus.NOT_FOUND, hiddenFromOtherUser.getStatusCode());
+
+        Long sessionId = jdbcTemplate.queryForObject(
+                "SELECT id FROM ai_interview_agent_session WHERE public_id = ?",
+                Long.class,
+                publicSessionId
+        );
+        jdbcTemplate.update(
+                """
+                INSERT INTO algorithm_submission (
+                  user_id, interview_session_id, problem_slug, problem_source, difficulty,
+                  language, source_code, status, passed_cases, total_cases
+                ) VALUES (?, ?, 'two-sum', 'LEETCODE', 'EASY', 'java', 'return;', 'ACCEPTED', 1, 1)
+                """,
+                TEST_USER_ID,
+                sessionId
+        );
+
+        orchestrator.deleteSession(publicSessionId, TEST_USER_ID);
+
+        assertEquals(0L, jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM ai_interview_agent_session WHERE public_id = ?",
+                Long.class,
+                publicSessionId
+        ));
+        assertEquals(1L, jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM algorithm_submission WHERE user_id = ? AND interview_session_id IS NULL AND source_code = 'return;'",
+                Long.class,
+                TEST_USER_ID
+        ));
+        publicSessionId = null;
+        jdbcTemplate.update(
+                "DELETE FROM algorithm_submission WHERE user_id = ? AND interview_session_id IS NULL AND source_code = 'return;'",
+                TEST_USER_ID
+        );
+    }
+
     private AlgorithmSubmission unsavedSubmission(
             InterviewAgentSessionResponse session,
             String status

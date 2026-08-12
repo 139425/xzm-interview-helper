@@ -1,6 +1,7 @@
 package com.xzm.xzm_interview_helper.recruitment;
 
 import org.junit.jupiter.api.Test;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -118,4 +119,30 @@ class RecruitmentSourceTest {
         assertThat(RecruitmentText.fingerprint(official)).isEqualTo(RecruitmentText.fingerprint(wechat));
         assertThat(RecruitmentText.safeHttpUrl("javascript:alert(1)")).isEmpty();
     }
+
+    @Test
+    void parsesOfferShowAnonymousDirectoryRows() throws Exception {
+        String json = """
+                [{
+                  "uuid":"plan-1","company_name":"阿里云","recruit_title":"阿里云2027届应届生招聘全球启动",
+                  "recruit_city":"杭州 | 北京 | 上海","recruit_type":3,"create_time":1785911442,
+                  "end_time":"20270201","notice_url":"https://mp.weixin.qq.com/s/example",
+                  "company":{"character":0}
+                }]
+                """;
+
+        List<RecruitmentCandidate> candidates = OfferShowRecruitmentSource.parse(
+                new ObjectMapper().readTree(json),
+                2027
+        );
+
+        assertThat(candidates).singleElement().satisfies(candidate -> {
+            assertThat(candidate.getCompany()).isEqualTo("阿里云");
+            assertThat(candidate.getSourceName()).isEqualTo("微信公众号 · OfferShow收录");
+            assertThat(candidate.getSourceKind()).isEqualTo("WECHAT");
+            assertThat(candidate.getLocations()).isEqualTo("杭州、北京、上海");
+            assertThat(candidate.getDeadline()).isEqualTo("2027-02-01");
+        });
+    }
+
 }
