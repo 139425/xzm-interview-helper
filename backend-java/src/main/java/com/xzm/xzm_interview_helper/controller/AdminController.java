@@ -144,9 +144,7 @@ public class AdminController {
                 return response;
             }
             
-            // 设置新密码（实际应用中应该加密）
-            user.setPassword(request.getNewPassword());
-            boolean success = helperUserService.updateById(user);
+            boolean success = helperUserService.resetPassword(user.getId(), request.getNewPassword());
             
             if (success) {
                 response.put("code", 200);

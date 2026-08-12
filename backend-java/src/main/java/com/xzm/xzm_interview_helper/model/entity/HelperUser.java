@@ -93,7 +93,7 @@ public class HelperUser {
         sb.append(", id=").append(id);
         sb.append(", user_id=").append(user_id);
         sb.append(", username=").append(username);
-        sb.append(", password=").append(password);
+        sb.append(", password=[PROTECTED]");
         sb.append(", user_type=").append(user_type);
         sb.append(", create_time=").append(create_time);
         sb.append(", update_time=").append(update_time);

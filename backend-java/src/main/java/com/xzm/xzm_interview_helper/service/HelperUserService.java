@@ -28,4 +28,7 @@ public interface HelperUserService extends IService<HelperUser> {
      */
     HelperUser register(String username, String password, String captcha);
 
+    /** Reset a password using the server hashing policy. */
+    boolean resetPassword(Long id, String newPassword);
+
 }

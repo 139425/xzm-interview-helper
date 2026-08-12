@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xzm.xzm_interview_helper.mapper.HelperUserMapper;
 import com.xzm.xzm_interview_helper.model.entity.HelperUser;
+import com.xzm.xzm_interview_helper.security.PasswordHashing;
 import com.xzm.xzm_interview_helper.service.HelperUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -37,9 +38,19 @@ implements HelperUserService {
             throw new RuntimeException("用户不存在");
         }
         
-        // 验证密码（明文比较）
-        if (!password.equals(user.getPassword())) {
+        String storedPassword = user.getPassword();
+        if (!PasswordHashing.matches(password, storedPassword)) {
             throw new RuntimeException("密码错误");
+        }
+
+        // Seamless migration: a valid legacy login upgrades only that row to BCrypt.
+        if (!PasswordHashing.isEncoded(storedPassword)) {
+            this.lambdaUpdate()
+                    .eq(HelperUser::getId, user.getId())
+                    .eq(HelperUser::getPassword, storedPassword)
+                    .set(HelperUser::getPassword, PasswordHashing.encode(password))
+                    .set(HelperUser::getUpdate_time, new Date())
+                    .update();
         }
         
         return user;
@@ -76,7 +87,7 @@ implements HelperUserService {
         HelperUser newUser = new HelperUser();
         newUser.setUser_id(userId);
         newUser.setUsername(username);
-        newUser.setPassword(password); // 明文存储
+        newUser.setPassword(PasswordHashing.encode(password));
         newUser.setUser_type("正常用户");
         newUser.setCreate_time(new Date());
         newUser.setUpdate_time(new Date());
@@ -88,6 +99,23 @@ implements HelperUserService {
         }
         
         return newUser;
+    }
+
+    @Override
+    public boolean resetPassword(Long id, String newPassword) {
+        validatePassword(newPassword);
+        return this.lambdaUpdate()
+                .eq(HelperUser::getId, id)
+                .set(HelperUser::getPassword, PasswordHashing.encode(newPassword))
+                .set(HelperUser::getUpdate_time, new Date())
+                .update();
+    }
+
+    private static void validatePassword(String password) {
+        if (!StringUtils.hasText(password)) throw new RuntimeException("密码不能为空");
+        if (password.length() < 4 || password.length() > 20) {
+            throw new RuntimeException("密码长度必须在4-20字符之间");
+        }
     }
     
     /**
