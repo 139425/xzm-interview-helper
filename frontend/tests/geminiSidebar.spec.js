@@ -95,6 +95,7 @@ describe("GeminiSidebar workspaces", () => {
   });
 
   it("switches to chat without creating or clearing a conversation", async () => {
+    mocks.uiStore.workspaceListExpanded = true;
     const wrapper = mount(GeminiSidebar, {
       props: { mode: "algorithm" },
       global: { stubs: { "el-icon": true } },
@@ -129,18 +130,21 @@ describe("GeminiSidebar workspaces", () => {
     expect(wrapper.find(".algorithm-context").exists()).toBe(false);
   });
 
-  it("shows only the active workspace description until the list is expanded", async () => {
+  it("shows only the active workspace until the list is expanded", async () => {
     const wrapper = mount(GeminiSidebar, {
       props: { mode: "algorithm" },
       global: { stubs: { "el-icon": true } },
     });
 
+    expect(wrapper.findAll(".mode-btn")).toHaveLength(1);
+    expect(wrapper.get(".mode-btn").attributes("aria-label")).toBe("算法训练");
     expect(wrapper.findAll(".mode-copy small")).toHaveLength(1);
     expect(wrapper.get(".mode-copy small").text()).toContain("题库");
 
     await wrapper.get(".workspace-density-toggle").trigger("click");
 
     expect(mocks.uiStore.toggleWorkspaceList).toHaveBeenCalledOnce();
+    expect(wrapper.findAll(".mode-btn")).toHaveLength(6);
     expect(wrapper.findAll(".mode-copy small")).toHaveLength(6);
   });
 

@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = SecurityConfigDispatcherTest.DispatchController.class)
@@ -56,6 +58,17 @@ class SecurityConfigDispatcherTest {
     void stillProtectsAnOrdinaryExternalRequest() throws Exception {
         mockMvc.perform(get("/security-dispatch-test"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void permitsPatchCorsPreflightForInlineApplicationStatusUpdates() throws Exception {
+        mockMvc.perform(options("/api/applications/77/status")
+                        .header("Origin", "http://localhost:5173")
+                        .header("Access-Control-Request-Method", "PATCH")
+                        .header("Access-Control-Request-Headers", "authorization,content-type"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"))
+                .andExpect(header().string("Access-Control-Allow-Methods", org.hamcrest.Matchers.containsString("PATCH")));
     }
 
     @RestController

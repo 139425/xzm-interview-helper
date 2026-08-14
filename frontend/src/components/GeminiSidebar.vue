@@ -78,7 +78,7 @@
       </div>
       <div class="mode-switcher">
         <button
-          v-for="item in modeItems"
+          v-for="item in visibleModeItems"
           :key="item.id"
           type="button"
           class="mode-btn"
@@ -364,6 +364,12 @@ const modeItems = [
     route: '/knowledge',
   },
 ]
+const visibleModeItems = computed(() => {
+  // “工作区收拢”只保留当前入口；侧边栏整体收窄为图标轨道时，
+  // 仍展示全部图标，保证不必先展开侧栏才能切换功能。
+  if (!showExpandedContent.value || uiStore.workspaceListExpanded) return modeItems
+  return modeItems.filter((item) => item.id === activeMode.value)
+})
 
 // 分页状态
 const currentPage = ref(1)

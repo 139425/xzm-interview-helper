@@ -265,10 +265,13 @@ with sync_playwright() as playwright:
 
         if viewport_name == "desktop":
             page.goto(f"{BASE_URL}/chat", wait_until="networkidle")
+            assert page.locator(".mode-btn").count() == 1
             assert page.locator(".mode-copy small").count() == 1
             page.locator(".workspace-density-toggle").click()
+            assert page.locator(".mode-btn").count() == 6
             assert page.locator(".mode-copy small").count() == 6
             page.locator(".workspace-density-toggle").click()
+            assert page.locator(".mode-btn").count() == 1
 
             page.get_by_title("收起侧边栏").click()
             page.wait_for_function(
@@ -283,6 +286,8 @@ with sync_playwright() as playwright:
                 for index in range(len(positions) - 1)
             ), positions
             page.get_by_title("展开侧边栏").click()
+            page.locator(".workspace-density-toggle").click()
+            assert page.locator(".mode-btn").count() == 6
 
             page.get_by_role("button", name="秋招信息").click()
             page.wait_for_url(f"{BASE_URL}/recruitment")
