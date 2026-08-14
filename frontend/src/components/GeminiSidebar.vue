@@ -60,14 +60,32 @@
     </div>
     
     <nav class="workspace-switcher" aria-label="工作区切换">
-      <span v-if="showExpandedContent" class="workspace-label">WORKSPACES</span>
+      <div v-if="showExpandedContent" class="workspace-heading">
+        <span class="workspace-label">WORKSPACES</span>
+        <button
+          type="button"
+          class="workspace-density-toggle"
+          :aria-expanded="uiStore.workspaceListExpanded"
+          :title="uiStore.workspaceListExpanded ? '只展开当前工作区' : '展开全部工作区说明'"
+          @click="uiStore.toggleWorkspaceList"
+        >
+          <span>{{ uiStore.workspaceListExpanded ? '收拢' : '展开' }}</span>
+          <el-icon :size="13">
+            <ArrowUp v-if="uiStore.workspaceListExpanded" />
+            <ArrowDown v-else />
+          </el-icon>
+        </button>
+      </div>
       <div class="mode-switcher">
         <button
           v-for="item in modeItems"
           :key="item.id"
           type="button"
           class="mode-btn"
-          :class="{ active: activeMode === item.id }"
+          :class="{
+            active: activeMode === item.id,
+            'is-compact': !uiStore.workspaceListExpanded && activeMode !== item.id,
+          }"
           :aria-current="activeMode === item.id ? 'page' : undefined"
           :aria-label="item.label"
           :title="uiStore.sidebarExpanded ? '' : `${item.label}：${item.description}`"
@@ -78,7 +96,9 @@
           </span>
           <span v-if="showExpandedContent" class="mode-copy">
             <strong>{{ item.label }}</strong>
-            <small>{{ item.description }}</small>
+            <small v-if="uiStore.workspaceListExpanded || activeMode === item.id">
+              {{ item.description }}
+            </small>
           </span>
         </button>
       </div>
@@ -260,7 +280,9 @@ import {
   Cpu,
   Briefcase,
   TrendCharts,
-  Collection
+  Collection,
+  ArrowDown,
+  ArrowUp
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
@@ -979,14 +1001,46 @@ defineExpose({
   box-sizing: border-box;
 }
 
+.workspace-heading {
+  display: flex;
+  min-height: 24px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 8px 6px;
+}
+
 .workspace-label {
-  display: block;
-  margin: 0 8px 7px;
   color: var(--gemini-text-tertiary);
   font-size: 0.64rem;
   font-weight: 750;
   letter-spacing: 0.14em;
   line-height: 1;
+}
+
+.workspace-density-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 24px;
+  padding: 0 3px 0 6px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--gemini-text-tertiary);
+  background: transparent;
+  font-size: 0.67rem;
+  cursor: pointer;
+  transition: color 140ms ease-out, background-color 140ms ease-out;
+}
+
+.workspace-density-toggle:hover {
+  color: var(--gemini-text-primary);
+  background: var(--gemini-bg-hover);
+}
+
+.workspace-density-toggle:focus-visible {
+  outline: 2px solid var(--gemini-accent-blue);
+  outline-offset: 1px;
 }
 
 .mode-switcher {
@@ -1018,6 +1072,17 @@ defineExpose({
     border-color 140ms ease-out,
     color 140ms ease-out,
     transform 140ms ease-out;
+}
+
+.mode-btn.is-compact {
+  min-height: 38px;
+  padding-block: 3px;
+}
+
+.mode-btn.is-compact .mode-icon {
+  width: 29px;
+  height: 29px;
+  flex-basis: 29px;
 }
 
 .mode-btn::before {
@@ -1110,7 +1175,7 @@ defineExpose({
 }
 
 .gemini-sidebar.collapsed .workspace-switcher {
-  padding: 12px 14px;
+  padding: 12px 10px;
 }
 
 .gemini-sidebar.collapsed .mode-btn {
@@ -1403,8 +1468,8 @@ defineExpose({
 .gemini-sidebar.collapsed .sidebar-top,
 .gemini-sidebar.collapsed .sidebar-actions {
   justify-content: center;
-  padding-left: 14px;
-  padding-right: 14px;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 .gemini-sidebar.collapsed .new-chat-btn {

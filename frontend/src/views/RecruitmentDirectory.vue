@@ -1,20 +1,14 @@
 <template>
-  <div class="jobs-page">
-    <header class="jobs-header">
-      <router-link class="jobs-brand" to="/chat" aria-label="返回 AI 面试助手">
-        <span class="jobs-brand__mark" aria-hidden="true">职</span>
-        <span>求职信息</span>
-      </router-link>
+  <WorkspaceFrame mode="recruitment" title="秋招信息" eyebrow="CAREER DIRECTORY" mark="职">
+    <template #status>
       <div class="jobs-sync" :class="{ 'is-running': summary.running }">
         <i aria-hidden="true"></i>
         {{ syncText }}
       </div>
+    </template>
+    <template #actions>
       <router-link class="jobs-tracker" to="/applications">投递追踪</router-link>
-      <router-link class="jobs-back" to="/chat">
-        返回助手
-        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4 6 6-6 6" /></svg>
-      </router-link>
-    </header>
+    </template>
 
     <main class="jobs-main">
       <section class="jobs-overview" aria-label="招聘信息概览">
@@ -172,7 +166,7 @@
         </nav>
       </section>
     </main>
-  </div>
+  </WorkspaceFrame>
 </template>
 
 <script setup>
@@ -180,6 +174,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { recruitmentApi } from '@/api/recruitment'
 import { applicationApi } from '@/api/career'
+import WorkspaceFrame from '@/components/WorkspaceFrame.vue'
 import { ElMessage } from 'element-plus'
 
 const route = useRoute()
@@ -388,31 +383,18 @@ watch(filters, () => {
 }, { deep: true })
 
 onMounted(async () => {
-  document.documentElement.classList.add('jobs-document')
-  document.body.classList.add('jobs-document')
   await Promise.all([load(), loadFacets()])
   initialized = true
 })
 
 onBeforeUnmount(() => {
-  document.documentElement.classList.remove('jobs-document')
-  document.body.classList.remove('jobs-document')
   requestController?.abort()
   clearTimeout(filterTimer)
 })
 </script>
 
 <style scoped>
-:global(body) { margin: 0; }
-:global(html.jobs-document), :global(body.jobs-document) { height: auto; min-height: 100%; overflow-y: auto; }
-.jobs-page { min-height: 100vh; color: #172033; background: #f4f6f8; font-family: "MiSans", "HarmonyOS Sans SC", "Microsoft YaHei", sans-serif; }
-.jobs-header { position: sticky; top: 0; z-index: 20; display: grid; grid-template-columns: 1fr auto auto auto; gap: 22px; align-items: center; min-height: 64px; padding: 0 max(24px, calc((100vw - 1480px) / 2)); border-bottom: 1px solid #e4e8ee; background: rgba(255,255,255,.96); backdrop-filter: blur(14px); }
-.jobs-brand, .jobs-back { display: inline-flex; align-items: center; color: inherit; text-decoration: none; }
-.jobs-brand { gap: 11px; width: fit-content; font-size: 17px; font-weight: 750; letter-spacing: -.02em; }
-.jobs-brand__mark { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 9px; color: #fff; background: #1769e0; font-size: 16px; }
-.jobs-back { justify-self: end; gap: 3px; color: #536174; font-size: 13px; }
-.jobs-back:hover { color: #1769e0; }.jobs-back svg { width: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; }
-.jobs-tracker { color: #1769e0; font-size: 12px; font-weight: 700; text-decoration: none; }
+.jobs-tracker { display:inline-flex;align-items:center;height:34px;padding:0 12px;border:1px solid #cfdcf2;border-radius:8px;color:#1769e0;background:#f7faff;font-size:11px;font-weight:700;text-decoration:none; }
 .jobs-sync { display: flex; align-items: center; gap: 7px; color: #667386; font-size: 12px; }.jobs-sync i { width: 7px; height: 7px; border-radius: 50%; background: #26a269; box-shadow: 0 0 0 4px #e9f7f0; }.jobs-sync.is-running i { animation: jobs-pulse 1s ease-in-out infinite; }
 .jobs-main { width: min(1480px, calc(100% - 40px)); margin: 26px auto 50px; }
 .jobs-overview, .jobs-controls, .jobs-results { border: 1px solid #e1e6ed; background: #fff; }
@@ -439,7 +421,7 @@ onBeforeUnmount(() => {
 @keyframes jobs-shimmer { to { background-position: -200% 0; } } @keyframes jobs-pulse { 50% { transform: scale(.72); opacity: .45; } }
 @media (max-width: 1120px) { .jobs-filterbar { flex-wrap: wrap; }.jobs-search { flex-basis: 100%; }.jobs-stats { grid-template-columns: repeat(4, 92px); } }
 @media (max-width: 760px) {
-  .jobs-header { grid-template-columns: 1fr auto auto; gap:12px;padding: 0 16px; }.jobs-sync { display: none; }.jobs-main { width: calc(100% - 24px); margin-top: 12px; }.jobs-overview { display: block; padding: 18px; }.jobs-overview__title { justify-content: space-between; }.jobs-overview h1 { font-size: 20px; }.jobs-stats { grid-template-columns: repeat(4,1fr); margin-top: 19px; }.jobs-stats div:first-child { border-left: 0; }.jobs-stats dt { font-size: 18px; }
+  .jobs-sync { display: none; }.jobs-tracker{height:32px;padding:0 9px}.jobs-main { width: calc(100% - 24px); margin-top: 12px; }.jobs-overview { display: block; padding: 18px; }.jobs-overview__title { justify-content: space-between; }.jobs-overview h1 { font-size: 20px; }.jobs-stats { grid-template-columns: repeat(4,1fr); margin-top: 19px; }.jobs-stats div:first-child { border-left: 0; }.jobs-stats dt { font-size: 18px; }
   .jobs-filterbar select { flex: 1 1 calc(50% - 9px); min-width: 0; }.jobs-check { margin-right: auto; }.jobs-submit { min-width: 74px; }.jobs-table { min-width: 0; }.jobs-table__header { display: none; }.jobs-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; min-height: 0; padding: 18px; }.jobs-row > div { min-width: 0; }.jobs-row > div::before { display: block; margin-bottom: 6px; color: #98a1af; font-size: 9px; content: attr(data-label); }.jobs-company, .jobs-position, .jobs-actions { grid-column: 1 / -1; }.jobs-company::before { display: none !important; }.jobs-position strong, .jobs-position span, .jobs-location { white-space: normal; }.jobs-actions { justify-content: flex-end; }.jobs-actions a { min-width: 54px; height: 34px; }.jobs-source small { white-space: normal; }.jobs-date span { display: inline-block; margin: 0 0 0 5px; }
 }
 @media (prefers-reduced-motion: reduce) { .jobs-loading span, .jobs-sync.is-running i { animation: none; }.jobs-row { transition: none; } }

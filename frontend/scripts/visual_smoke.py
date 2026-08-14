@@ -252,8 +252,41 @@ with sync_playwright() as playwright:
         install_fixtures(page)
         for name, path, expected in routes:
             assert_page(page, path, expected, f"{viewport_name}-{name}.png")
+            if viewport_name == "desktop":
+                sidebar = page.locator(".gemini-sidebar")
+                sidebar.wait_for(state="visible")
+                assert sidebar.get_attribute("aria-hidden") is None
+            elif name in {"recruitment", "applications", "knowledge"}:
+                page.locator(".workspace-frame__menu").wait_for(state="visible")
 
         if viewport_name == "desktop":
+            page.goto(f"{BASE_URL}/chat", wait_until="networkidle")
+            assert page.locator(".mode-copy small").count() == 1
+            page.locator(".workspace-density-toggle").click()
+            assert page.locator(".mode-copy small").count() == 6
+            page.locator(".workspace-density-toggle").click()
+
+            page.get_by_title("收起侧边栏").click()
+            page.wait_for_function(
+                "() => Math.round(document.querySelector('.gemini-sidebar').getBoundingClientRect().width) === 64"
+            )
+            positions = page.locator(".mode-btn").evaluate_all(
+                "buttons => buttons.map(button => ({ x: Math.round(button.getBoundingClientRect().x), y: Math.round(button.getBoundingClientRect().y) }))"
+            )
+            assert len({position["x"] for position in positions}) == 1, positions
+            assert all(
+                positions[index]["y"] < positions[index + 1]["y"]
+                for index in range(len(positions) - 1)
+            ), positions
+            page.get_by_title("展开侧边栏").click()
+
+            page.get_by_role("button", name="秋招信息").click()
+            page.wait_for_url(f"{BASE_URL}/recruitment")
+            page.locator(".workspace-frame__topbar").wait_for(state="visible")
+            page.get_by_role("button", name="投递追踪").click()
+            page.wait_for_url(f"{BASE_URL}/applications")
+            page.locator(".workspace-frame__topbar").wait_for(state="visible")
+
             page.goto(f"{BASE_URL}/chat", wait_until="networkidle")
             page.locator('input[type="file"][accept^="image/"]').set_input_files(
                 {
@@ -276,6 +309,17 @@ with sync_playwright() as playwright:
             )
             assert "语音识别验收文本" in prompt.input_value()
             page.screenshot(path=str(OUTPUT / "desktop-chat-ocr-voice.png"), full_page=True)
+        else:
+            page.goto(f"{BASE_URL}/knowledge", wait_until="networkidle")
+            page.locator(".workspace-frame__menu").click()
+            page.locator(".gemini-sidebar.expanded").wait_for(state="visible")
+            assert page.evaluate(
+                "() => Boolean(document.elementFromPoint(24, 24)?.closest('.gemini-sidebar'))"
+            )
+            assert page.locator(".workspace-frame__body").evaluate(
+                "element => Math.round(element.getBoundingClientRect().x)"
+            ) == 0
+            page.screenshot(path=str(OUTPUT / "mobile-knowledge-sidebar-open.png"), full_page=True)
 
         all_errors.extend(f"{viewport_name}: {error}" for error in errors)
         page.close()

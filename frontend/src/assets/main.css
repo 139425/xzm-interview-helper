@@ -49,7 +49,7 @@ html, body {
   /* 布局相关变量 */
   --input-container-height: 120px;
   --prompt-bar-height: 100px;
-  --sidebar-width: 280px;
+  --sidebar-width: 248px;
   
   /* Gemini 布局变量 */
   --gemini-spacing-xs: 4px;
@@ -69,8 +69,8 @@ html, body {
   --gemini-transition-slow: 0.5s;
   --gemini-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   
-  --gemini-sidebar-width-expanded: 280px;
-  --gemini-sidebar-width-collapsed: 72px;
+  --gemini-sidebar-width-expanded: 248px;
+  --gemini-sidebar-width-collapsed: 64px;
   --gemini-content-max-width: 800px;
   
   --gemini-z-sidebar: 1000;

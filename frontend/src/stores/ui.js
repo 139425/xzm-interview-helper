@@ -2,8 +2,14 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 
 export const useUIStore = defineStore('ui', () => {
+  const SIDEBAR_STORAGE_KEY = 'sidebarExpanded'
+  const WORKSPACE_LIST_STORAGE_KEY = 'workspaceListExpanded'
+  const savedSidebarExpanded = localStorage.getItem(SIDEBAR_STORAGE_KEY)
+
   // ========== 侧边栏状态 ==========
-  const sidebarExpanded = ref(true) // 侧边栏是否展开（默认打开）
+  const sidebarExpanded = ref(savedSidebarExpanded === null ? true : savedSidebarExpanded === 'true')
+  // 默认只展开当前工作区的说明，避免六个入口长期占据侧栏高度。
+  const workspaceListExpanded = ref(localStorage.getItem(WORKSPACE_LIST_STORAGE_KEY) === 'true')
   const sidebarMode = computed(() => {
     // 根据展开状态和屏幕宽度决定模式
     if (sidebarExpanded.value) {
@@ -66,10 +72,14 @@ export const useUIStore = defineStore('ui', () => {
   
   // 侧边栏宽度
   const sidebarWidth = computed(() => {
+    // 移动端侧栏以抽屉覆盖主界面，不应推动主内容横向位移。
+    if (isMobile.value) {
+      return 0
+    }
     if (sidebarMode.value === 'full') {
-      return 272
+      return 248
     } else if (sidebarMode.value === 'icons') {
-      return 72
+      return 64
     }
     return 0
   })
@@ -94,16 +104,30 @@ export const useUIStore = defineStore('ui', () => {
   // 切换侧边栏
   const toggleSidebar = () => {
     sidebarExpanded.value = !sidebarExpanded.value
+    if (!isMobile.value) {
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, String(sidebarExpanded.value))
+    }
   }
   
   // 展开侧边栏
   const expandSidebar = () => {
     sidebarExpanded.value = true
+    if (!isMobile.value) {
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, 'true')
+    }
   }
   
   // 收起侧边栏
   const collapseSidebar = () => {
     sidebarExpanded.value = false
+    if (!isMobile.value) {
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, 'false')
+    }
+  }
+
+  const toggleWorkspaceList = () => {
+    workspaceListExpanded.value = !workspaceListExpanded.value
+    localStorage.setItem(WORKSPACE_LIST_STORAGE_KEY, String(workspaceListExpanded.value))
   }
   
   // 移动输入框到底部
@@ -212,7 +236,9 @@ export const useUIStore = defineStore('ui', () => {
         sidebarExpanded.value = false
         rightPanelVisible.value = false
       } else if (hasEnoughSpace.value) {
-        sidebarExpanded.value = true // 默认展开
+        sidebarExpanded.value = savedSidebarExpanded === null
+          ? true
+          : savedSidebarExpanded === 'true'
       }
       hasInitialized.value = true
     }
@@ -258,6 +284,7 @@ export const useUIStore = defineStore('ui', () => {
   return {
     // 状态
     sidebarExpanded,
+    workspaceListExpanded,
     sidebarMode,
     promptBarPosition,
     promptBarFocused,
@@ -289,6 +316,7 @@ export const useUIStore = defineStore('ui', () => {
     toggleSidebar,
     expandSidebar,
     collapseSidebar,
+    toggleWorkspaceList,
     movePromptBarToBottom,
     resetPromptBarToCenter,
     hideWelcome,

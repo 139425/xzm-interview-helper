@@ -12,7 +12,7 @@
     <!-- 侧边栏（沿用 GeminiSidebar，主题已通过 token 桥接） -->
     <GeminiSidebar
       ref="sidebarRef"
-      :mode="uiStore.currentMode"
+      mode="chat"
       @new-chat="handleNewChat"
       @mode-change="handleModeChange"
       @interview-select="handleInterviewSelect"

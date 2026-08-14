@@ -58,11 +58,15 @@ describe("GeminiSidebar workspaces", () => {
     vi.clearAllMocks();
     mocks.uiStore = reactive({
       sidebarExpanded: true,
+      workspaceListExpanded: false,
       isMobile: false,
       currentMode: "algorithm",
       sidebarRefreshTrigger: 0,
       toggleSidebar: vi.fn(),
       collapseSidebar: vi.fn(),
+      toggleWorkspaceList: vi.fn(() => {
+        mocks.uiStore.workspaceListExpanded = !mocks.uiStore.workspaceListExpanded;
+      }),
       switchMode: vi.fn((mode) => {
         mocks.uiStore.currentMode = mode;
       }),
@@ -121,6 +125,21 @@ describe("GeminiSidebar workspaces", () => {
     expect(wrapper.find(".mode-copy").exists()).toBe(false);
     expect(wrapper.findAll(".mode-btn")).toHaveLength(6);
     expect(wrapper.find(".algorithm-context").exists()).toBe(false);
+  });
+
+  it("shows only the active workspace description until the list is expanded", async () => {
+    const wrapper = mount(GeminiSidebar, {
+      props: { mode: "algorithm" },
+      global: { stubs: { "el-icon": true } },
+    });
+
+    expect(wrapper.findAll(".mode-copy small")).toHaveLength(1);
+    expect(wrapper.get(".mode-copy small").text()).toContain("题库");
+
+    await wrapper.get(".workspace-density-toggle").trigger("click");
+
+    expect(mocks.uiStore.toggleWorkspaceList).toHaveBeenCalledOnce();
+    expect(wrapper.findAll(".mode-copy small")).toHaveLength(6);
   });
 
   it("deletes an owned interview session from its history list", async () => {
