@@ -7,7 +7,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
@@ -35,6 +40,7 @@ class JobApplicationRepositoryTest {
         request.setCompany("Example");
         request.setRoleName("Java Engineer");
         request.setStatus("APPLIED");
+        request.setApplyUrl("https://jobs.example.com/apply");
         when(jdbcTemplate.update(contains("WHERE id = ? AND user_id = ?"), any(Object[].class))).thenReturn(0);
         try {
             repository.update(12, 77L, request);
@@ -42,5 +48,48 @@ class JobApplicationRepositoryTest {
             // Zero affected rows is expected; the SQL ownership invariant is what this test proves.
         }
         verify(jdbcTemplate).update(contains("WHERE id = ? AND user_id = ?"), any(Object[].class));
+    }
+
+    @Test
+    void applicationRequiresCompanyAndApplyUrlButNotRole() {
+        JobApplicationRequest missingLink = new JobApplicationRequest();
+        missingLink.setCompany("Example");
+        missingLink.setRoleName("");
+        missingLink.setStatus("APPLIED");
+
+        ResponseStatusException error = assertThrows(
+                ResponseStatusException.class,
+                () -> repository.update(12, 77L, missingLink)
+        );
+        assertEquals(HttpStatus.BAD_REQUEST, error.getStatusCode());
+
+        JobApplicationRequest optionalRole = new JobApplicationRequest();
+        optionalRole.setCompany("Example");
+        optionalRole.setRoleName("");
+        optionalRole.setStatus("INTERVIEW_2");
+        optionalRole.setApplyUrl("https://jobs.example.com/apply");
+        when(jdbcTemplate.update(contains("WHERE id = ? AND user_id = ?"), any(Object[].class))).thenReturn(0);
+
+        ResponseStatusException notFound = assertThrows(
+                ResponseStatusException.class,
+                () -> repository.update(12, 77L, optionalRole)
+        );
+        assertEquals(HttpStatus.NOT_FOUND, notFound.getStatusCode());
+    }
+
+    @Test
+    void statusUpdatesAreUserScopedAndSupportDetailedInterviewStages() {
+        assertTrue(JobApplicationRepository.STATUSES.contains("INTERVIEW_1"));
+        assertTrue(JobApplicationRepository.STATUSES.contains("INTERVIEW_2"));
+        assertTrue(JobApplicationRepository.STATUSES.contains("INTERVIEW_3"));
+        assertTrue(JobApplicationRepository.STATUSES.contains("HR_INTERVIEW"));
+        assertTrue(JobApplicationRepository.STATUSES.contains("NEGOTIATION"));
+
+        when(jdbcTemplate.update(any(String.class), eq("INTERVIEW_3"), eq(77L), eq(12))).thenReturn(0);
+        assertThrows(ResponseStatusException.class, () -> repository.updateStatus(12, 77L, "INTERVIEW_3"));
+        verify(jdbcTemplate).update(
+                contains("status = ? WHERE id = ? AND user_id = ?"),
+                eq("INTERVIEW_3"), eq(77L), eq(12)
+        );
     }
 }

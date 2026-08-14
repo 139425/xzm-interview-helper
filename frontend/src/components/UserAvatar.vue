@@ -2,7 +2,12 @@
   <div class="user-avatar-container">
     <!-- 用户头像按钮 -->
     <button
+      ref="avatarButtonRef"
       class="user-avatar-btn"
+      type="button"
+      aria-haspopup="menu"
+      :aria-expanded="showMenu"
+      aria-controls="user-account-menu"
       @click="toggleMenu"
       :title="userStore.isLoggedIn ? userStore.username : '未登录'"
     >
@@ -14,9 +19,19 @@
       </span>
     </button>
 
-    <!-- 下拉菜单 -->
+  </div>
+
+  <Teleport to="body">
     <transition name="menu-fade">
-      <div v-if="showMenu" class="user-menu" @click.stop>
+      <div
+        v-if="showMenu"
+        id="user-account-menu"
+        ref="userMenuRef"
+        class="user-menu"
+        role="menu"
+        :style="menuStyle"
+        @click.stop
+      >
         <!-- 用户信息 -->
         <div v-if="userStore.isLoggedIn" class="menu-header">
           <div class="user-info">
@@ -85,11 +100,11 @@
         </div>
       </div>
     </transition>
-  </div>
+  </Teleport>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { useUIStore } from '../stores/ui'
@@ -104,6 +119,9 @@ const { resolvedTheme, toggle: toggleAppTheme } = useTheme()
 
 // 状态
 const showMenu = ref(false)
+const avatarButtonRef = ref(null)
+const userMenuRef = ref(null)
+const menuStyle = ref({})
 const currentThemeValue = computed(() => resolvedTheme.value)
 
 // 计算头像首字母
@@ -120,8 +138,35 @@ const updateCurrentTheme = () => {
 }
 
 // 切换菜单
-const toggleMenu = () => {
+const updateMenuPosition = () => {
+  if (!showMenu.value || !avatarButtonRef.value || !userMenuRef.value) return
+
+  const trigger = avatarButtonRef.value.getBoundingClientRect()
+  const menu = userMenuRef.value.getBoundingClientRect()
+  const edge = 12
+  const width = Math.min(240, window.innerWidth - edge * 2)
+  const left = Math.min(
+    Math.max(edge, trigger.right - width),
+    window.innerWidth - width - edge,
+  )
+  const below = trigger.bottom + 8
+  const top = below + menu.height <= window.innerHeight - edge
+    ? below
+    : Math.max(edge, trigger.top - menu.height - 8)
+
+  menuStyle.value = {
+    top: `${Math.round(top)}px`,
+    left: `${Math.round(left)}px`,
+    width: `${Math.round(width)}px`,
+  }
+}
+
+const toggleMenu = async () => {
   showMenu.value = !showMenu.value
+  if (showMenu.value) {
+    await nextTick()
+    updateMenuPosition()
+  }
 }
 
 // 关闭菜单
@@ -203,14 +248,18 @@ const handleRegister = () => {
 // ========== 点击外部关闭菜单 ==========
 
 const handleClickOutside = (event) => {
-  const container = event.target.closest('.user-avatar-container')
-  if (!container && showMenu.value) {
+  const target = event.target
+  const clickedTrigger = target instanceof Element && target.closest('.user-avatar-container')
+  const clickedMenu = target instanceof Element && target.closest('#user-account-menu')
+  if (!clickedTrigger && !clickedMenu && showMenu.value) {
     closeMenu()
   }
 }
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  window.addEventListener('resize', updateMenuPosition)
+  document.addEventListener('scroll', updateMenuPosition, true)
   // 初始化主题
   updateCurrentTheme()
   console.log('[UserAvatar] 组件挂载，当前主题:', currentThemeValue.value)
@@ -218,6 +267,8 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+  window.removeEventListener('resize', updateMenuPosition)
+  document.removeEventListener('scroll', updateMenuPosition, true)
 })
 </script>
 
@@ -290,16 +341,16 @@ onUnmounted(() => {
 
 /* 下拉菜单 */
 .user-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+  position: fixed;
   min-width: 220px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
   background-color: var(--gemini-bg-secondary);
   border: 1px solid var(--gemini-border-color);
   border-radius: var(--gemini-radius-lg);
   box-shadow: var(--gemini-shadow-lg);
-  overflow: hidden;
-  z-index: var(--gemini-z-dropdown);
+  overflow: auto;
+  z-index: 12000;
 }
 
 /* 菜单淡入淡出动画 */
@@ -393,7 +444,7 @@ onUnmounted(() => {
 /* 响应式调整 */
 @media (max-width: 768px) {
   .user-menu {
-    right: -8px;
+    min-width: 210px;
   }
 }
 </style>

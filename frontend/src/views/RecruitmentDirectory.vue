@@ -153,7 +153,7 @@
               <div class="jobs-actions" role="cell" data-label="操作">
                 <a v-if="safeUrl(item.announcementUrl)" :href="safeUrl(item.announcementUrl)" target="_blank" rel="noopener noreferrer">公告</a>
                 <a v-if="safeUrl(item.applyUrl || item.announcementUrl)" class="is-primary" :href="safeUrl(item.applyUrl || item.announcementUrl)" target="_blank" rel="noopener noreferrer">投递</a>
-                <button type="button" :disabled="addingId === item.id" @click="addToTracker(item)">{{ addingId === item.id ? '添加中' : '＋追踪' }}</button>
+                <button type="button" :disabled="addingId === item.id" @click="addToTracker(item)">{{ addingId === item.id ? '录入中' : '＋录入' }}</button>
               </div>
             </article>
           </div>
@@ -360,7 +360,7 @@ async function addToTracker(item) {
   addingId.value = item.id
   try {
     await applicationApi.addFromRecruitment(item.id)
-    ElMessage.success('已加入投递追踪')
+    ElMessage.success('已录入投递表')
   } catch (requestError) {
     if (requestError?.response?.status === 401) {
       ElMessage.warning('请先登录后再添加投递追踪')

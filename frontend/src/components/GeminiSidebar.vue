@@ -284,7 +284,7 @@ import {
   ArrowDown,
   ArrowUp
 } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 // Props
 const props = defineProps({
@@ -616,8 +616,15 @@ const confirmDelete = async (memoryId) => {
     '删除后不可恢复，确认删除该面试记录吗？' : 
     '删除后不可恢复，确认删除该ID的所有历史记录吗？'
   
-  const confirmed = confirm(confirmMessage)
-  if (!confirmed) return
+  try {
+    await ElMessageBox.confirm(confirmMessage, '确认删除', {
+      confirmButtonText: '删除',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+  } catch {
+    return
+  }
   
   try {
     if (activeMode.value === 'interview') {
@@ -690,8 +697,19 @@ const batchDelete = async () => {
   if (selectedItems.value.length === 0) return
 
   const deleteCount = selectedItems.value.length
-  const confirmed = confirm(`确认删除选中的 ${deleteCount} 条历史记录吗？删除后不可恢复。`)
-  if (!confirmed) return
+  try {
+    await ElMessageBox.confirm(
+      `确认删除选中的 ${deleteCount} 条历史记录吗？删除后不可恢复。`,
+      '批量删除',
+      {
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+      },
+    )
+  } catch {
+    return
+  }
   
   try {
     const deletedIds = [...selectedItems.value]

@@ -116,7 +116,7 @@ import {
   Download,
   RefreshRight
 } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 const editorTextarea = ref(null)
@@ -148,14 +148,19 @@ const wordCount = computed(() => {
 })
 
 // 返回主页
-const goBack = () => {
+const goBack = async () => {
   if (!isSaved.value) {
-    if (confirm('文档未保存，确定要离开吗？')) {
-      router.push('/')
+    try {
+      await ElMessageBox.confirm('文档尚未保存，确定要离开吗？', '离开编辑器', {
+        confirmButtonText: '离开',
+        cancelButtonText: '继续编辑',
+        type: 'warning',
+      })
+    } catch {
+      return
     }
-  } else {
-    router.push('/')
   }
+  router.push('/')
 }
 
 // 切换预览模式
@@ -395,14 +400,25 @@ const exportFile = () => {
 }
 
 // 重置内容
-const resetContent = () => {
-  if (confirm('确定要重置内容吗？这将清空当前编辑的所有内容。')) {
-    markdownContent.value = ''
-    fileName.value = '未命名文档.md'
-    isSaved.value = true
-    localStorage.removeItem('markdown-editor-draft')
-    ElMessage.success('内容已重置')
+const resetContent = async () => {
+  try {
+    await ElMessageBox.confirm(
+      '重置后将清空当前编辑的全部内容。',
+      '确认重置',
+      {
+        confirmButtonText: '重置',
+        cancelButtonText: '取消',
+        type: 'warning',
+      },
+    )
+  } catch {
+    return
   }
+  markdownContent.value = ''
+  fileName.value = '未命名文档.md'
+  isSaved.value = true
+  localStorage.removeItem('markdown-editor-draft')
+  ElMessage.success('内容已重置')
 }
 
 // 监听内容变化

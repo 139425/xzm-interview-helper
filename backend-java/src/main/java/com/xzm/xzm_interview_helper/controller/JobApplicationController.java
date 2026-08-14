@@ -2,6 +2,7 @@ package com.xzm.xzm_interview_helper.controller;
 
 import com.xzm.xzm_interview_helper.career.JobApplicationRepository;
 import com.xzm.xzm_interview_helper.model.dto.ApplicationFromRecruitmentRequest;
+import com.xzm.xzm_interview_helper.model.dto.ApplicationStatusRequest;
 import com.xzm.xzm_interview_helper.model.dto.JobApplicationRequest;
 import com.xzm.xzm_interview_helper.recruitment.RecruitmentPostingRepository;
 import com.xzm.xzm_interview_helper.security.AuthenticatedUser;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -65,6 +67,15 @@ public class JobApplicationController {
             HttpServletRequest request
     ) {
         return response(applications.update(AuthenticatedUser.id(request), id, body));
+    }
+
+    @PatchMapping("/{id}/status")
+    public Map<String, Object> updateStatus(
+            @PathVariable long id,
+            @Valid @RequestBody ApplicationStatusRequest body,
+            HttpServletRequest request
+    ) {
+        return response(applications.updateStatus(AuthenticatedUser.id(request), id, body.getStatus()));
     }
 
     @DeleteMapping("/{id}")

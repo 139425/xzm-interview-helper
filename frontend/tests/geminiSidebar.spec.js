@@ -1,6 +1,7 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { reactive } from "vue";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ElMessageBox } from "element-plus";
 import GeminiSidebar from "@/components/GeminiSidebar.vue";
 
 const mocks = vi.hoisted(() => ({
@@ -56,6 +57,7 @@ vi.mock("vue-router", () => ({
 describe("GeminiSidebar workspaces", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(ElMessageBox, "confirm").mockResolvedValue("confirm");
     mocks.uiStore = reactive({
       sidebarExpanded: true,
       workspaceListExpanded: false,
@@ -153,8 +155,6 @@ describe("GeminiSidebar workspaces", () => {
       },
     ]);
     mocks.deleteInterviewSession.mockResolvedValue(undefined);
-    vi.spyOn(window, "confirm").mockReturnValue(true);
-
     const wrapper = mount(GeminiSidebar, {
       props: { mode: "interview" },
       global: { stubs: { "el-icon": true } },

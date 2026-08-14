@@ -13,7 +13,6 @@ public class JobApplicationRequest {
     @Size(max = 200)
     private String company;
 
-    @NotBlank
     @Size(max = 300)
     private String roleName;
 
@@ -23,6 +22,7 @@ public class JobApplicationRequest {
     @Size(max = 300)
     private String location;
 
+    @NotBlank
     @Size(max = 1024)
     private String applyUrl;
 

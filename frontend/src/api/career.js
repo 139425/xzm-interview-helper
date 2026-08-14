@@ -17,6 +17,9 @@ export const applicationApi = {
   async update(id, payload) {
     return data(await request.put(`/api/applications/${id}`, payload), null)
   },
+  async updateStatus(id, status) {
+    return data(await request.patch(`/api/applications/${id}/status`, { status }), null)
+  },
   async remove(id) {
     return data(await request.delete(`/api/applications/${id}`), null)
   },

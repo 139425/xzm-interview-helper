@@ -11,6 +11,9 @@ import { initializeAlgorithmWorkspaceMigration } from './utils/algorithmWorkspac
 // 旧 CSS（先加载，作为 baseline，后续 token/theme/glass 会按需覆盖）
 import './assets/main.css'
 import 'katex/dist/katex.min.css'
+// Programmatic MessageBox is not rendered by a template component, so its
+// theme stylesheet must be imported explicitly.
+import 'element-plus/theme-chalk/el-message-box.css'
 
 // 新设计令牌与主题（晚于旧 CSS 加载，确保新 token 桥接生效）
 import './assets/tokens.css'

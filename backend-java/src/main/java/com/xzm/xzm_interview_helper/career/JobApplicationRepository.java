@@ -24,7 +24,8 @@ import java.util.Set;
 public class JobApplicationRepository {
     public static final String TO_APPLY = "TO_APPLY";
     public static final Set<String> STATUSES = Set.of(
-            TO_APPLY, "APPLIED", "ASSESSMENT", "INTERVIEW_1", "INTERVIEW_FINAL", "OFFER", "REJECTED", "WITHDRAWN"
+            TO_APPLY, "APPLIED", "ASSESSMENT", "INTERVIEW_1", "INTERVIEW_2", "INTERVIEW_3",
+            "INTERVIEW_FINAL", "HR_INTERVIEW", "NEGOTIATION", "OFFER", "REJECTED", "WITHDRAWN"
     );
 
     private final JdbcTemplate jdbcTemplate;
@@ -66,7 +67,7 @@ public class JobApplicationRepository {
             params.add(like);
             params.add(like);
         }
-        sql.append(" ORDER BY COALESCE(next_action_at, '9999-12-31') ASC, updated_at DESC, id DESC LIMIT 1000");
+        sql.append(" ORDER BY updated_at DESC, id DESC LIMIT 1000");
         return jdbcTemplate.query(sql.toString(), ROW_MAPPER, params.toArray());
     }
 
@@ -100,10 +101,10 @@ public class JobApplicationRepository {
                         """,
                 userId,
                 required(request.getCompany(), 200, "公司不能为空"),
-                required(request.getRoleName(), 300, "岗位不能为空"),
+                clip(request.getRoleName(), 300),
                 requireStatus(request.getStatus()),
                 clip(request.getLocation(), 300),
-                safeUrl(request.getApplyUrl()),
+                requiredUrl(request.getApplyUrl()),
                 safeUrl(request.getSourceUrl()),
                 request.getDeadline(),
                 clip(request.getNextAction(), 500),
@@ -116,6 +117,7 @@ public class JobApplicationRepository {
 
     @Transactional
     public Application createFromRecruitment(int userId, RecruitmentPostingRepository.Posting posting) {
+        String applyUrl = firstUrl(posting.applyUrl(), posting.announcementUrl(), posting.sourceUrl());
         try {
             jdbcTemplate.update("""
                             INSERT INTO job_application (
@@ -129,7 +131,7 @@ public class JobApplicationRepository {
                     posting.title(),
                     TO_APPLY,
                     posting.locations(),
-                    safeUrl(posting.applyUrl()),
+                    requiredUrl(applyUrl),
                     safeUrl(posting.announcementUrl().isBlank() ? posting.sourceUrl() : posting.announcementUrl()),
                     "来源：" + posting.sourceName()
             );
@@ -153,10 +155,10 @@ public class JobApplicationRepository {
                         WHERE id = ? AND user_id = ?
                         """,
                 required(request.getCompany(), 200, "公司不能为空"),
-                required(request.getRoleName(), 300, "岗位不能为空"),
+                clip(request.getRoleName(), 300),
                 requireStatus(request.getStatus()),
                 clip(request.getLocation(), 300),
-                safeUrl(request.getApplyUrl()),
+                requiredUrl(request.getApplyUrl()),
                 safeUrl(request.getSourceUrl()),
                 request.getDeadline(),
                 clip(request.getNextAction(), 500),
@@ -166,6 +168,16 @@ public class JobApplicationRepository {
                 userId
         );
         if (changed == 0) throw notFound();
+        return findOwned(userId, id);
+    }
+
+    public Application updateStatus(int userId, long id, String status) {
+        if (jdbcTemplate.update(
+                "UPDATE job_application SET status = ? WHERE id = ? AND user_id = ?",
+                requireStatus(status), id, userId
+        ) == 0) {
+            throw notFound();
+        }
         return findOwned(userId, id);
     }
 
@@ -239,6 +251,21 @@ public class JobApplicationRepository {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "链接必须以 http:// 或 https:// 开头");
         }
         return clipped;
+    }
+
+    private static String requiredUrl(String value) {
+        String url = safeUrl(value);
+        if (url.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "投递链接不能为空");
+        }
+        return url;
+    }
+
+    private static String firstUrl(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) return value;
+        }
+        return "";
     }
 
     private static ResponseStatusException notFound() {

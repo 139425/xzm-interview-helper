@@ -56,6 +56,7 @@ APPLICATIONS = [
     {
         "id": "application-1",
         "company": "星河云计算",
+        "applyUrl": "https://example.com/apply",
         "roleName": "Java 后端工程师",
         "status": "APPLIED",
         "location": "北京",
@@ -63,15 +64,18 @@ APPLICATIONS = [
         "nextAction": "复习 MySQL 索引",
         "nextActionAt": "2026-08-15T20:00:00",
         "notes": "官网投递",
+        "updatedAt": "2026-08-14T09:20:00Z",
     },
     {
         "id": "application-2",
         "company": "开源智造",
+        "applyUrl": "https://example.com/apply-2",
         "roleName": "测试开发工程师",
         "status": "INTERVIEW_1",
         "location": "杭州",
         "nextAction": "准备项目介绍",
         "nextActionAt": "2026-08-16T10:00:00",
+        "updatedAt": "2026-08-13T12:00:00Z",
     },
 ]
 
@@ -232,7 +236,7 @@ with sync_playwright() as playwright:
         ("interview", "/aiInterview", "模拟面试工作台"),
         ("algorithm", "/algorithms", "两数之和"),
         ("recruitment", "/recruitment", "招聘信息汇总"),
-        ("applications", "/applications", "每一次投递"),
+        ("applications", "/applications", "投递记录"),
         ("knowledge", "/knowledge", "只让 AI 读取"),
     ]
 
@@ -286,6 +290,38 @@ with sync_playwright() as playwright:
             page.get_by_role("button", name="投递追踪").click()
             page.wait_for_url(f"{BASE_URL}/applications")
             page.locator(".workspace-frame__topbar").wait_for(state="visible")
+            assert page.locator(".application-row").count() == 2
+            assert page.locator(".pipeline").count() == 0
+            assert "status--blue" in (page.locator(".status-control").first.get_attribute("class") or "")
+
+            page.get_by_role("button", name="＋ 新增投递").click()
+            dialog = page.locator(".application-dialog")
+            dialog.wait_for(state="visible")
+            assert dialog.locator("input[required]").count() == 2
+            assert dialog.get_by_text("公司名和投递链接为必填项").count() == 0
+            dialog.get_by_role("button", name="关闭").click()
+
+            page.goto(f"{BASE_URL}/chat", wait_until="networkidle")
+            page.locator(".user-avatar-btn").click()
+            menu = page.locator(".user-menu")
+            menu.wait_for(state="visible")
+            menu_layer = menu.evaluate(
+                "element => ({ position: getComputedStyle(element).position, z: Number(getComputedStyle(element).zIndex) })"
+            )
+            assert menu_layer["position"] == "fixed", menu_layer
+            assert menu_layer["z"] >= 12000, menu_layer
+            page.locator(".user-menu .logout").click()
+            message_box = page.locator(".el-message-box")
+            message_box.wait_for(state="visible")
+            box = message_box.bounding_box()
+            assert box is not None
+            assert abs((box["x"] + box["width"] / 2) - viewport["width"] / 2) <= 2, box
+            assert abs((box["y"] + box["height"] / 2) - viewport["height"] / 2) <= 2, box
+            overlay_z = page.locator(".el-overlay.is-message-box").evaluate(
+                "element => Number(getComputedStyle(element).zIndex)"
+            )
+            assert overlay_z >= 12010, overlay_z
+            page.get_by_role("button", name="取消").click()
 
             page.goto(f"{BASE_URL}/chat", wait_until="networkidle")
             page.locator('input[type="file"][accept^="image/"]').set_input_files(

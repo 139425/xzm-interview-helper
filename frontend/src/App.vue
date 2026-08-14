@@ -160,6 +160,22 @@ select:focus-visible,
   backdrop-filter: blur(18px) saturate(130%);
 }
 
+/* All programmatic confirmations share one centered, top-level overlay. */
+.el-overlay.is-message-box {
+  z-index: 12010 !important;
+}
+
+.el-overlay-message-box {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px !important;
+}
+
+.el-message-box {
+  max-width: min(420px, calc(100vw - 32px)) !important;
+}
+
 .text-center { text-align: center; }
 .flex { display: flex; }
 .flex-center { display: flex; align-items: center; justify-content: center; }
