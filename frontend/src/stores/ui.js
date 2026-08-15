@@ -186,7 +186,7 @@ export const useUIStore = defineStore('ui', () => {
   
   // 切换模式
   const switchMode = (mode) => {
-    if (['chat', 'interview', 'algorithm', 'recruitment', 'applications', 'knowledge'].includes(mode)) {
+    if (['chat', 'interview', 'algorithm', 'recruitment', 'applications', 'knowledge', 'serverAgent'].includes(mode)) {
       currentMode.value = mode
     }
   }

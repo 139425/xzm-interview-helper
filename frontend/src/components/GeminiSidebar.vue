@@ -281,6 +281,7 @@ import {
   Briefcase,
   TrendCharts,
   Collection,
+  Monitor,
   ArrowDown,
   ArrowUp
 } from '@element-plus/icons-vue'
@@ -291,7 +292,7 @@ const props = defineProps({
   mode: {
     type: String,
     default: 'chat',
-    validator: (value) => ['chat', 'interview', 'algorithm', 'recruitment', 'applications', 'knowledge'].includes(value)
+    validator: (value) => ['chat', 'interview', 'algorithm', 'recruitment', 'applications', 'knowledge', 'serverAgent'].includes(value)
   }
 })
 
@@ -363,12 +364,23 @@ const modeItems = [
     icon: Collection,
     route: '/knowledge',
   },
+  {
+    id: 'serverAgent',
+    label: '服务器 Agent',
+    description: '运维 · 文件 · 建站 · 审计',
+    icon: Monitor,
+    route: '/admin/server',
+    adminOnly: true,
+  },
 ]
+const availableModeItems = computed(() =>
+  modeItems.filter((item) => !item.adminOnly || userStore.isAdmin),
+)
 const visibleModeItems = computed(() => {
   // “工作区收拢”只保留当前入口；侧边栏整体收窄为图标轨道时，
   // 仍展示全部图标，保证不必先展开侧栏才能切换功能。
-  if (!showExpandedContent.value || uiStore.workspaceListExpanded) return modeItems
-  return modeItems.filter((item) => item.id === activeMode.value)
+  if (!showExpandedContent.value || uiStore.workspaceListExpanded) return availableModeItems.value
+  return availableModeItems.value.filter((item) => item.id === activeMode.value)
 })
 
 // 分页状态

@@ -90,6 +90,15 @@ const routes = [
       requiresAdmin: true
     }
   },
+  {
+    path: '/admin/server',
+    name: 'ServerAgent',
+    component: () => import('@/views/ServerAgent.vue'),
+    meta: {
+      title: '服务器 Agent',
+      requiresAdmin: true
+    }
+  },
   // 404页面
   {
     path: '/:pathMatch(.*)*',

@@ -7,20 +7,9 @@
     </template>
 
     <main class="application-main">
-      <header class="application-heading">
-        <div>
-          <p>APPLICATIONS</p>
-          <h1>投递记录</h1>
-        </div>
-        <span>共 {{ total }} 条</span>
-      </header>
-
-      <section class="sheet-card" aria-labelledby="application-sheet-title">
+      <section class="sheet-card" aria-label="投递记录表格">
         <div class="sheet-toolbar">
-          <div>
-            <h2 id="application-sheet-title">我的投递</h2>
-            <span>公司名和投递链接为必填项</span>
-          </div>
+          <span class="record-count" aria-live="polite">共 {{ total }} 条</span>
           <form class="sheet-filters" role="search" @submit.prevent="load">
             <label class="search-field">
               <span class="sr-only">搜索投递记录</span>
@@ -328,76 +317,52 @@ onMounted(load)
 
 <style scoped>
 .application-main {
-  width: min(1320px, calc(100% - 40px));
-  margin: 24px auto 48px;
-}
-
-.application-heading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 16px;
-}
-
-.application-heading p {
-  margin: 0 0 4px;
-  color: var(--xzm-brand);
-  font-size: 0.63rem;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-}
-
-.application-heading h1 {
-  margin: 0;
-  color: var(--xzm-text-primary);
-  font-size: clamp(1.45rem, 2.5vw, 2rem);
-  line-height: 1.2;
-  letter-spacing: -0.035em;
-}
-
-.application-heading > span {
-  color: var(--xzm-text-tertiary);
-  font-size: 0.76rem;
+  box-sizing: border-box;
+  width: 100%;
+  height: calc(100vh - 64px);
+  height: calc(100dvh - 64px);
+  padding: 10px 12px 12px;
+  overflow: hidden;
 }
 
 .sheet-card {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--xzm-border-color);
-  border-radius: 14px;
+  border-radius: 10px;
   background: var(--xzm-surface-elevated);
-  box-shadow: 0 10px 30px rgba(31, 52, 81, 0.05);
+  box-shadow: 0 6px 18px rgba(31, 52, 81, 0.04);
 }
 
 .sheet-toolbar {
   display: flex;
-  min-height: 64px;
+  min-height: 52px;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  padding: 12px 16px;
+  gap: 12px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--xzm-border-color);
 }
 
-.sheet-toolbar > div {
-  display: grid;
-  gap: 2px;
-}
-
-.sheet-toolbar h2 {
-  margin: 0;
-  color: var(--xzm-text-primary);
-  font-size: 0.88rem;
-}
-
-.sheet-toolbar > div span {
+.record-count {
+  flex: 0 0 auto;
   color: var(--xzm-text-tertiary);
-  font-size: 0.66rem;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .sheet-filters {
   display: flex;
+  min-width: 0;
+  flex: 1;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
 }
 
@@ -425,19 +390,19 @@ onMounted(load)
 }
 
 .sheet-filters input {
-  width: min(260px, 24vw);
-  height: 36px;
+  width: min(300px, 28vw);
+  height: 34px;
   padding: 0 11px;
 }
 
 .sheet-filters select {
-  height: 36px;
+  height: 34px;
   padding: 0 28px 0 10px;
 }
 
 .primary,
 .sheet-filters button {
-  height: 36px;
+  height: 34px;
   padding: 0 14px;
   border: 1px solid var(--xzm-brand);
   border-radius: 8px;
@@ -461,8 +426,10 @@ onMounted(load)
 }
 
 .application-table-wrap {
-  max-height: calc(100vh - 230px);
+  min-height: 0;
+  flex: 1;
   overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .application-table {
@@ -475,8 +442,8 @@ onMounted(load)
 
 .application-table th,
 .application-table td {
-  height: 58px;
-  padding: 0 14px;
+  height: 52px;
+  padding: 0 12px;
   border-bottom: 1px solid var(--xzm-border-color);
   color: var(--xzm-text-secondary);
   text-align: left;
@@ -487,7 +454,7 @@ onMounted(load)
   position: sticky;
   top: 0;
   z-index: 3;
-  height: 42px;
+  height: 40px;
   color: var(--xzm-text-tertiary);
   background: var(--xzm-surface-2);
   font-size: 0.66rem;
@@ -809,8 +776,7 @@ td.company-column {
 
 @media (max-width: 900px) {
   .sheet-toolbar {
-    align-items: stretch;
-    flex-direction: column;
+    flex-wrap: wrap;
   }
 
   .sheet-filters input {
@@ -830,8 +796,9 @@ td.company-column {
   }
 
   .application-main {
-    width: calc(100% - 24px);
-    margin-top: 18px;
+    height: calc(100vh - 60px);
+    height: calc(100dvh - 60px);
+    padding: 8px;
   }
 
   .sheet-filters {
@@ -844,10 +811,6 @@ td.company-column {
 
   .sheet-filters select {
     min-width: 120px;
-  }
-
-  .application-table-wrap {
-    max-height: calc(100vh - 280px);
   }
 
   .core-fields,

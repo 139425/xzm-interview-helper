@@ -12,6 +12,7 @@
 - 求职信息目录：按企业一行展示校招/实习岗位，支持行业、城市、批次、企业性质和来源筛选，每日自动聚合企业官网、公共就业平台、牛客、OfferShow、Offer 稳了与微信公众号公开文章。
 - RAG 检索增强：本地文档分块、稠密检索与词法检索融合、重排、父文档去重及检索阈值控制。
 - 用户与权限：JWT 登录、管理员接口、请求限流、可信代理解析与跨域白名单。
+- 管理员服务器 Agent：在管理员专属工作区中执行有界 ReAct 任务、受控命令、文件与站点操作，并对危险动作进行一次性精确审批和审计。
 - 可观测流式协议：Java 将 Python gRPC 事件转换为浏览器可消费的 SSE 帧，并保存会话与事件状态。
 
 ## 系统架构
@@ -190,6 +191,7 @@ npm run dev
 | `/knowledge` | 个人资料、公共知识库与职位上下文管理 |
 | `/login`、`/register` | 登录与注册 |
 | `/admin/users` | 管理员用户管理 |
+| `/admin/server` | 管理员服务器 Agent、直接工具与审计日志 |
 
 ## Java API 概览
 
@@ -202,6 +204,24 @@ npm run dev
 | `/xzm/api/recruitments` | 公开只读的招聘目录、筛选项与更新状态 |
 | `/xzm/record` | 会话历史与记录管理 |
 | `/xzm/admin` | 管理员操作 |
+
+### 管理员服务器 Agent
+
+服务器 Agent 默认关闭，只有数据库中当前仍为管理员的账号才能访问 `/admin/server-agent/**`。浏览器不会收到系统密码、SSH 私钥或模型密钥；Java 服务负责命令分类、文件根目录约束、并发与超时限制、输出脱敏和审计。写文件、建站、未知命令及服务变更等动作会先返回绑定完整动作摘要的短期审批请求，确认令牌只能使用一次，修改动作后自动失效。这里的审批是管理员登录会话内的操作确认，用于阻止 Agent 自主执行变更，并不是独立的 MFA；需要抵御管理员令牌失窃时，应另行接入密码重验、WebAuthn 或短时 elevated claim。
+
+生产启用前至少配置：
+
+- `SERVER_AGENT_ENABLED=true`：显式开启；缺省为 `false`。
+- `SERVER_AGENT_WORKING_DIRECTORY`：命令工作目录，建议使用专属、可写目录。
+- `SERVER_AGENT_SITE_ROOT`：Agent 生成站点的专属目录，不要与前端发布目录混用。
+- `SERVER_AGENT_SITE_PUBLIC_BASE_URL`：生成站点的公开路径，默认 `/agent-sites`。
+- `SERVER_AGENT_ALLOWED_ROOTS`：结构化文件工具允许访问的绝对路径列表。
+- `SERVER_AGENT_COMMAND_TIMEOUT_SECONDS`、`SERVER_AGENT_MAX_OUTPUT_CHARS`、`SERVER_AGENT_MAX_STEPS`：执行边界。
+- `SERVER_AGENT_AI_PROVIDER`、`SERVER_AGENT_AI_MODEL`：ReAct 决策使用的现有 Python gRPC 模型。
+
+生成站点应由 Nginx 的独立 `location` 暴露，并添加 CSP `sandbox`，避免生成页面读取主应用同源登录状态。Java 服务应继续使用低权限系统账号；不要为了服务重启能力把整个业务服务改为 root。状态接口会按实际账号权限保守返回 `capabilities`，前端据此禁用不可用工具。
+
+生产环境应让生成站点使用独立端口或独立域名，并保持 CSP `sandbox`；同步 `/xzm/admin/server-agent/run` 的 Nginx `proxy_read_timeout` 应至少为 1300 秒，以覆盖 8 步 AI 决策与工具执行的最坏边界。低权限服务账号不具备 systemd 变更权限时，页面只开放服务状态查询，不开放启动、停止或重启。
 
 ### 招聘信息自动更新
 
@@ -235,7 +255,7 @@ npm test
 npm run build
 ```
 
-当前验证结果：Java 114 项通过/6 项条件跳过，Python 78 项通过/3 项跳过，前端 134 项通过。
+当前验证结果：Java 143 项通过/7 项条件跳过，Python 78 项通过/3 项跳过，前端 157 项通过。
 
 ## 安全设计要点
 
@@ -247,6 +267,8 @@ npm run build
 - 登录、AI 请求、算法执行与 AI Review 均有准入/限流机制。
 - Piston 默认指向本机地址，避免因漏配而把候选人代码发送到公共执行器。
 - 面试 Agent 响应不包含原始模型思维链。
+- 服务器 Agent 的危险操作需要显示完整脱敏摘要并进行精确动作审批；审批令牌短期、单次且绑定管理员和动作哈希。
+- 服务器 Agent 子进程会移除敏感环境变量，文件工具拒绝凭据目录/扩展名；生成站点必须使用 CSP sandbox 与主应用登录态隔离。
 
 更多发布前检查见 [SECURITY.md](SECURITY.md)。
 

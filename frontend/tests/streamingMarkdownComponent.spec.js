@@ -26,7 +26,7 @@ describe('StreamingMarkdown component routing', () => {
     expect(diagram.props('code')).toContain('flowchart LR')
   })
 
-  it('只给进行中文字的短尾段添加淡入节点', () => {
+  it('将进行中的文字交给短语淡入组件而不改变 Markdown 完成态', () => {
     const wrapper = shallowMount(StreamingMarkdown, {
       props: {
         stream: {
@@ -36,6 +36,26 @@ describe('StreamingMarkdown component routing', () => {
       },
     })
 
-    expect(wrapper.find('.xzm-stream-md__pending-tail').text()).toBe('正在逐字生成一段足够长的回答'.slice(-14))
+    const reveal = wrapper.findComponent({ name: 'StreamingTextReveal' })
+    expect(reveal.exists()).toBe(true)
+    expect(reveal.props('text')).toBe('正在逐字生成一段足够长的回答')
+    expect(reveal.props('mode')).toBe('text')
+  })
+
+  it('将未完成的表格源码按代码文本块淡入', () => {
+    const wrapper = shallowMount(StreamingMarkdown, {
+      props: {
+        stream: {
+          blocks: [{ id: 'table-1', kind: 'table', raw: '| 公司 | 状态 |', done: false }],
+          isFinalized: { value: false },
+        },
+      },
+    })
+
+    const reveal = wrapper.findComponent({ name: 'StreamingTextReveal' })
+    expect(reveal.props()).toMatchObject({
+      text: '| 公司 | 状态 |',
+      mode: 'code',
+    })
   })
 })

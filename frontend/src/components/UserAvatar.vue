@@ -77,6 +77,15 @@
               <span>用户管理</span>
             </button>
 
+            <button
+              v-if="userStore.isAdmin"
+              class="menu-item"
+              @click="handleServerAgent"
+            >
+              <el-icon :size="18"><Monitor /></el-icon>
+              <span>服务器 Agent</span>
+            </button>
+
             <div class="menu-divider"></div>
 
             <button class="menu-item logout" @click="handleLogout">
@@ -109,7 +118,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { useUIStore } from '../stores/ui'
 import { useTheme } from '../composables/useTheme'
-import { User, Setting, UserFilled, SwitchButton, EditPen, Sunny, Moon } from '@element-plus/icons-vue'
+import { User, Setting, UserFilled, SwitchButton, EditPen, Sunny, Moon, Monitor } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
@@ -206,6 +215,11 @@ const handleSettings = () => {
 const handleUserManagement = () => {
   closeMenu()
   router.push('/admin/users')
+}
+
+const handleServerAgent = () => {
+  closeMenu()
+  router.push('/admin/server')
 }
 
 // 退出登录

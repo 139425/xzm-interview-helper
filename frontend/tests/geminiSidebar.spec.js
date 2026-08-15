@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   createNewChat: vi.fn(),
   routerPush: vi.fn(),
   uiStore: null,
+  userStore: null,
 }));
 
 vi.mock("@/api/chat", () => ({
@@ -37,10 +38,7 @@ vi.mock("@/stores/chat", () => ({
 }));
 
 vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({
-    isLoggedIn: true,
-    userId: 7,
-  }),
+  useUserStore: () => mocks.userStore,
 }));
 
 vi.mock("@/stores/ui", () => ({
@@ -76,6 +74,11 @@ describe("GeminiSidebar workspaces", () => {
       displayWelcome: vi.fn(),
       hideWelcome: vi.fn(),
       movePromptBarToBottom: vi.fn(),
+    });
+    mocks.userStore = reactive({
+      isLoggedIn: true,
+      userId: 7,
+      isAdmin: false,
     });
   });
 
@@ -146,6 +149,22 @@ describe("GeminiSidebar workspaces", () => {
     expect(mocks.uiStore.toggleWorkspaceList).toHaveBeenCalledOnce();
     expect(wrapper.findAll(".mode-btn")).toHaveLength(6);
     expect(wrapper.findAll(".mode-copy small")).toHaveLength(6);
+  });
+
+  it("shows the server Agent workspace only to administrators", async () => {
+    mocks.uiStore.workspaceListExpanded = true;
+    mocks.userStore.isAdmin = true;
+    const wrapper = mount(GeminiSidebar, {
+      props: { mode: "algorithm" },
+      global: { stubs: { "el-icon": true } },
+    });
+
+    const labels = wrapper.findAll(".mode-btn").map((button) => button.attributes("aria-label"));
+    expect(labels).toContain("服务器 Agent");
+
+    mocks.userStore.isAdmin = false;
+    await wrapper.vm.$nextTick();
+    expect(wrapper.findAll(".mode-btn").map((button) => button.attributes("aria-label"))).not.toContain("服务器 Agent");
   });
 
   it("deletes an owned interview session from its history list", async () => {

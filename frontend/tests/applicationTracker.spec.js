@@ -73,6 +73,11 @@ describe('ApplicationTracker table view', () => {
     await flushPromises()
 
     expect(wrapper.find('.pipeline').exists()).toBe(false)
+    expect(wrapper.find('.application-heading').exists()).toBe(false)
+    expect(wrapper.find('.sheet-card').attributes('aria-label')).toBe('投递记录表格')
+    expect(wrapper.get('.record-count').text()).toBe('共 2 条')
+    expect(wrapper.text()).not.toContain('APPLICATIONS')
+    expect(wrapper.text()).not.toContain('我的投递')
     expect(wrapper.findAll('.application-row')).toHaveLength(2)
     expect(wrapper.get('.application-row').text()).toContain('星河云计算')
     expect(wrapper.get('.status-control').classes()).toContain('status--blue')

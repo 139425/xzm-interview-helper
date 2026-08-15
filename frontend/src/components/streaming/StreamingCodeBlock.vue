@@ -56,8 +56,7 @@
     <pre class="xzm-code-block__pre" :class="{ 'is-wrapped': wrap }"><code
       v-if="isStreaming"
       class="xzm-code-block__code"
-      v-text="code"
-    ></code><code
+    ><StreamingTextReveal :text="code" mode="code" /></code><code
       v-else
       class="xzm-code-block__code hljs"
       v-html="highlightedHtml"
@@ -70,6 +69,7 @@ import { ref, computed, shallowRef, watch } from 'vue'
 // 使用 lib/common：内置 ~30 种常见语言（js/ts/python/java/go/rust/cpp/sql/json/html/css/bash...），无需动态注册
 import hljs from 'highlight.js/lib/common'
 import { decodeHtmlEntities, escapeHtml, sanitizeHtml } from '../../utils/markdownFormatter'
+import StreamingTextReveal from './StreamingTextReveal.vue'
 
 // ============== 语言别名 ==============
 const LANG_ALIASES = {

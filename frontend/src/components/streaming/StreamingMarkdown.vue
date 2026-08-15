@@ -27,19 +27,15 @@
         class="xzm-stream-md__pending xzm-stream-md__table-pending"
       >
         <span class="xzm-stream-md__pending-label">表格构建中…</span>
-        <pre class="xzm-stream-md__pending-pre">{{ block.raw }}</pre>
+        <pre class="xzm-stream-md__pending-pre"><StreamingTextReveal :text="block.raw" mode="code" /></pre>
         <StreamingCursor :variant="variant" />
       </div>
 
-      <!-- 进行中段落：纯文本 + 光标 -->
+      <!-- 进行中段落：按短语柔和淡入，避免 SSE 单字帧形成打字机效果 -->
       <p
         v-else-if="!block.done && (block.kind === 'paragraph' || block.kind === 'list' || block.kind === 'quote' || block.kind === 'heading')"
         class="xzm-stream-md__pending xzm-stream-md__pending-text"
-      ><span class="xzm-stream-md__pending-text-inner" v-text="streamingTail(block.raw).stable"></span><span
-        :key="`tail-${block.id}-${block.raw.length}`"
-        class="xzm-stream-md__pending-tail"
-        v-text="streamingTail(block.raw).tail"
-      ></span><StreamingCursor :variant="variant" /></p>
+      ><StreamingTextReveal :text="block.raw" mode="text" /><StreamingCursor :variant="variant" /></p>
 
       <!-- 已完成段落 / 列表 / 引用 / 标题 / 水平线 / html → marked 单 block 渲染 -->
       <div
@@ -66,9 +62,9 @@ import { computed } from 'vue'
 import StreamingCodeBlock from './StreamingCodeBlock.vue'
 import StreamingTable from './StreamingTable.vue'
 import StreamingCursor from './StreamingCursor.vue'
+import StreamingTextReveal from './StreamingTextReveal.vue'
 import MermaidDiagram from './MermaidDiagram.vue'
 import { renderMarkdown, escapeFallback } from '../../utils/markdownFormatter'
-import { splitStreamingTail } from '../../utils/streamBuffer'
 
 const props = defineProps({
   /**
@@ -100,9 +96,6 @@ function renderDoneBlock(block) {
   }
 }
 
-function streamingTail(raw) {
-  return splitStreamingTail(raw)
-}
 </script>
 
 <style scoped>
@@ -131,22 +124,11 @@ function streamingTail(raw) {
 /* 进行中段落（极克制透明度，节奏柔和） */
 .xzm-stream-md__pending {
   margin: var(--xzm-space-3) 0;
-  color: var(--xzm-text-secondary);
+  color: var(--xzm-prose-color);
 }
 .xzm-stream-md__pending-text {
   white-space: pre-wrap;
   word-break: break-word;
-  opacity: 0.95;
-}
-.xzm-stream-md__pending-text-inner { display: inline; }
-.xzm-stream-md__pending-tail {
-  display: inline;
-  animation: xzm-stream-tail-reveal 180ms ease-out both;
-}
-
-@keyframes xzm-stream-tail-reveal {
-  from { opacity: 0.28; filter: blur(1.5px); }
-  to { opacity: 1; filter: blur(0); }
 }
 
 .xzm-stream-md__empty {
@@ -284,6 +266,5 @@ function streamingTail(raw) {
 }
 @media (prefers-reduced-motion: reduce) {
   .stream-block-enter-active { transition: none; }
-  .xzm-stream-md__pending-tail { animation: none; }
 }
 </style>

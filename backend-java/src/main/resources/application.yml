@@ -35,6 +35,22 @@ app:
     # runner merely because deployment omitted PISTON_API_URL.
     piston-url: ${PISTON_API_URL:http://127.0.0.1:2000/api/v2/execute}
     piston-token: ${PISTON_API_TOKEN:}
+  server-agent:
+    # Deliberately fail closed. Enable only after reviewing the Java service account's OS rights.
+    enabled: ${SERVER_AGENT_ENABLED:false}
+    working-directory: ${SERVER_AGENT_WORKING_DIRECTORY:/www/wwwroot}
+    site-root: ${SERVER_AGENT_SITE_ROOT:/www/wwwroot}
+    site-public-base-url: ${SERVER_AGENT_SITE_PUBLIC_BASE_URL:/agent-sites}
+    allowed-roots: ${SERVER_AGENT_ALLOWED_ROOTS:/www/wwwroot,/opt,/var/log,/etc/nginx}
+    max-concurrent-commands: ${SERVER_AGENT_MAX_CONCURRENT_COMMANDS:2}
+    max-concurrent-agents: ${SERVER_AGENT_MAX_CONCURRENT_AGENTS:1}
+    command-timeout-seconds: ${SERVER_AGENT_COMMAND_TIMEOUT_SECONDS:30}
+    max-output-chars: ${SERVER_AGENT_MAX_OUTPUT_CHARS:65536}
+    max-agent-steps: ${SERVER_AGENT_MAX_STEPS:8}
+    approval-ttl-seconds: ${SERVER_AGENT_APPROVAL_TTL_SECONDS:300}
+    ai-timeout-seconds: ${SERVER_AGENT_AI_TIMEOUT_SECONDS:90}
+    ai-provider: ${SERVER_AGENT_AI_PROVIDER:deepseek}
+    ai-model: ${SERVER_AGENT_AI_MODEL:deepseek-v4-flash}
 
 recruitment:
   crawler:

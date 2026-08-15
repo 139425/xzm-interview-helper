@@ -122,6 +122,31 @@ PROBLEM_DETAIL = {
 
 
 def api_body(url: str, method: str) -> tuple[int, dict]:
+    if "/admin/server-agent/status" in url:
+        return 200, {
+            "code": 200,
+            "data": {
+                "agentEnabled": True,
+                "hostname": "xzm-prod-01",
+                "executionUser": "www",
+                "uptimeSeconds": 284400,
+                "cpuLoad": 0.18,
+                "heapUsedBytes": 42000000,
+                "heapMaxBytes": 100000000,
+                "disk": [{"path": "/", "totalBytes": 100000000, "freeBytes": 64000000}],
+                "capabilities": {
+                    "command": True,
+                    "readFile": True,
+                    "writeFile": True,
+                    "createSite": True,
+                    "serviceStatus": True,
+                    "serviceRestart": False,
+                },
+                "limits": {"maxAgentSteps": 8},
+            },
+        }
+    if "/admin/server-agent/audit" in url:
+        return 200, {"code": 200, "data": []}
     if "/algorithm/problems/two-sum" in url:
         return 200, PROBLEM_DETAIL
     if "/algorithm/problems" in url:
@@ -178,10 +203,14 @@ def api_body(url: str, method: str) -> tuple[int, dict]:
 def install_fixtures(page) -> None:
     page.add_init_script(
         """
-        localStorage.setItem('token', 'visual-audit-token');
-        localStorage.setItem('userInfo', JSON.stringify({
-          userId: 7, username: 'xzm', userType: '普通用户'
-        }));
+        if (!localStorage.getItem('token')) {
+          localStorage.setItem('token', 'visual-audit-token');
+        }
+        if (!localStorage.getItem('userInfo')) {
+          localStorage.setItem('userInfo', JSON.stringify({
+            userId: 7, username: 'xzm', userType: '普通用户'
+          }));
+        }
         class AuditRecognition {
           start() {
             setTimeout(() => {
@@ -236,7 +265,7 @@ with sync_playwright() as playwright:
         ("interview", "/aiInterview", "模拟面试工作台"),
         ("algorithm", "/algorithms", "两数之和"),
         ("recruitment", "/recruitment", "招聘信息汇总"),
-        ("applications", "/applications", "投递记录"),
+        ("applications", "/applications", "共 2 条"),
         ("knowledge", "/knowledge", "只让 AI 读取"),
     ]
 
@@ -285,6 +314,7 @@ with sync_playwright() as playwright:
                 positions[index]["y"] < positions[index + 1]["y"]
                 for index in range(len(positions) - 1)
             ), positions
+
             page.get_by_title("展开侧边栏").click()
             page.locator(".workspace-density-toggle").click()
             assert page.locator(".mode-btn").count() == 6
@@ -295,9 +325,31 @@ with sync_playwright() as playwright:
             page.get_by_role("button", name="投递追踪").click()
             page.wait_for_url(f"{BASE_URL}/applications")
             page.locator(".workspace-frame__topbar").wait_for(state="visible")
+            assert page.locator(".application-heading").count() == 0
             assert page.locator(".application-row").count() == 2
             assert page.locator(".pipeline").count() == 0
             assert "status--blue" in (page.locator(".status-control").first.get_attribute("class") or "")
+            application_geometry = page.evaluate(
+                """() => {
+                  const content = document.querySelector('.workspace-frame__content').getBoundingClientRect()
+                  const card = document.querySelector('.sheet-card').getBoundingClientRect()
+                  const toolbar = document.querySelector('.sheet-toolbar').getBoundingClientRect()
+                  const table = document.querySelector('.application-table-wrap').getBoundingClientRect()
+                  return {
+                    contentWidth: content.width,
+                    cardWidth: card.width,
+                    viewportHeight: window.innerHeight,
+                    cardBottom: card.bottom,
+                    toolbarBottom: toolbar.bottom,
+                    tableTop: table.top,
+                    tableBottom: table.bottom,
+                  }
+                }"""
+            )
+            assert application_geometry["cardWidth"] >= application_geometry["contentWidth"] - 25
+            assert application_geometry["cardBottom"] >= application_geometry["viewportHeight"] - 13
+            assert abs(application_geometry["tableTop"] - application_geometry["toolbarBottom"]) <= 1
+            assert abs(application_geometry["tableBottom"] - application_geometry["cardBottom"]) <= 1
 
             page.get_by_role("button", name="＋ 新增投递").click()
             dialog = page.locator(".application-dialog")
@@ -361,6 +413,22 @@ with sync_playwright() as playwright:
                 "element => Math.round(element.getBoundingClientRect().x)"
             ) == 0
             page.screenshot(path=str(OUTPUT / "mobile-knowledge-sidebar-open.png"), full_page=True)
+
+        page.evaluate(
+            """() => localStorage.setItem('userInfo', JSON.stringify({
+              userId: 7, username: 'xzm', userType: '管理员'
+            }))"""
+        )
+        assert_page(
+            page,
+            "/admin/server",
+            "把目标交给 Agent",
+            f"{viewport_name}-server-agent.png",
+        )
+        assert page.locator(".host-plate").is_visible()
+        assert page.locator(".ops-page").evaluate(
+            "node => node.scrollWidth <= node.clientWidth + 1"
+        )
 
         all_errors.extend(f"{viewport_name}: {error}" for error in errors)
         page.close()

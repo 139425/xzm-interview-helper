@@ -7,18 +7,7 @@ import {
   parseStream,
   finalizeBlocks,
   decodeSpaceMarker,
-  splitStreamingTail,
 } from '../src/utils/streamBuffer'
-
-describe('splitStreamingTail', () => {
-  it('只把短尾段标记为新流入文本', () => {
-    expect(splitStreamingTail('正在逐字生成一段足够长的回答', 6)).toEqual({
-      stable: '正在逐字生成一段',
-      tail: '足够长的回答',
-    })
-    expect(splitStreamingTail('短文本', 6)).toEqual({ stable: '', tail: '短文本' })
-  })
-})
 
 describe('parseStream — 基础切块', () => {
   it('空输入返回空 committedBlocks 与空 pending', () => {
@@ -46,6 +35,12 @@ describe('parseStream — 基础切块', () => {
     const r = parseStream('# 标题\n\n正文')
     expect(r.committedBlocks[0].kind).toBe('heading')
     expect(r.pending.kind).toBe('paragraph')
+  })
+
+  it('未收到换行的流式标题保持 pending，避免完成态逐字重绘', () => {
+    const r = parseStream('# 正在生成标题')
+    expect(r.committedBlocks).toEqual([])
+    expect(r.pending).toMatchObject({ kind: 'heading', raw: '# 正在生成标题' })
   })
 
   it('规范化模型漏写空格的编号型标题，但不改写代码预处理行', () => {
