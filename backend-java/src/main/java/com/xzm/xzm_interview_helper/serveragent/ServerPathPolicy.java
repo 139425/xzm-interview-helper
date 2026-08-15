@@ -41,7 +41,7 @@ public class ServerPathPolicy {
                 || lower.contains("/.gnupg/")
                 || lower.contains("/.aws/")
                 || lower.contains("/.kube/")
-                || lower.endsWith("/.env")
+                || lower.endsWith(".env")
                 || lower.contains("/.env.")
                 || lower.contains("credential")
                 || lower.contains("secret")

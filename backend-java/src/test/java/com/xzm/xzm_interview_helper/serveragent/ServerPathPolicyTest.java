@@ -27,11 +27,13 @@ class ServerPathPolicyTest {
                 .isInstanceOf(ResponseStatusException.class);
         assertThatThrownBy(() -> policy.resolve(root.resolve(".env").toString()))
                 .isInstanceOf(ResponseStatusException.class);
+        assertThatThrownBy(() -> policy.resolve(root.resolve("production.env").toString()))
+                .isInstanceOf(ResponseStatusException.class);
     }
 
     @Test
     void rejectsAnInRootSymlinkAliasToCredentialFile() throws Exception {
-        Path credential = Files.writeString(root.resolve(".env"), "DB_PASSWORD=hidden");
+        Path credential = Files.writeString(root.resolve("production.env"), "DB_PASSWORD=hidden");
         Path alias = root.resolve("public-config");
         try {
             Files.createSymbolicLink(alias, credential);
