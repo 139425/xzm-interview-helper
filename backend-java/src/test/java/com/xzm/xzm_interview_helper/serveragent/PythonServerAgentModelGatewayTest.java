@@ -18,7 +18,7 @@ class PythonServerAgentModelGatewayTest {
         ServerAgentProperties properties = new ServerAgentProperties();
         properties.setAiProvider("deepseek");
         properties.setAiModel("configured-model");
-        when(client.streamChat("user", "system", "professional", "deepseek", "configured-model"))
+        when(client.streamChat("user", "system", "server_agent", "deepseek", "configured-model"))
                 .thenReturn(Flux.just(
                         ServerSentEvent.builder("[CONTENT]{\"action\":").build(),
                         ServerSentEvent.builder("[CONTENT]\"FINISH\"}").build(),
@@ -34,7 +34,7 @@ class PythonServerAgentModelGatewayTest {
     void incompleteAiStreamFailsClosed() {
         PythonAiGrpcClient client = mock(PythonAiGrpcClient.class);
         ServerAgentProperties properties = new ServerAgentProperties();
-        when(client.streamChat("user", "system", "professional", "deepseek", "deepseek-v4-flash"))
+        when(client.streamChat("user", "system", "server_agent", "deepseek", "deepseek-v4-flash"))
                 .thenReturn(Flux.just(ServerSentEvent.builder("[CONTENT]partial").build()));
 
         assertThatThrownBy(() -> new PythonServerAgentModelGateway(client, properties).decide("system", "user"))

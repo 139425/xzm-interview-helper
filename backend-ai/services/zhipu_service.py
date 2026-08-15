@@ -465,30 +465,45 @@ class ZhipuService:
         enable_thinking: bool,
         prompt_mode: Optional[str],
     ) -> AsyncGenerator[str, None]:
-        yield self._stage_frame("retrieval", "running", title="正在提取检索关键词")
-        keywords = await self._generate_rag_keywords(message, provider, model_name)
-        yield self._stage_frame(
-            "retrieval",
-            "running",
-            title="正在检索相关信息",
-            keywords=keywords,
-        )
-        rag_chunks, retrieval_degraded, public_sources = await self._retrieve_rag_chunks(message, keywords)
-        yield self._stage_frame(
-            "retrieval",
-            "degraded" if retrieval_degraded else "done",
-            title="检索服务暂时不可用，已使用模型知识继续回答"
-            if retrieval_degraded
-            else "相关信息检索完成",
-            keywords=keywords,
-            hitCount=len(rag_chunks),
-            publicSources=public_sources,
-        )
-        selected_mode, merged_prompt = self._compose_chat_system_prompt(
-            message,
-            prompt_mode,
-            rag_chunks,
-        )
+        server_agent_mode = (prompt_mode or "").strip().lower() == "server_agent"
+        if server_agent_mode:
+            # This mode is only selected by the administrator-only Java orchestrator. Keep its
+            # server-owned tool protocol at system priority and skip unrelated interview RAG.
+            selected_mode = "server_agent"
+            merged_prompt = (system_prompt or "").strip() or None
+            yield self._stage_frame(
+                "retrieval",
+                "skipped",
+                title="Server Agent uses its dedicated tool contract",
+                keywords=[],
+                hitCount=0,
+                publicSources=[],
+            )
+        else:
+            yield self._stage_frame("retrieval", "running", title="正在提取检索关键词")
+            keywords = await self._generate_rag_keywords(message, provider, model_name)
+            yield self._stage_frame(
+                "retrieval",
+                "running",
+                title="正在检索相关信息",
+                keywords=keywords,
+            )
+            rag_chunks, retrieval_degraded, public_sources = await self._retrieve_rag_chunks(message, keywords)
+            yield self._stage_frame(
+                "retrieval",
+                "degraded" if retrieval_degraded else "done",
+                title="检索服务暂时不可用，已使用模型知识继续回答"
+                if retrieval_degraded
+                else "相关信息检索完成",
+                keywords=keywords,
+                hitCount=len(rag_chunks),
+                publicSources=public_sources,
+            )
+            selected_mode, merged_prompt = self._compose_chat_system_prompt(
+                message,
+                prompt_mode,
+                rag_chunks,
+            )
         yield self._stage_frame("thinking", "running", title="正在分析问题")
         logger.info(
             "Chat prompt selected: mode=%s provider=%s model=%s thinking=%s",
@@ -501,7 +516,7 @@ class ZhipuService:
         messages = []
         if merged_prompt:
             messages.append({"role": "system", "content": merged_prompt})
-        conversation_context = self._prepare_conversation_context(
+        conversation_context = None if server_agent_mode else self._prepare_conversation_context(
             system_prompt,
             selected_mode,
         )

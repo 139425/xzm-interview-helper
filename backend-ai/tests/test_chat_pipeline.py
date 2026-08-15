@@ -34,6 +34,19 @@ class FakeStreamingClient:
         )
 
 
+class CapturingStreamingClient:
+    def __init__(self, contents):
+        self.request = None
+
+        async def create(**kwargs):
+            self.request = kwargs
+            return FakeAsyncStream(contents)
+
+        self.chat = SimpleNamespace(
+            completions=SimpleNamespace(create=create),
+        )
+
+
 class FailingStreamingClient:
     def __init__(self):
         async def create(**_kwargs):
@@ -49,6 +62,39 @@ def decode_stage(frame):
     return json.loads(
         ZhipuService.decode_from_sse(frame[len(ZhipuService.STAGE_MARKER):])
     )
+
+
+@pytest.mark.asyncio
+async def test_server_agent_mode_uses_authoritative_system_contract_without_rag(monkeypatch):
+    service = ZhipuService()
+    client = CapturingStreamingClient(['{"action":"FINISH","arguments":{},"answer":"healthy"}'])
+
+    async def must_not_run(*_args):
+        raise AssertionError("server Agent mode must not invoke interview RAG")
+
+    monkeypatch.setattr(service, "_generate_rag_keywords", must_not_run)
+    monkeypatch.setattr(service, "_retrieve_rag_chunks", must_not_run)
+    monkeypatch.setattr(service, "_build_client", lambda _provider: client)
+
+    frames = [
+        frame
+        async for frame in service._stream_chat(
+            message="Inspect server status and finish.",
+            system_prompt="TRUSTED SERVER TOOL CONTRACT",
+            provider="deepseek",
+            model_name="deepseek-v4-flash",
+            enable_thinking=False,
+            prompt_mode="server_agent",
+        )
+    ]
+
+    assert client.request["messages"] == [
+        {"role": "system", "content": "TRUSTED SERVER TOOL CONTRACT"},
+        {"role": "user", "content": "Inspect server status and finish."},
+    ]
+    assert not any("conversation_reference" in item["content"] for item in client.request["messages"])
+    assert decode_stage(frames[0])["status"] == "skipped"
+    assert frames[-1] == "[DONE]"
 
 
 @pytest.mark.asyncio

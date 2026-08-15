@@ -28,7 +28,7 @@ public class PythonServerAgentModelGateway implements ServerAgentModelGateway {
         List<String> frames = pythonAiGrpcClient.streamChat(
                         userPrompt,
                         systemPrompt,
-                        "professional",
+                        "server_agent",
                         properties.getAiProvider(),
                         properties.getAiModel()
                 )
