@@ -111,7 +111,7 @@ SHA256(casefold(source_path) + ":" + file_hash + ":" + logical_chunk_id)
 
 - 空字符串在客户端拒绝，避免无意义计费和服务端 400。
 - 按条数和总字符数双重控制批次。
-- `bge-large-zh-v1.5` 上限 512 tokens，默认安全上限 480，给标题和估算误差留余量。
+- `bge-large-zh-v1.5` 上限 512 tokens，默认估算上限 480，并对 512-token 模型增加 416 个 Unicode 字符的硬上限，给供应商 tokenizer、特殊 token 和混合标点留余量。
 - 只在模型明确支持时设置 `dimensions`；变更模型或维度必须新建 collection 或完整重建。
 - 超时默认 20 秒，SDK 重试默认 2 次；429、503、504 仍应由上层监控。
 - 响应按 `index` 恢复输入顺序，并校验“向量数等于输入数”“维度统一且非零”。

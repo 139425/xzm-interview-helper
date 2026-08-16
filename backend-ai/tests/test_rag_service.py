@@ -165,6 +165,18 @@ def test_embedding_adapter_caps_provider_input_without_changing_batch_shape():
     assert len(captured[0]) < len(original)
 
 
+def test_embedding_adapter_keeps_extra_character_headroom_for_512_token_models():
+    adapter = SiliconFlowEmbedding(
+        api_key="test-key",
+        base_url="https://example.invalid/v1",
+        model="BAAI/bge-large-zh-v1.5",
+        max_tokens=480,
+    )
+
+    assert adapter._max_characters == 416
+    assert len(adapter._prepare_input("a" * 1_000)) == 416
+
+
 def test_embedding_adapter_rejects_empty_provider_inputs():
     adapter = object.__new__(SiliconFlowEmbedding)
 

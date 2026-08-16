@@ -61,7 +61,14 @@ class SiliconFlowEmbedding(EmbeddingFunction):
         self._model = model
         self._batch_size = max(int(batch_size), 1)
         self._max_tokens = max(int(max_tokens), 32)
-        self._max_characters = self._max_tokens * 4
+        # A cheap language-agnostic estimator cannot exactly reproduce the
+        # provider tokenizer. For 512-token models, keep a Unicode-character
+        # hard limit with extra room for special tokens and mixed punctuation.
+        self._max_characters = (
+            max(32, self._max_tokens - 64)
+            if self._max_tokens <= 512
+            else self._max_tokens * 4
+        )
         self._dimensions = dimensions if dimensions and dimensions > 0 else None
 
     def _prepare_input(self, value: str) -> str:
