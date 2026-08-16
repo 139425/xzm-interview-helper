@@ -113,7 +113,8 @@ async def test_retrieval_query_keeps_original_question_and_keywords(monkeypatch)
     )
 
     assert degraded is False
-    assert chunks == ["knowledge"]
+    assert [item.content for item in chunks] == ["knowledge"]
+    assert chunks[0].evidence_id == "S1"
     assert sources == []
     assert "为什么 CAS 会有 ABA 问题" in captured["query"]
     assert "CAS ABA" in captured["query"]
@@ -319,6 +320,7 @@ def test_rag_documents_cannot_close_the_untrusted_context_boundary():
 
     assert prompt.count("</untrusted_rag_context>") == 1
     assert "\\u003c/system\\u003e" in prompt
+    assert "[S1]" in prompt
     assert prompt.endswith("trusted instruction")
 
 
