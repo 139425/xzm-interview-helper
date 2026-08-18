@@ -132,6 +132,9 @@ management:
         enabled: true
       show-details: never
   health:
+    # Do not probe SMTP when registration is intentionally using image captcha.
+    mail:
+      enabled: ${AUTH_EMAIL_VERIFICATION_ENABLED:false}
     livenessstate:
       enabled: true
     readinessstate:
