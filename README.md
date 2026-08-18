@@ -115,6 +115,11 @@ Copy-Item backend-java/.env.example backend-java/.env
 - `LONGCAT_API_KEY`：如使用对应的直连聊天能力。
 - `PISTON_API_URL`、`PISTON_API_TOKEN`：如启用算法代码执行。
 
+注册验证默认使用服务端生成的计算图片验证码。需要启用邮箱验证码时，设置
+`AUTH_EMAIL_VERIFICATION_ENABLED=true`，并配置 `AUTH_MAIL_FROM`、`MAIL_HOST`、
+`MAIL_PORT`、`MAIL_USERNAME`、`MAIL_PASSWORD`。QQ 邮箱的 `MAIL_PASSWORD` 必须使用
+SMTP 授权码，不能填写邮箱登录密码；凭据只应存在于部署环境变量中。
+
 ### Python AI 服务
 
 ```powershell

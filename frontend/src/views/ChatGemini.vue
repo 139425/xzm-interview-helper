@@ -160,7 +160,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUIStore } from '../stores/ui'
 import { useChatStore } from '../stores/chat'
@@ -183,6 +183,7 @@ import QuestionNav from '../components/chat/QuestionNav.vue'
 
 // ============== Stores ==============
 const router = useRouter()
+const route = useRoute()
 const uiStore = useUIStore()
 const chatStore = useChatStore()
 const userStore = useUserStore()
@@ -326,7 +327,13 @@ async function handleSend(message) {
   if (chatStream.isStreaming.value) return
 
   if (!chatStore.currentMemoryId) {
-    chatStore.createNewChat()
+    try {
+      const identity = await chatStore.createNewChat()
+      await router.replace({ name: 'Chat', params: { conversationId: identity.conversationId } })
+    } catch (error) {
+      ElMessage.error(error?.response?.data?.message || '创建会话失败，请稍后重试')
+      return
+    }
   }
 
   if (chatStore.messages.length === 0) {
@@ -433,11 +440,12 @@ async function handleRegenerate(messageId) {
   await runStream(userMsg.content)
 }
 
-function handleNewChat() {
+async function handleNewChat() {
   // 先失效视图 run，再丢弃底层请求；旧 Promise 后续完成时不能写入新会话。
   runGeneration += 1
   chatStream.cancel()
-  chatStore.createNewChat()
+  chatStore.resetChat()
+  await router.push({ name: 'Chat' })
   chatStream.reset()
   userInput.value = ''
   showQuestionNav.value = false
@@ -520,9 +528,44 @@ watch(userQuestions, () => {
   nextTick(() => scheduleQuestionUpdate())
 })
 
+async function loadConversationFromRoute(conversationId) {
+  const targetId = typeof conversationId === 'string' ? conversationId.trim() : ''
+  if (!targetId) {
+    if (chatStore.currentConversationId) chatStore.resetChat()
+    uiStore.resetPromptBarToCenter()
+    uiStore.displayWelcome()
+    return
+  }
+  if (targetId === chatStore.currentConversationId && chatStore.currentMemoryId) return
+
+  handleHistorySelecting()
+  try {
+    const hasHistory = await chatStore.loadChatByConversationId(targetId)
+    if (!hasHistory) {
+      ElMessage.info('这是一个新会话，可以直接开始提问')
+      uiStore.resetPromptBarToCenter()
+      uiStore.displayWelcome()
+      return
+    }
+    uiStore.hideWelcome()
+    uiStore.movePromptBarToBottom()
+    await nextTick()
+    scheduleQuestionUpdate()
+  } catch (error) {
+    if (error?.response?.status !== 401) {
+      ElMessage.error(error?.response?.data?.message || '会话不存在或无权访问')
+      chatStore.resetChat()
+      await router.replace({ name: 'Chat' })
+    }
+  }
+}
+
+watch(() => route.params.conversationId, loadConversationFromRoute)
+
 // ============== 生命周期 ==============
-onMounted(() => {
+onMounted(async () => {
   uiStore.initialize()
+  await loadConversationFromRoute(route.params.conversationId)
   if (chatStore.messages.length > 0) {
     uiStore.movePromptBarToBottom()
     uiStore.hideWelcome()

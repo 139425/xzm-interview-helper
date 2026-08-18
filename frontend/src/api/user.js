@@ -1,9 +1,40 @@
 import request from '@/utils/request'
 
 export const userApi = {
+  async getVerificationConfig() {
+    const response = await request.get('/user/verification/config')
+    return response.data
+  },
+
+  async createSliderChallenge() {
+    const response = await request.post('/user/verification/slider')
+    return response.data
+  },
+
+  async verifySlider(challengeId, sliderValue) {
+    const response = await request.post('/user/verification/slider/verify', {
+      challengeId,
+      sliderValue,
+    })
+    return response.data
+  },
+
+  async createCaptcha() {
+    const response = await request.post('/user/verification/captcha')
+    return response.data
+  },
+
+  async sendRegistrationCode(email, verificationToken) {
+    const response = await request.post('/user/verification/email-code', {
+      email,
+      verificationToken,
+    })
+    return response.data
+  },
+
   /**
    * 用户登录
-   * @param {object} loginData - 登录数据 {username, password}
+   * @param {object} loginData - 登录数据 {username, password, verificationToken}
    * @returns {Promise} - 返回登录结果
    */
   async login(loginData) {

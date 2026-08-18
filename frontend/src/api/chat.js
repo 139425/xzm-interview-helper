@@ -259,6 +259,16 @@ export async function createChatStream({ path, body, signal, onThinking, onConte
 }
 
 export const chatApi = {
+  async createConversation() {
+    const response = await request.post('/record/conversations')
+    return response.data
+  },
+
+  async resolveConversation(conversationId) {
+    const response = await request.get(`/record/conversations/${encodeURIComponent(conversationId)}`)
+    return response.data
+  },
+
   /**
    * 获取对话历史
    * @param {number} memoryId - 会话ID

@@ -5,6 +5,8 @@ export const useChatStore = defineStore('chat', {
   state: () => ({
     // 当前对话ID
     currentMemoryId: null,
+    // 展示在 URL 中的不透明会话 ID
+    currentConversationId: null,
     // 当前对话消息列表
     messages: [],
     // 是否正在加载
@@ -13,18 +15,44 @@ export const useChatStore = defineStore('chat', {
 
   actions: {
     // 创建新对话
-    createNewChat() {
-      // 生成一个随机的userMemoryId (1-1000000)
-      this.currentMemoryId = Math.floor(Math.random() * 1000000) + 1
+    async createNewChat() {
+      const identity = await chatApi.createConversation()
+      this.currentMemoryId = identity.memoryId
+      this.currentConversationId = identity.conversationId
+      this.messages = []
+      return identity
+    },
+
+    resetChat() {
+      this.currentMemoryId = null
+      this.currentConversationId = null
       this.messages = []
     },
 
+    async loadChatByConversationId(conversationId) {
+      this.loading = true
+      try {
+        const identity = await chatApi.resolveConversation(conversationId)
+        const history = await chatApi.getChatHistory(identity.memoryId)
+        this.currentMemoryId = identity.memoryId
+        this.currentConversationId = identity.conversationId
+        this.messages = this.convertBackendHistoryToMessages(history || [])
+        return this.messages.length > 0
+      } catch (error) {
+        console.error('通过会话地址加载历史失败:', error)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
     // 加载特定ID的对话历史
-    async loadChatById(memoryId) {
+    async loadChatById(memoryId, conversationId = null) {
       this.loading = true
       try {
         const history = await chatApi.getChatHistory(memoryId)
         this.currentMemoryId = memoryId
+        this.currentConversationId = conversationId
         this.messages = this.convertBackendHistoryToMessages(history || [])
         return this.messages.length > 0
       } catch (error) {
@@ -36,11 +64,12 @@ export const useChatStore = defineStore('chat', {
     },
 
     // 加载特定用户的特定ID对话历史（用户隔离）
-    async loadChatByIdAndUser(memoryId, userId) {
+    async loadChatByIdAndUser(memoryId, userId, conversationId = null) {
       this.loading = true
       try {
         const history = await chatApi.getChatHistoryByUser(memoryId, userId)
         this.currentMemoryId = memoryId
+        this.currentConversationId = conversationId
         this.messages = this.convertBackendHistoryToMessages(history || [])
         return this.messages.length > 0
       } catch (error) {

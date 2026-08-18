@@ -27,6 +27,12 @@ app:
   security:
     # Keep blank unless these exact TCP peers are trusted reverse proxies that sanitize/append XFF.
     trusted-proxy-addresses: ${TRUSTED_PROXY_ADDRESSES:}
+  auth:
+    # Enable after configuring an SMTP account. When disabled, registration
+    # automatically falls back to a server-generated image captcha.
+    email-verification-enabled: ${AUTH_EMAIL_VERIFICATION_ENABLED:false}
+    verification-code-minutes: ${AUTH_VERIFICATION_CODE_MINUTES:10}
+    mail-from: ${AUTH_MAIL_FROM:}
   interview:
     # Fail startup when an older database has the tables but is missing required agent columns.
     schema-validation-enabled: ${INTERVIEW_SCHEMA_VALIDATION_ENABLED:true}
@@ -83,13 +89,27 @@ spring:
   sql:
     init:
       mode: always
-      schema-locations: classpath:sql/interview_agent_schema.sql
+      schema-locations: classpath:sql/interview_agent_schema.sql,classpath:sql/conversation_identity_schema.sql
     # Redis ??
 #  data:
 #    redis:
 #      host: 127.0.0.1
 #      port: 6379
 #      password: ${REDIS_PASSWORD:}   # Supply only through the deployment environment.
+  mail:
+    host: ${MAIL_HOST:smtp.qq.com}
+    port: ${MAIL_PORT:465}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: ${MAIL_SSL_ENABLED:true}
+          starttls:
+            enable: ${MAIL_STARTTLS_ENABLED:false}
 
 mybatis-plus:
   configuration:

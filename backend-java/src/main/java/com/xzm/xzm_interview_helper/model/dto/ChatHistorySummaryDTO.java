@@ -33,6 +33,9 @@ public class ChatHistorySummaryDTO {
      */
     private Long messageCount;
 
+    /** Opaque id used in /chat/{conversationId}; never exposes another user's data. */
+    private String conversationId;
+
     // Getter and Setter methods
     public Integer getMemoryId() {
         return memoryId;

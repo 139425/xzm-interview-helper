@@ -4,6 +4,7 @@ import com.xzm.xzm_interview_helper.mapper.AiConversationMapper;
 import com.xzm.xzm_interview_helper.model.dto.ChatHistorySummaryDTO;
 import com.xzm.xzm_interview_helper.model.entity.AiConversation;
 import com.xzm.xzm_interview_helper.service.AiConversationService;
+import com.xzm.xzm_interview_helper.service.ConversationIdentityService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,24 @@ public class RecordController {
     @Autowired
     private AiConversationService aiConversationService;
 
+    @Autowired
+    private ConversationIdentityService conversationIdentityService;
+
+    @PostMapping("/conversations")
+    public ConversationIdentityService.ConversationIdentity createConversation(
+            HttpServletRequest request
+    ) {
+        return conversationIdentityService.create(currentUserId(request));
+    }
+
+    @GetMapping("/conversations/{conversationId}")
+    public ConversationIdentityService.ConversationIdentity resolveConversation(
+            @PathVariable String conversationId,
+            HttpServletRequest request
+    ) {
+        return conversationIdentityService.resolve(currentUserId(request), conversationId);
+    }
+
     @GetMapping("/histories/user/{userId}/page")
     public Map<String, Object> getHistoriesByUserPaged(
             @PathVariable int userId,
@@ -55,6 +74,7 @@ public class RecordController {
                         offset,
                         safePageSize
                 );
+        attachConversationIds(authenticatedUserId, records);
         boolean hasMore = offset + records.size() < total;
 
         Map<String, Object> result = new HashMap<>();
@@ -68,11 +88,14 @@ public class RecordController {
 
     @GetMapping("/histories")
     public List<ChatHistorySummaryDTO> getHistories(HttpServletRequest request) {
-        return aiConversationMapper.selectHistorySummariesByUserPaged(
-                currentUserId(request),
+        int userId = currentUserId(request);
+        List<ChatHistorySummaryDTO> records = aiConversationMapper.selectHistorySummariesByUserPaged(
+                userId,
                 0,
                 1000
         );
+        attachConversationIds(userId, records);
+        return records;
     }
 
     @GetMapping("/histories/user/{userId}")
@@ -80,11 +103,14 @@ public class RecordController {
             @PathVariable int userId,
             HttpServletRequest request
     ) {
-        return aiConversationMapper.selectHistorySummariesByUserPaged(
-                requireMatchingUserId(request, userId),
+        int authenticatedUserId = requireMatchingUserId(request, userId);
+        List<ChatHistorySummaryDTO> records = aiConversationMapper.selectHistorySummariesByUserPaged(
+                authenticatedUserId,
                 0,
                 1000
         );
+        attachConversationIds(authenticatedUserId, records);
+        return records;
     }
 
     @GetMapping("/clear/{memoryId}/user/{userId}")
@@ -98,6 +124,7 @@ public class RecordController {
                 .eq(AiConversation::getMemory_id, memoryId)
                 .eq(AiConversation::getUser_id, authenticatedUserId)
                 .remove();
+        conversationIdentityService.delete(authenticatedUserId, memoryId);
         Map<String, Object> result = new HashMap<>();
         result.put("success", removed);
         return result;
@@ -161,6 +188,7 @@ public class RecordController {
                 .eq(AiConversation::getMemory_id, memoryId)
                 .eq(AiConversation::getUser_id, currentUserId(request))
                 .remove();
+        conversationIdentityService.delete(currentUserId(request), memoryId);
         Map<String, Object> result = new HashMap<>();
         result.put("success", removed);
         return result;
@@ -179,6 +207,16 @@ public class RecordController {
             );
         }
         return authenticatedUserId;
+    }
+
+    private void attachConversationIds(int userId, List<ChatHistorySummaryDTO> records) {
+        for (ChatHistorySummaryDTO record : records) {
+            if (record.getMemoryId() != null) {
+                record.setConversationId(
+                        conversationIdentityService.getOrCreatePublicId(userId, record.getMemoryId())
+                );
+            }
+        }
     }
 
     private int currentUserId(HttpServletRequest request) {

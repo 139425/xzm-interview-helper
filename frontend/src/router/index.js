@@ -12,7 +12,7 @@ const routes = [
     redirect: '/chat'
   },
   {
-    path: '/chat',
+    path: '/chat/:conversationId?',
     name: 'Chat',
     component: () => import('@/views/ChatGemini.vue'),
     meta: {

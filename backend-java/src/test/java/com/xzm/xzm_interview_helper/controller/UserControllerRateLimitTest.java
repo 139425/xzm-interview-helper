@@ -1,6 +1,7 @@
 package com.xzm.xzm_interview_helper.controller;
 
 import com.xzm.xzm_interview_helper.service.AuthenticationAttemptGate;
+import com.xzm.xzm_interview_helper.service.AuthenticationVerificationService;
 import com.xzm.xzm_interview_helper.service.ClientAddressResolver;
 import com.xzm.xzm_interview_helper.service.HelperUserService;
 import com.xzm.xzm_interview_helper.utils.JwtUtil;
@@ -28,6 +29,8 @@ class UserControllerRateLimitTest {
     private HelperUserService helperUserService;
     @Mock
     private JwtUtil jwtUtil;
+    @Mock
+    private AuthenticationVerificationService verificationService;
 
     private UserController controller;
 
@@ -37,7 +40,8 @@ class UserControllerRateLimitTest {
                 helperUserService,
                 jwtUtil,
                 new AuthenticationAttemptGate(),
-                new ClientAddressResolver("")
+                new ClientAddressResolver(""),
+                verificationService
         );
     }
 

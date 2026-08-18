@@ -32,10 +32,10 @@ export const useUserStore = defineStore('user', {
   
   actions: {
     // 用户登录
-    async login(username, password) {
+    async login(username, password, verificationToken) {
       this.loginLoading = true
       try {
-        const response = await userApi.login({ username, password })
+        const response = await userApi.login({ username, password, verificationToken })
         
         // 检查登录是否成功 - 兼容多种返回格式
         const isSuccess = response.code === 200 || 

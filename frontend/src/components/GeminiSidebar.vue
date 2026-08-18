@@ -595,8 +595,8 @@ const handleHistoryClick = async (item) => {
     historyLoadingId.value = item.memoryId
     try {
       const success = userStore.isLoggedIn && userStore.userId
-        ? await chatStore.loadChatByIdAndUser(item.memoryId, userStore.userId)
-        : await chatStore.loadChatById(item.memoryId)
+        ? await chatStore.loadChatByIdAndUser(item.memoryId, userStore.userId, item.conversationId)
+        : await chatStore.loadChatById(item.memoryId, item.conversationId)
 
       if (
         isUnmounted ||
@@ -611,6 +611,9 @@ const handleHistoryClick = async (item) => {
 
       uiStore.hideWelcome()
       uiStore.movePromptBarToBottom()
+      if (item.conversationId) {
+        await router.push({ name: 'Chat', params: { conversationId: item.conversationId } })
+      }
     } catch (error) {
       if (
         !isUnmounted &&
@@ -660,7 +663,9 @@ const confirmDelete = async (memoryId) => {
     const isCurrentChat = chatStore.currentMemoryId === memoryId
     if (isCurrentChat) {
       chatStore.currentMemoryId = null
+      chatStore.currentConversationId = null
       chatStore.messages = []
+      if (router.currentRoute.value.name === 'Chat') router.replace({ name: 'Chat' })
       // 直接重置UI状态，显示欢迎界面
       uiStore.resetPromptBarToCenter()
       uiStore.displayWelcome()
@@ -752,7 +757,9 @@ const batchDelete = async () => {
     const deletedCurrentChat = selectedItems.value.includes(chatStore.currentMemoryId)
     if (deletedCurrentChat) {
       chatStore.currentMemoryId = null
+      chatStore.currentConversationId = null
       chatStore.messages = []
+      if (router.currentRoute.value.name === 'Chat') router.replace({ name: 'Chat' })
       // 直接重置UI状态，显示欢迎界面
       uiStore.resetPromptBarToCenter()
       uiStore.displayWelcome()
