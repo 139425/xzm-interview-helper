@@ -18,7 +18,7 @@
       </button>
     </template>
 
-    <main class="application-main">
+    <main ref="applicationMain" class="application-main">
       <section class="pipeline-overview" aria-labelledby="pipeline-title">
         <div class="pipeline-overview__copy">
           <p>PROGRESS FIRST</p>
@@ -46,7 +46,7 @@
       </section>
 
       <section class="sheet-card" aria-label="投递记录表格">
-        <div class="sheet-toolbar">
+        <div ref="sheetToolbar" class="sheet-toolbar">
           <div class="record-heading">
             <strong>投递清单</strong>
             <span class="record-count" aria-live="polite"
@@ -308,7 +308,14 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+} from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { applicationApi } from '@/api/career'
 import WorkspaceFrame from '@/components/WorkspaceFrame.vue'
@@ -337,6 +344,9 @@ const loading = ref(true)
 const dialogOpen = ref(false)
 const saving = ref(false)
 const updatingStatusId = ref(null)
+const applicationMain = ref(null)
+const sheetToolbar = ref(null)
+let toolbarResizeObserver
 let loadRequestId = 0
 const emptyForm = () => ({
   id: null,
@@ -551,17 +561,41 @@ function date(value) {
   }).format(parsed)
 }
 
-onMounted(load)
+function syncToolbarHeight() {
+  if (!applicationMain.value || !sheetToolbar.value) return
+  applicationMain.value.style.setProperty(
+    '--sheet-toolbar-height',
+    `${sheetToolbar.value.offsetHeight}px`,
+  )
+}
+
+onMounted(async () => {
+  load()
+  await nextTick()
+  syncToolbarHeight()
+
+  if (typeof ResizeObserver !== 'undefined') {
+    toolbarResizeObserver = new ResizeObserver(syncToolbarHeight)
+    toolbarResizeObserver.observe(sheetToolbar.value)
+  }
+})
+
+onBeforeUnmount(() => toolbarResizeObserver?.disconnect())
 </script>
 
 <style scoped>
 .application-main {
+  --sheet-sticky-inset: -12px;
+  --sheet-toolbar-height: 64px;
+
   box-sizing: border-box;
   width: 100%;
   height: calc(100vh - 64px);
   height: calc(100dvh - 64px);
   padding: 10px 12px 12px;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
 }
 
 .sheet-card {
@@ -667,8 +701,7 @@ onMounted(load)
 .application-table-wrap {
   min-height: 0;
   flex: 1;
-  overflow: auto;
-  overscroll-behavior: contain;
+  overflow: visible;
 }
 
 .application-table {
@@ -1114,6 +1147,7 @@ td.company-column {
   flex-direction: column;
   gap: 12px;
   padding: 12px 14px 14px;
+  scrollbar-gutter: stable;
 }
 
 .opportunity-link {
@@ -1228,15 +1262,25 @@ td.company-column {
 }
 
 .sheet-card {
-  flex: 1 1 auto;
+  height: auto;
+  min-height: calc(100dvh - 90px);
+  flex: 0 0 auto;
+  overflow: visible;
   border-radius: 14px;
   background: color-mix(in srgb, var(--xzm-surface-elevated) 97%, transparent);
   box-shadow: 0 12px 36px rgba(19, 37, 34, 0.055);
 }
 
 .sheet-toolbar {
+  position: sticky;
+  top: var(--sheet-sticky-inset);
+  z-index: var(--xzm-z-sticky);
   min-height: 64px;
   padding: 9px 13px;
+  border-radius: 13px 13px 0 0;
+  background: color-mix(in srgb, var(--xzm-surface-elevated) 96%, transparent);
+  box-shadow: 0 10px 24px rgba(8, 61, 56, 0.07);
+  backdrop-filter: blur(16px) saturate(130%);
 }
 
 .record-heading {
@@ -1415,12 +1459,15 @@ td.company-column {
 }
 
 .application-table th {
+  top: calc(var(--sheet-toolbar-height) + var(--sheet-sticky-inset));
+  z-index: calc(var(--xzm-z-sticky) - 1);
   height: 42px;
   background: color-mix(
     in srgb,
     var(--xzm-surface-2) 78%,
     var(--xzm-surface-elevated)
   );
+  box-shadow: 0 1px 0 var(--xzm-border-color);
 }
 .application-table th,
 .application-table td {
@@ -1467,6 +1514,63 @@ td.company-column {
   .sort-field {
     display: none;
   }
+
+  .application-table {
+    min-width: 100%;
+  }
+
+  .application-table th,
+  .application-table td {
+    padding-inline: 8px;
+  }
+
+  .row-number {
+    width: 36px;
+  }
+
+  .company-column {
+    width: 130px;
+  }
+
+  .link-cell {
+    width: 104px;
+  }
+
+  .text-cell {
+    width: 112px;
+  }
+
+  .updated-cell {
+    width: 88px;
+  }
+
+  .actions-column {
+    width: 60px;
+  }
+
+  .status-control i {
+    left: 8px;
+  }
+
+  .status-control select {
+    padding-inline: 20px 18px;
+  }
+
+  .edit-button {
+    padding-inline: 6px;
+    white-space: nowrap;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 900px) {
+  .application-table-wrap {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .application-table {
+    min-width: 760px;
+  }
 }
 
 @media (max-width: 760px) {
@@ -1474,10 +1578,14 @@ td.company-column {
     display: none;
   }
   .application-main {
+    --sheet-sticky-inset: 0px;
+    --sheet-toolbar-height: 0px;
+
     height: auto;
     min-height: calc(100dvh - 60px);
     padding: 9px;
     overflow: visible;
+    scrollbar-gutter: auto;
   }
   .pipeline-overview {
     grid-template-columns: 1fr;
@@ -1509,9 +1617,12 @@ td.company-column {
     overflow: visible;
   }
   .sheet-toolbar {
+    position: static;
     display: grid;
     gap: 9px;
     padding: 11px;
+    box-shadow: none;
+    backdrop-filter: none;
   }
   .record-heading {
     grid-template-columns: 1fr auto;
