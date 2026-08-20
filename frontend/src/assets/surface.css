@@ -340,3 +340,313 @@
 .xzm-no-scale * {
   transform: none !important;
 }
+
+/* ============================================
+   11) V4 纸面层级修复
+
+   main.css 中仍保留早期“亮色模式一律纯白”的兼容规则。它们使用
+   !important，会把组件已经采用的语义 surface 覆盖成白色补丁。
+   本层只校正表面，不改变组件结构或交互。
+   ============================================ */
+html[data-theme='light'],
+html[data-theme='light'] body,
+body[data-theme='light'],
+html[data-theme='light'] #app,
+body[data-theme='light'] #app {
+  background: var(--xzm-surface-0) !important;
+}
+
+html[data-theme='light'] input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
+html[data-theme='light'] textarea,
+html[data-theme='light'] select,
+body[data-theme='light'] input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
+body[data-theme='light'] textarea,
+body[data-theme='light'] select,
+[data-theme='light'] .el-input__wrapper,
+[data-theme='light'] .el-textarea__inner {
+  border-color: var(--xzm-border-color) !important;
+  color: var(--xzm-text-primary) !important;
+  background: var(--xzm-surface-control) !important;
+}
+
+html[data-theme='light'] :is(table, tbody, tr, td),
+body[data-theme='light'] :is(table, tbody, tr, td) {
+  background-color: transparent !important;
+}
+
+html[data-theme='light'] th,
+body[data-theme='light'] th,
+html[data-theme='light'] thead,
+body[data-theme='light'] thead {
+  background: var(--xzm-surface-2) !important;
+}
+
+html[data-theme='light'] *::-webkit-scrollbar-track,
+body[data-theme='light'] *::-webkit-scrollbar-track,
+html[data-theme='light'] .el-scrollbar__bar,
+body[data-theme='light'] .el-scrollbar__bar {
+  background: transparent !important;
+}
+
+html[data-theme='light'] :is(.el-dialog, .el-dialog__body, .user-menu, .el-popper, .el-dropdown-menu),
+body[data-theme='light'] :is(.el-dialog, .el-dialog__body, .user-menu, .el-popper, .el-dropdown-menu) {
+  background: var(--xzm-surface-elevated) !important;
+}
+
+html[data-theme='light'] :is(.el-dropdown-menu__item, .el-select-dropdown__item):not(:hover):not(.is-active),
+body[data-theme='light'] :is(.el-dropdown-menu__item, .el-select-dropdown__item):not(:hover):not(.is-active) {
+  background: transparent !important;
+}
+
+/* Chat: the prose stays on the page canvas; only semantic inset blocks fill. */
+html[data-theme='light'] :is(.markdown-body, .markdown-content, .message-markdown, .markdown-renderer, .xzm-stream-md),
+body[data-theme='light'] :is(.markdown-body, .markdown-content, .message-markdown, .markdown-renderer, .xzm-stream-md) {
+  background: transparent !important;
+}
+
+html[data-theme='light'] .xzm-code-block,
+body[data-theme='light'] .xzm-code-block {
+  border-color: var(--xzm-border-color-strong) !important;
+  background: var(--xzm-surface-code) !important;
+}
+
+html[data-theme='light'] .xzm-code-block__header,
+body[data-theme='light'] .xzm-code-block__header {
+  background: var(--xzm-surface-code-header) !important;
+}
+
+html[data-theme='light'] :is(.xzm-code-block__pre, .xzm-code-block .hljs, .xzm-fallback-pre),
+body[data-theme='light'] :is(.xzm-code-block__pre, .xzm-code-block .hljs, .xzm-fallback-pre) {
+  background: var(--xzm-surface-code) !important;
+}
+
+html[data-theme='light'] .xzm-code-block__code,
+body[data-theme='light'] .xzm-code-block__code {
+  background: transparent !important;
+}
+
+html[data-theme='light'] :is(.markdown-body, .markdown-content, .message-markdown, .xzm-stream-md) :not(pre) > code,
+body[data-theme='light'] :is(.markdown-body, .markdown-content, .message-markdown, .xzm-stream-md) :not(pre) > code {
+  border-color: var(--xzm-border-color) !important;
+  background: var(--xzm-surface-2) !important;
+}
+
+html[data-theme='light'] .gemini-prompt-bar,
+body[data-theme='light'] .gemini-prompt-bar {
+  border-color: var(--xzm-border-color-strong) !important;
+  background: color-mix(in srgb, var(--xzm-surface-elevated) 94%, transparent) !important;
+}
+
+html[data-theme='light'] .gemini-prompt-bar .prompt-input .el-textarea__inner,
+body[data-theme='light'] .gemini-prompt-bar .prompt-input .el-textarea__inner {
+  background: transparent !important;
+}
+
+html[data-theme='light'] .gemini-prompt-bar :is(.prompt-input, .el-textarea, .el-dropdown),
+body[data-theme='light'] .gemini-prompt-bar :is(.prompt-input, .el-textarea, .el-dropdown) {
+  background: transparent !important;
+}
+
+html[data-theme='light'] .xzm-question-btn,
+body[data-theme='light'] .xzm-question-btn {
+  background: var(--xzm-surface-control) !important;
+}
+
+html[data-theme='light'] .gemini-prompt-bar :is(.tool-btn, .model-trigger, .prompt-mode-btn, .think-toggle-btn),
+body[data-theme='light'] .gemini-prompt-bar :is(.tool-btn, .model-trigger, .prompt-mode-btn, .think-toggle-btn) {
+  background: var(--xzm-surface-2) !important;
+}
+
+html[data-theme='light'] .gemini-prompt-bar :is(.model-option, .ocr-preview header button),
+body[data-theme='light'] .gemini-prompt-bar :is(.model-option, .ocr-preview header button) {
+  background: transparent !important;
+}
+
+html[data-theme='light'] .gemini-sidebar :is(.history-primary, .delete-btn-icon),
+body[data-theme='light'] .gemini-sidebar :is(.history-primary, .delete-btn-icon) {
+  background: transparent !important;
+}
+
+html[data-theme='light'] .gemini-sidebar :is(.toggle-btn, .workspace-density-toggle),
+body[data-theme='light'] .gemini-sidebar :is(.toggle-btn, .workspace-density-toggle) {
+  background: var(--xzm-surface-control) !important;
+}
+
+html[data-theme='light'] :is(.voice-btn, .xzm-msg__action),
+body[data-theme='light'] :is(.voice-btn, .xzm-msg__action) {
+  background: transparent !important;
+}
+
+html[data-theme='light'] .xzm-btn--ghost,
+body[data-theme='light'] .xzm-btn--ghost {
+  background: transparent !important;
+}
+
+/* Other workspaces use the same paper hierarchy instead of page-local white. */
+html[data-theme='light'] :is(
+  .jobs-overview,
+  .jobs-controls,
+  .jobs-results,
+  .context-card,
+  .documents-card,
+  .intake-card,
+  .session-card,
+  .progress-card,
+  .trajectory-card,
+  .answer-composer,
+  .report-cover,
+  .summary-card,
+  .round-card,
+  .total-score-display,
+  .qa-block,
+  .evaluation-block
+),
+body[data-theme='light'] :is(
+  .jobs-overview,
+  .jobs-controls,
+  .jobs-results,
+  .context-card,
+  .documents-card,
+  .intake-card,
+  .session-card,
+  .progress-card,
+  .trajectory-card,
+  .answer-composer,
+  .report-cover,
+  .summary-card,
+  .round-card,
+  .total-score-display,
+  .qa-block,
+  .evaluation-block
+) {
+  border-color: var(--xzm-border-color) !important;
+  background: var(--xzm-surface-elevated) !important;
+}
+
+html[data-theme='light'] :is(.jobs-search, .jobs-actions a, .jobs-actions button, .jobs-pagination button, .dropzone),
+body[data-theme='light'] :is(.jobs-search, .jobs-actions a, .jobs-actions button, .jobs-pagination button, .dropzone) {
+  border-color: var(--xzm-border-color) !important;
+  background: var(--xzm-surface-control) !important;
+}
+
+html[data-theme='light'] .problem-navigator button,
+body[data-theme='light'] .problem-navigator button {
+  background: transparent !important;
+}
+
+html[data-theme='light'] .problem-navigator .problem-row:not(:disabled):hover,
+body[data-theme='light'] .problem-navigator .problem-row:not(:disabled):hover {
+  background: var(--xzm-surface-2) !important;
+}
+
+html[data-theme='light'] .problem-navigator .problem-row.active,
+body[data-theme='light'] .problem-navigator .problem-row.active {
+  background: color-mix(in srgb, var(--xzm-brand) 10%, transparent) !important;
+}
+
+/* Algorithm controls: preserve the intentional workbench hierarchy over the
+   legacy global button/input compatibility rules. */
+html[data-theme='light'] .algorithm-page :is(.challenge-tabs button, .console-tabs button, .editor-toolbar button, .catalog-open-button, .submission-row),
+body[data-theme='light'] .algorithm-page :is(.challenge-tabs button, .console-tabs button, .editor-toolbar button, .catalog-open-button, .submission-row) {
+  background: transparent !important;
+}
+
+html[data-theme='light'] .algorithm-page :is(.custom-driver, .expected-output textarea),
+body[data-theme='light'] .algorithm-page :is(.custom-driver, .expected-output textarea) {
+  border-color: var(--xzm-border-color) !important;
+  background: var(--xzm-surface-inset) !important;
+}
+
+html[data-theme='light'] .algorithm-page :is(.run-button, .custom-case-actions button, .review-empty button),
+body[data-theme='light'] .algorithm-page :is(.run-button, .custom-case-actions button, .review-empty button) {
+  border-color: var(--xzm-border-color) !important;
+  background: var(--xzm-surface-2) !important;
+  color: var(--xzm-text-primary) !important;
+}
+
+html[data-theme='light'] .algorithm-page .submit-button,
+body[data-theme='light'] .algorithm-page .submit-button {
+  border-color: var(--xzm-brand) !important;
+  background: var(--xzm-brand-gradient) !important;
+  color: var(--xzm-text-on-brand) !important;
+}
+
+html[data-theme='light'] .algorithm-page .editor-statusbar button,
+body[data-theme='light'] .algorithm-page .editor-statusbar button {
+  background: transparent !important;
+}
+
+/* Interview intake controls are choice surfaces, not isolated white cards. */
+html[data-theme='light'] .interview-agent-page :is(.model-choice, .interview-thinking-toggle),
+body[data-theme='light'] .interview-agent-page :is(.model-choice, .interview-thinking-toggle) {
+  border-color: var(--xzm-border-color) !important;
+  background: var(--xzm-surface-control) !important;
+}
+
+html[data-theme='light'] .interview-agent-page :is(.model-choice.active, .interview-thinking-toggle.active),
+body[data-theme='light'] .interview-agent-page :is(.model-choice.active, .interview-thinking-toggle.active) {
+  border-color: var(--xzm-border-color-strong) !important;
+  background: var(--xzm-surface-2) !important;
+}
+
+html[data-theme='light'] .interview-agent-page .source-tabs button,
+body[data-theme='light'] .interview-agent-page .source-tabs button {
+  background: transparent !important;
+}
+
+html[data-theme='light'] .interview-agent-page .source-tabs button.active,
+body[data-theme='light'] .interview-agent-page .source-tabs button.active {
+  background: var(--xzm-surface-2) !important;
+}
+
+html[data-theme='light'] .interview-agent-page .begin-button,
+body[data-theme='light'] .interview-agent-page .begin-button {
+  border-color: transparent !important;
+  background: linear-gradient(110deg, #a6edff, #77d9f3 55%, #8ae8cb) !important;
+  color: #06121d !important;
+}
+
+html[data-theme='light'] .jobs-tabs button,
+body[data-theme='light'] .jobs-tabs button {
+  background: transparent !important;
+}
+
+html[data-theme='light'] .jobs-tabs button.is-active,
+body[data-theme='light'] .jobs-tabs button.is-active {
+  background: var(--xzm-brand-soft) !important;
+}
+
+html[data-theme='light'] :is(.jobs-submit, .sheet-filters > button[type='submit']),
+body[data-theme='light'] :is(.jobs-submit, .sheet-filters > button[type='submit']) {
+  border-color: var(--xzm-brand) !important;
+  background: var(--xzm-brand-gradient) !important;
+  color: var(--xzm-text-on-brand) !important;
+}
+
+html[data-theme='light'] :is(.jobs-reset, .jobs-state button),
+body[data-theme='light'] :is(.jobs-reset, .jobs-state button) {
+  background: transparent !important;
+}
+
+html[data-theme='light'] .application-table .edit-button,
+body[data-theme='light'] .application-table .edit-button {
+  border-color: var(--xzm-border-color) !important;
+  background: var(--xzm-surface-control) !important;
+}
+
+html[data-theme='light'] .status-filter__menu button,
+body[data-theme='light'] .status-filter__menu button {
+  background: transparent !important;
+}
+
+html[data-theme='light'] input:is([type='checkbox'], [type='radio']),
+body[data-theme='light'] input:is([type='checkbox'], [type='radio']) {
+  accent-color: var(--xzm-brand);
+}
+
+html[data-theme='light'] :is(.knowledge-upload, .context-card footer button),
+body[data-theme='light'] :is(.knowledge-upload, .context-card footer button) {
+  border-color: var(--xzm-brand) !important;
+  background: var(--xzm-brand-gradient) !important;
+  color: var(--xzm-text-on-brand) !important;
+}

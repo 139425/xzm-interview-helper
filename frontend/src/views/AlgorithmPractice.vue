@@ -1262,9 +1262,9 @@ function handleModeChange(mode) {
 <style scoped>
 .algorithm-page{
   --a:#0d8068;--on-a:#fff;--a-soft:rgba(13,128,104,.09);--a-border:rgba(13,128,104,.28);
-  --bg:#e9edf2;--p:#f9fafb;--p2:#edf1f4;--catalog:#f3f5f7;--challenge:#fff;
-  --editor:#f8fafc;--console:#edf1f5;--code:#f3f5f7;--topbar:rgba(249,250,251,.94);
-  --bd:#d6dce3;--tx:#18212c;--soft:#3f4b59;--mut:#697584;
+  --bg:#e8eeea;--p:#f2f6f2;--p2:#e2eae5;--catalog:#edf2ee;--challenge:#f5f8f4;
+  --editor:#edf3ef;--console:#e4ebe7;--code:#e2eae6;--topbar:rgba(248,250,247,.94);
+  --bd:#ced9d2;--tx:#182823;--soft:#3f534b;--mut:#6b7b74;
   --hover:rgba(13,128,104,.065);--danger:#c2414a;
   min-height:100vh;background:var(--bg);color:var(--tx);
   font-family:Inter,"Microsoft YaHei",system-ui,sans-serif

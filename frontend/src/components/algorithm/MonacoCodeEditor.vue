@@ -408,16 +408,16 @@ monaco.editor.defineTheme("xzm-light", {
     { token: "comment", foreground: "7B8794", fontStyle: "italic" },
   ],
   colors: {
-    "editor.background": "#F8FAFC",
-    "editor.foreground": "#263442",
-    "editor.lineHighlightBackground": "#EDF3F5",
-    "editorLineNumber.foreground": "#95A1AE",
+    "editor.background": "#EDF3EF",
+    "editor.foreground": "#263832",
+    "editor.lineHighlightBackground": "#E3EBE6",
+    "editorLineNumber.foreground": "#87968F",
     "editorLineNumber.activeForeground": "#0D8068",
-    "editor.selectionBackground": "#BFE5DB",
+    "editor.selectionBackground": "#C7E4DB",
     "editorCursor.foreground": "#0D8068",
-    "editorSuggestWidget.background": "#FFFFFF",
-    "editorSuggestWidget.border": "#D8E0E7",
-    "editorSuggestWidget.selectedBackground": "#E6F2EF",
+    "editorSuggestWidget.background": "#F4F7F3",
+    "editorSuggestWidget.border": "#CDD8D1",
+    "editorSuggestWidget.selectedBackground": "#DDECE6",
   },
 });
 
@@ -764,7 +764,7 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-rows: minmax(0, 1fr) 29px;
   overflow: hidden;
-  background: #f8fafc;
+  background: #edf3ef;
 }
 
 .monaco-host {
@@ -781,9 +781,9 @@ onBeforeUnmount(() => {
   gap: 2px;
   min-width: 0;
   padding: 0 6px 0 12px;
-  color: #5c6b78;
-  background: #eef2f5;
-  border-top: 1px solid #dce3e8;
+  color: #52665e;
+  background: #e1e9e4;
+  border-top: 1px solid #ccd8d1;
   font:
     500 11px/1 "JetBrains Mono",
     "Cascadia Code",

@@ -2653,10 +2653,14 @@ onBeforeUnmount(() => {
       rgba(55, 182, 121, 0.1),
       transparent 37rem
     ),
-    #f7fafc;
+    var(--xzm-surface-0);
 }
 :global([data-theme="light"]) .intake-card {
-  background: linear-gradient(148deg, #fff, #f5fbfd);
+  background: linear-gradient(
+    148deg,
+    var(--xzm-surface-elevated),
+    var(--xzm-surface-1)
+  );
   box-shadow: 0 24px 60px rgba(22, 53, 70, 0.09);
 }
 :global([data-theme="light"]) .session-card,
@@ -2664,13 +2668,13 @@ onBeforeUnmount(() => {
 :global([data-theme="light"]) .trajectory-card,
 :global([data-theme="light"]) .message p,
 :global([data-theme="light"]) .answer-composer {
-  background: #fff;
+  background: var(--xzm-surface-elevated);
 }
 :global([data-theme="light"]) .role-input,
 :global([data-theme="light"]) .resume-textarea,
 :global([data-theme="light"]) .answer-composer textarea,
 :global([data-theme="light"]) .upload-panel {
-  background: #f8fbfc;
+  background: var(--xzm-surface-control);
 }
 
 @media (max-width: 1080px) {

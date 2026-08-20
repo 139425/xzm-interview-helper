@@ -21,7 +21,11 @@
   --xzm-surface-1: #eef2ee;
   --xzm-surface-2: #e4ebe6;
   --xzm-surface-3: #d8e2dc;
-  --xzm-surface-elevated: #fffefa;
+  --xzm-surface-elevated: #f8faf6;
+  --xzm-surface-control: #f2f6f1;
+  --xzm-surface-inset: #e9efeb;
+  --xzm-surface-code: #e6ede9;
+  --xzm-surface-code-header: #dfe8e3;
   --xzm-surface-overlay: rgba(15, 15, 16, 0.36);
 
   /* ========== Text ========== */
@@ -187,7 +191,7 @@
   --el-border-color-light: var(--xzm-border-color);
   --el-border-color-lighter: var(--xzm-border-color);
   --el-fill-color-light: var(--xzm-hover-bg);
-  --el-fill-color-blank: var(--xzm-surface-1);
+  --el-fill-color-blank: var(--xzm-surface-control);
 }
 
 ::selection {
@@ -211,6 +215,10 @@
   --xzm-surface-2: #182421;
   --xzm-surface-3: #21302c;
   --xzm-surface-elevated: #172320;
+  --xzm-surface-control: #14201d;
+  --xzm-surface-inset: #0d1715;
+  --xzm-surface-code: #0b1513;
+  --xzm-surface-code-header: #15231f;
   --xzm-surface-overlay: rgba(0, 0, 0, 0.55);
 
   --xzm-text-primary: #edf5f0;

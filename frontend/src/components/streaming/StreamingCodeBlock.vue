@@ -296,7 +296,7 @@ function downloadCode() {
   margin: var(--xzm-space-4) 0;
   border-radius: var(--xzm-radius-md);
   overflow: hidden;
-  background-color: var(--xzm-surface-1);
+  background-color: var(--xzm-surface-code);
   border: 1px solid var(--xzm-border-color);
   box-shadow: none;
   max-width: 100%;
@@ -313,7 +313,7 @@ function downloadCode() {
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  background-color: var(--xzm-surface-2);
+  background-color: var(--xzm-surface-code-header);
   border-bottom: 1px solid var(--xzm-border-color);
   font-size: var(--xzm-fs-xs);
   font-family: var(--xzm-font-sans);
@@ -396,7 +396,7 @@ function downloadCode() {
 .xzm-code-block__pre {
   margin: 0;
   padding: 16px;
-  background-color: var(--xzm-surface-1);
+  background-color: var(--xzm-surface-code);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   max-width: 100%;

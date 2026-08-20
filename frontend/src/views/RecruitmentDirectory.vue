@@ -633,8 +633,8 @@ onBeforeUnmount(() => {
 .jobs-overview,
 .jobs-controls,
 .jobs-results {
-  border: 1px solid #e1e6ed;
-  background: #fff;
+  border: 1px solid var(--xzm-border-color);
+  background: var(--xzm-surface-elevated);
 }
 .jobs-overview {
   display: flex;
@@ -723,9 +723,9 @@ onBeforeUnmount(() => {
 .jobs-filterbar select,
 .jobs-search {
   height: 38px;
-  border: 1px solid #dce2ea;
+  border: 1px solid var(--xzm-border-color);
   border-radius: 7px;
-  background: #fff;
+  background: var(--xzm-surface-control);
 }
 .jobs-filterbar select {
   min-width: 118px;
@@ -1017,7 +1017,7 @@ onBeforeUnmount(() => {
   border: 1px solid #d8dfe8;
   border-radius: 6px;
   color: #566276;
-  background: #fff;
+  background: var(--xzm-surface-control);
   font: inherit;
   font-size: 10px;
   text-decoration: none;
@@ -1084,7 +1084,7 @@ onBeforeUnmount(() => {
   border: 1px solid #dbe1e9;
   border-radius: 6px;
   color: #425066;
-  background: #fff;
+  background: var(--xzm-surface-control);
   cursor: pointer;
 }
 .jobs-pagination button:disabled {

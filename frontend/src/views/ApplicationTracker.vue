@@ -844,7 +844,7 @@ td.company-column {
 
 .status-control option {
   color: #263244;
-  background: #fff;
+  background: var(--xzm-surface-elevated);
 }
 
 .status--blue {

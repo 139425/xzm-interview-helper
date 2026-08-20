@@ -1430,12 +1430,12 @@ onUnmounted(() => {
    亮色主题适配
    ======================================== */
 [data-theme="light"] .report-page {
-  background-color: #ffffff;
+  background-color: var(--xzm-surface-0);
 }
 
 [data-theme="light"] .report-header {
-  background: rgba(255, 255, 255, 0.95);
-  border-bottom-color: #e2e8f0;
+  background: color-mix(in srgb, var(--xzm-surface-elevated) 95%, transparent);
+  border-bottom-color: var(--xzm-border-color);
 }
 
 [data-theme="light"] .back-btn,
@@ -1463,8 +1463,8 @@ onUnmounted(() => {
 }
 
 [data-theme="light"] .total-score-display {
-  background: #ffffff;
-  border-color: #e2e8f0;
+  background: var(--xzm-surface-elevated);
+  border-color: var(--xzm-border-color);
 }
 
 [data-theme="light"] .score-ring .score-bg {
@@ -1473,8 +1473,8 @@ onUnmounted(() => {
 
 [data-theme="light"] .summary-card,
 [data-theme="light"] .round-card {
-  background: #f8fafc;
-  border-color: #e2e8f0;
+  background: var(--xzm-surface-elevated);
+  border-color: var(--xzm-border-color);
 }
 
 .report-page :deep(.markdown-content) {
@@ -1528,12 +1528,12 @@ onUnmounted(() => {
 
 [data-theme="light"] .qa-block,
 [data-theme="light"] .evaluation-block {
-  background: #ffffff;
-  border-color: #e2e8f0;
+  background: var(--xzm-surface-elevated);
+  border-color: var(--xzm-border-color);
 }
 
 [data-theme="light"] .eval-section {
-  background: #f8fafc;
+  background: var(--xzm-surface-inset);
 }
 
 [data-theme="light"] .reference-block {
