@@ -1,40 +1,49 @@
 /**
- * tokens.css — XZM Design Tokens (V3 · Fluid clarity)
+ * tokens.css — XZM Design Tokens (V4 · Candidate field notes)
  * 单一来源的设计令牌，与具体主题无关。
  * 主题切换由 theme.css 通过 [data-theme] 选择器完成。
- * V3 恢复克制的品牌色阶、强调缓动与渐变，但保持单一蓝色主轴。
+ * V4 以“求职战情室”为方向：深墨绿负责可信与专注，电光薄荷只标记
+ * 关键进度和下一步行动，避免通用 SaaS 蓝紫模板感。
  */
 
 :root {
   /* ============================================
-     1) 品牌色（蓝色主轴 + 一条受控强调渐变）
+     1) 品牌色（墨绿主轴 + 受控的进度信号色）
      ============================================ */
-  --xzm-brand:        #1A73E8;
-  --xzm-brand-hover:  #1765CC;
-  --xzm-brand-strong: #1558B0;
-  --xzm-brand-soft:   #EAF2FF;
-  --xzm-brand-gradient: linear-gradient(135deg, #1A73E8 0%, #4C8DF6 52%, #38A7D8 100%);
+  --xzm-brand: #0b6b64;
+  --xzm-brand-hover: #095b56;
+  --xzm-brand-strong: #074842;
+  --xzm-brand-soft: #e3f2ee;
+  --xzm-brand-gradient: linear-gradient(
+    135deg,
+    #074842 0%,
+    #0b6b64 54%,
+    #0f7d75 100%
+  );
+  --xzm-signal: #ddfc74;
+  --xzm-signal-soft: #f2ffd0;
+  --xzm-signal-ink: #334600;
 
   /* ============================================
      2) 功能色
      ============================================ */
-  --xzm-success: #10B981;
-  --xzm-warning: #F59E0B;
-  --xzm-danger:  #EF4444;
-  --xzm-info:    #3B82F6;
+  --xzm-success: #15805c;
+  --xzm-warning: #c87a10;
+  --xzm-danger: #d64a44;
+  --xzm-info: #2f6fed;
 
   /* ============================================
      3) 间距（8 点网格）
      ============================================ */
-  --xzm-space-0:  0;
-  --xzm-space-1:  4px;
-  --xzm-space-2:  8px;
-  --xzm-space-3:  12px;
-  --xzm-space-4:  16px;
-  --xzm-space-5:  20px;
-  --xzm-space-6:  24px;
-  --xzm-space-7:  28px;
-  --xzm-space-8:  32px;   /* 默认消息间距（V1 24 → +33%） */
+  --xzm-space-0: 0;
+  --xzm-space-1: 4px;
+  --xzm-space-2: 8px;
+  --xzm-space-3: 12px;
+  --xzm-space-4: 16px;
+  --xzm-space-5: 20px;
+  --xzm-space-6: 24px;
+  --xzm-space-7: 28px;
+  --xzm-space-8: 32px; /* 默认消息间距（V1 24 → +33%） */
   --xzm-space-10: 40px;
   --xzm-space-12: 48px;
   --xzm-space-14: 56px;
@@ -44,85 +53,90 @@
   /* ============================================
      4) 圆角
      ============================================ */
-  --xzm-radius-xs:    4px;
-  --xzm-radius-sm:    6px;
-  --xzm-radius-md:    12px;
-  --xzm-radius-lg:    16px;
-  --xzm-radius-xl:    22px;
-  --xzm-radius-2xl:   28px;
-  --xzm-radius-full:  9999px;
+  --xzm-radius-xs: 4px;
+  --xzm-radius-sm: 6px;
+  --xzm-radius-md: 12px;
+  --xzm-radius-lg: 16px;
+  --xzm-radius-xl: 22px;
+  --xzm-radius-2xl: 28px;
+  --xzm-radius-full: 9999px;
 
   /* ============================================
      5) 字体
      ============================================ */
-  --xzm-font-sans: 'Google Sans', 'Aptos', 'Segoe UI Variable', 'PingFang SC',
-                   'Noto Sans SC', 'Hiragino Sans GB',
-                   'Microsoft YaHei', system-ui, sans-serif;
-  --xzm-font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, 'Fira Code',
-                   monospace;
+  --xzm-font-sans:
+    'Aptos', 'Segoe UI Variable', 'PingFang SC', 'Noto Sans SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', system-ui, sans-serif;
+  --xzm-font-display:
+    'Bodoni 72', 'STZhongsong', 'Source Han Serif SC', 'Songti SC', 'STSong',
+    serif;
+  --xzm-font-data:
+    'IBM Plex Mono', 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+  --xzm-font-mono:
+    'JetBrains Mono', 'SF Mono', Menlo, Consolas, 'Fira Code', monospace;
 
   /* 字号 */
-  --xzm-fs-xs:    12px;
-  --xzm-fs-sm:    13px;
-  --xzm-fs-base:  15px;
-  --xzm-fs-md:    16px;
-  --xzm-fs-lg:    18px;
-  --xzm-fs-xl:    20px;
-  --xzm-fs-2xl:   24px;
-  --xzm-fs-3xl:   28px;   /* 欢迎页问候 */
-  --xzm-fs-4xl:   34px;
+  --xzm-fs-xs: 12px;
+  --xzm-fs-sm: 13px;
+  --xzm-fs-base: 15px;
+  --xzm-fs-md: 16px;
+  --xzm-fs-lg: 18px;
+  --xzm-fs-xl: 20px;
+  --xzm-fs-2xl: 24px;
+  --xzm-fs-3xl: 28px; /* 欢迎页问候 */
+  --xzm-fs-4xl: 34px;
 
   /* 字重 */
-  --xzm-fw-regular:  400;
-  --xzm-fw-medium:   500;
+  --xzm-fw-regular: 400;
+  --xzm-fw-medium: 500;
   --xzm-fw-semibold: 600;
-  --xzm-fw-bold:     700;
+  --xzm-fw-bold: 700;
 
   /* 行高 */
-  --xzm-lh-tight:   1.25;
-  --xzm-lh-snug:    1.45;
-  --xzm-lh-normal:  1.65;
-  --xzm-lh-relaxed: 1.75;   /* prose 默认 */
+  --xzm-lh-tight: 1.25;
+  --xzm-lh-snug: 1.45;
+  --xzm-lh-normal: 1.65;
+  --xzm-lh-relaxed: 1.75; /* prose 默认 */
 
   /* ============================================
      6) 动效 timing —— 仅保留 fast / normal 两档，统一 ease-out
      ============================================ */
-  --xzm-ease-linear:     linear;
-  --xzm-ease-standard:   cubic-bezier(0.2, 0, 0, 1);
+  --xzm-ease-linear: linear;
+  --xzm-ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --xzm-ease-emphasized: cubic-bezier(0.32, 0.72, 0, 1);
-  --xzm-ease-out:        var(--xzm-ease-emphasized);
-  --xzm-ease-in:         cubic-bezier(0.4, 0, 1, 1);
-  --xzm-ease-in-out:     var(--xzm-ease-standard);
+  --xzm-ease-out: var(--xzm-ease-emphasized);
+  --xzm-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --xzm-ease-in-out: var(--xzm-ease-standard);
 
   --xzm-duration-instant: 90ms;
-  --xzm-duration-fast:    150ms;
-  --xzm-duration-normal:  220ms;
-  --xzm-duration-slow:    300ms;
+  --xzm-duration-fast: 150ms;
+  --xzm-duration-normal: 220ms;
+  --xzm-duration-slow: 300ms;
 
   /* 兼容残留：旧代码引用 slow/slower/spring 时降级到 normal/ease-out，
      避免硬性失败；新代码不应再使用这些。 */
-  --xzm-duration-slower:  380ms;
-  --xzm-ease-spring:      var(--xzm-ease-emphasized);
+  --xzm-duration-slower: 380ms;
+  --xzm-ease-spring: var(--xzm-ease-emphasized);
 
   /* ============================================
      7) Z-index 标度
      ============================================ */
-  --xzm-z-base:    1;
-  --xzm-z-raised:  10;
-  --xzm-z-sticky:  100;
+  --xzm-z-base: 1;
+  --xzm-z-raised: 10;
+  --xzm-z-sticky: 100;
   --xzm-z-overlay: 1000;
-  --xzm-z-drawer:  1200;
-  --xzm-z-modal:   1500;
+  --xzm-z-drawer: 1200;
+  --xzm-z-modal: 1500;
   --xzm-z-popover: 2000;
-  --xzm-z-toast:   3000;
+  --xzm-z-toast: 3000;
 
   /* ============================================
      8) 布局
      ============================================ */
-  --xzm-sidebar-width:           224px;
+  --xzm-sidebar-width: 224px;
   --xzm-sidebar-width-collapsed: 64px;
-  --xzm-content-max-width:       880px;
-  --xzm-prompt-bar-height:       96px;
-  --xzm-top-bar-height:          52px;
-  --xzm-floating-inset:          12px;
+  --xzm-content-max-width: 880px;
+  --xzm-prompt-bar-height: 96px;
+  --xzm-top-bar-height: 52px;
+  --xzm-floating-inset: 12px;
 }

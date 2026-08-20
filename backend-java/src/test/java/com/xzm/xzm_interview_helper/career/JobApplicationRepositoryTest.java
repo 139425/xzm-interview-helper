@@ -3,12 +3,16 @@ package com.xzm.xzm_interview_helper.career;
 import com.xzm.xzm_interview_helper.model.dto.JobApplicationRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -91,5 +95,24 @@ class JobApplicationRepositoryTest {
                 contains("status = ? WHERE id = ? AND user_id = ?"),
                 eq("INTERVIEW_3"), eq(77L), eq(12)
         );
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void listSupportsMultiStatusAndDefaultsToProgressFirstOrdering() {
+        when(jdbcTemplate.query(
+                any(String.class),
+                any(RowMapper.class),
+                any(Object[].class)
+        )).thenReturn(List.of());
+
+        repository.findAll(12, List.of("APPLIED", "TO_APPLY"), "", "progress");
+
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+        verify(jdbcTemplate).query(sql.capture(), any(RowMapper.class), any(Object[].class));
+        assertTrue(sql.getValue().contains("status IN (?,?)"));
+        assertTrue(sql.getValue().contains("WHEN 'OFFER' THEN 110"));
+        assertTrue(sql.getValue().contains("WHEN 'INTERVIEW_2' THEN 60"));
+        assertTrue(sql.getValue().contains("END DESC, updated_at DESC"));
     }
 }

@@ -42,7 +42,7 @@ describe('UI prompt mode state', () => {
     const store = useUIStore()
     store.viewportWidth = 1440
 
-    expect(store.sidebarWidth).toBe(248)
+    expect(store.sidebarWidth).toBe(224)
     expect(store.workspaceListExpanded).toBe(false)
 
     store.collapseSidebar()

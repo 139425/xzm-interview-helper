@@ -14,6 +14,7 @@ import 'katex/dist/katex.min.css'
 // Programmatic MessageBox is not rendered by a template component, so its
 // theme stylesheet must be imported explicitly.
 import 'element-plus/theme-chalk/el-message-box.css'
+import 'element-plus/theme-chalk/el-message.css'
 
 // 新设计令牌与主题（晚于旧 CSS 加载，确保新 token 桥接生效）
 import './assets/tokens.css'

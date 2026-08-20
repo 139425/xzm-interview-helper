@@ -20,7 +20,9 @@
               <Expand v-else />
             </el-icon>
           </button>
-          <span class="workspace-frame__mark" aria-hidden="true">{{ mark }}</span>
+          <span class="workspace-frame__mark" aria-hidden="true">{{
+            mark
+          }}</span>
           <div>
             <small>{{ eyebrow }}</small>
             <strong>{{ title }}</strong>
@@ -84,8 +86,19 @@ watch(
   min-height: 100vh;
   color: var(--xzm-text-primary);
   background:
-    radial-gradient(circle at 78% 0%, rgba(87, 149, 255, 0.08), transparent 31rem),
+    linear-gradient(rgba(11, 107, 100, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(11, 107, 100, 0.025) 1px, transparent 1px),
+    radial-gradient(
+      circle at 78% 0%,
+      rgba(11, 107, 100, 0.1),
+      transparent 31rem
+    ),
     var(--xzm-surface-0);
+  background-size:
+    28px 28px,
+    28px 28px,
+    auto,
+    auto;
   font-family: var(--xzm-font-sans);
 }
 
@@ -107,7 +120,7 @@ watch(
   padding: 8px 24px;
   border-bottom: 1px solid var(--xzm-border-color);
   background: color-mix(in srgb, var(--xzm-surface-elevated) 93%, transparent);
-  box-shadow: 0 1px 0 rgba(18, 36, 62, 0.02);
+  box-shadow: 0 1px 0 rgba(7, 72, 66, 0.025);
   backdrop-filter: blur(18px) saturate(130%);
 }
 
@@ -156,12 +169,13 @@ watch(
   height: 32px;
   flex: 0 0 32px;
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--xzm-brand) 28%, var(--xzm-border-color));
-  border-radius: 9px;
-  color: #0b3450;
-  background: linear-gradient(145deg, #ddf9ff, #8bddeb);
-  box-shadow: 0 6px 16px rgba(55, 153, 183, 0.14);
-  font: 800 0.66rem/1 Georgia, serif;
+  border: 1px solid
+    color-mix(in srgb, var(--xzm-brand) 28%, var(--xzm-border-color));
+  border-radius: 8px;
+  color: var(--xzm-signal-ink);
+  background: var(--xzm-signal);
+  box-shadow: 0 6px 16px rgba(93, 117, 0, 0.14);
+  font: 800 0.66rem/1 var(--xzm-font-data);
 }
 
 .workspace-frame__meta {
@@ -187,6 +201,11 @@ watch(
   color: var(--xzm-text-primary);
   background: var(--xzm-surface-2);
   cursor: pointer;
+}
+
+.workspace-frame__menu:hover {
+  color: var(--xzm-brand);
+  background: var(--xzm-brand-soft);
 }
 
 .workspace-frame__content {

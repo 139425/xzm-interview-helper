@@ -36,6 +36,9 @@ vi.mock('element-plus', () => ({
 const WorkspaceFrameStub = {
   template: '<div><slot name="actions"></slot><slot></slot></div>',
 }
+const RouterLinkStub = {
+  template: '<a><slot></slot></a>',
+}
 
 const records = [
   {
@@ -61,31 +64,48 @@ const records = [
 describe('ApplicationTracker table view', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mocks.list.mockResolvedValue({ items: records.map((item) => ({ ...item })) })
+    mocks.list.mockResolvedValue({
+      items: records.map((item) => ({ ...item })),
+    })
     mocks.updateStatus.mockResolvedValue(null)
     mocks.confirm.mockResolvedValue('confirm')
   })
 
   it('renders one application per table row instead of kanban columns', async () => {
     const wrapper = mount(ApplicationTracker, {
-      global: { stubs: { WorkspaceFrame: WorkspaceFrameStub } },
+      global: {
+        stubs: {
+          WorkspaceFrame: WorkspaceFrameStub,
+          RouterLink: RouterLinkStub,
+        },
+      },
     })
     await flushPromises()
 
     expect(wrapper.find('.pipeline').exists()).toBe(false)
     expect(wrapper.find('.application-heading').exists()).toBe(false)
-    expect(wrapper.find('.sheet-card').attributes('aria-label')).toBe('投递记录表格')
-    expect(wrapper.get('.record-count').text()).toBe('共 2 条')
+    expect(wrapper.find('.sheet-card').attributes('aria-label')).toBe(
+      '投递记录表格',
+    )
+    expect(wrapper.get('.record-count').text()).toBe('当前 2 条')
     expect(wrapper.text()).not.toContain('APPLICATIONS')
     expect(wrapper.text()).not.toContain('我的投递')
     expect(wrapper.findAll('.application-row')).toHaveLength(2)
-    expect(wrapper.get('.application-row').text()).toContain('星河云计算')
-    expect(wrapper.get('.status-control').classes()).toContain('status--blue')
+    expect(wrapper.get('.application-row').text()).toContain('开源智造')
+    expect(wrapper.get('.status-control').classes()).toContain('status--amber')
+    expect(wrapper.get('.pipeline-overview__copy').text()).toContain(
+      '默认按进度倒序',
+    )
   })
 
   it('requires only company and apply URL in the primary form', async () => {
     const wrapper = mount(ApplicationTracker, {
-      global: { stubs: { WorkspaceFrame: WorkspaceFrameStub } },
+      global: {
+        stubs: {
+          WorkspaceFrame: WorkspaceFrameStub,
+          RouterLink: RouterLinkStub,
+        },
+      },
     })
     await flushPromises()
 
@@ -95,20 +115,91 @@ describe('ApplicationTracker table view', () => {
     expect(requiredInputs).toHaveLength(2)
     expect(requiredInputs[0].attributes('placeholder')).toContain('字节跳动')
     expect(requiredInputs[1].attributes('type')).toBe('url')
-    expect(wrapper.get('.optional-grid input').attributes('required')).toBeUndefined()
+    expect(
+      wrapper.get('.optional-grid input').attributes('required'),
+    ).toBeUndefined()
   })
 
   it('updates the colored status inline without requiring legacy optional fields', async () => {
     const wrapper = mount(ApplicationTracker, {
-      global: { stubs: { WorkspaceFrame: WorkspaceFrameStub } },
+      global: {
+        stubs: {
+          WorkspaceFrame: WorkspaceFrameStub,
+          RouterLink: RouterLinkStub,
+        },
+      },
     })
     await flushPromises()
 
-    const statusSelect = wrapper.get('select[aria-label="修改 星河云计算 的投递状态"]')
+    const statusSelect = wrapper.get(
+      'select[aria-label="修改 星河云计算 的投递状态"]',
+    )
     await statusSelect.setValue('INTERVIEW_2')
     await flushPromises()
 
     expect(mocks.updateStatus).toHaveBeenCalledWith(1, 'INTERVIEW_2')
     expect(wrapper.get('.status-control').classes()).toContain('status--indigo')
+  })
+
+  it('supports multi-select status filters and sends all selected stages', async () => {
+    const wrapper = mount(ApplicationTracker, {
+      global: {
+        stubs: {
+          WorkspaceFrame: WorkspaceFrameStub,
+          RouterLink: RouterLinkStub,
+        },
+      },
+    })
+    await flushPromises()
+
+    await wrapper.get('input[type="checkbox"][value="APPLIED"]').setValue(true)
+    await flushPromises()
+    await wrapper
+      .get('input[type="checkbox"][value="ASSESSMENT"]')
+      .setValue(true)
+    await flushPromises()
+
+    expect(wrapper.get('.status-filter > summary').text()).toContain(
+      '已选 2 项状态',
+    )
+    expect(mocks.list).toHaveBeenLastCalledWith({
+      keyword: '',
+      statuses: 'APPLIED,ASSESSMENT',
+      sort: 'progress',
+    })
+    expect(wrapper.findAll('.application-row')).toHaveLength(2)
+  })
+
+  it('ignores an older filter response when rapid multi-select requests finish out of order', async () => {
+    const wrapper = mount(ApplicationTracker, {
+      global: {
+        stubs: {
+          WorkspaceFrame: WorkspaceFrameStub,
+          RouterLink: RouterLinkStub,
+        },
+      },
+    })
+    await flushPromises()
+
+    let resolveOlder
+    let resolveLatest
+    mocks.list
+      .mockImplementationOnce(
+        () => new Promise((resolve) => { resolveOlder = resolve }),
+      )
+      .mockImplementationOnce(
+        () => new Promise((resolve) => { resolveLatest = resolve }),
+      )
+
+    await wrapper.get('input[type="checkbox"][value="APPLIED"]').setValue(true)
+    await wrapper.get('input[type="checkbox"][value="ASSESSMENT"]').setValue(true)
+
+    resolveLatest({ items: records.map((item) => ({ ...item })) })
+    await flushPromises()
+    resolveOlder({ items: [{ ...records[0] }] })
+    await flushPromises()
+
+    expect(wrapper.findAll('.application-row')).toHaveLength(2)
+    expect(wrapper.text()).toContain('开源智造')
   })
 })

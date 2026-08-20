@@ -48,7 +48,7 @@ public class JobApplicationRepository {
     ) {
     }
 
-    public List<Application> findAll(int userId, String status, String keyword) {
+    public List<Application> findAll(int userId, List<String> statuses, String keyword, String sort) {
         StringBuilder sql = new StringBuilder("""
                 SELECT id, recruitment_posting_id, company, role_name, status, location, apply_url, source_url,
                        deadline, next_action, next_action_at, notes, created_at, updated_at
@@ -56,9 +56,16 @@ public class JobApplicationRepository {
                 """);
         java.util.ArrayList<Object> params = new java.util.ArrayList<>();
         params.add(userId);
-        if (status != null && !status.isBlank()) {
-            sql.append(" AND status = ?");
-            params.add(requireStatus(status));
+        List<String> validStatuses = statuses == null ? List.of() : statuses.stream()
+                .filter(value -> value != null && !value.isBlank())
+                .map(JobApplicationRepository::requireStatus)
+                .distinct()
+                .toList();
+        if (!validStatuses.isEmpty()) {
+            sql.append(" AND status IN (");
+            sql.append(String.join(",", java.util.Collections.nCopies(validStatuses.size(), "?")));
+            sql.append(")");
+            params.addAll(validStatuses);
         }
         if (keyword != null && !keyword.isBlank()) {
             sql.append(" AND (company LIKE ? OR role_name LIKE ? OR notes LIKE ?)");
@@ -67,7 +74,28 @@ public class JobApplicationRepository {
             params.add(like);
             params.add(like);
         }
-        sql.append(" ORDER BY updated_at DESC, id DESC LIMIT 1000");
+        sql.append(switch (sort == null ? "progress" : sort) {
+            case "updated" -> " ORDER BY updated_at DESC, id DESC";
+            case "company" -> " ORDER BY company ASC, updated_at DESC, id DESC";
+            default -> """
+                     ORDER BY CASE status
+                       WHEN 'OFFER' THEN 110
+                       WHEN 'NEGOTIATION' THEN 100
+                       WHEN 'HR_INTERVIEW' THEN 90
+                       WHEN 'INTERVIEW_FINAL' THEN 80
+                       WHEN 'INTERVIEW_3' THEN 70
+                       WHEN 'INTERVIEW_2' THEN 60
+                       WHEN 'INTERVIEW_1' THEN 50
+                       WHEN 'ASSESSMENT' THEN 40
+                       WHEN 'APPLIED' THEN 30
+                       WHEN 'TO_APPLY' THEN 20
+                       WHEN 'REJECTED' THEN 10
+                       WHEN 'WITHDRAWN' THEN 0
+                       ELSE -1
+                     END DESC, updated_at DESC, id DESC
+                    """;
+        });
+        sql.append(" LIMIT 1000");
         return jdbcTemplate.query(sql.toString(), ROW_MAPPER, params.toArray());
     }
 

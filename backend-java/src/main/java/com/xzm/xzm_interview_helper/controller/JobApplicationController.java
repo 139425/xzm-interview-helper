@@ -23,7 +23,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/applications")
@@ -35,12 +37,20 @@ public class JobApplicationController {
     @GetMapping
     public Map<String, Object> list(
             @RequestParam(defaultValue = "") String status,
+            @RequestParam(defaultValue = "") String statuses,
             @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "progress") String sort,
             HttpServletRequest request
     ) {
         int userId = AuthenticatedUser.id(request);
+        String requestedStatuses = statuses.isBlank() ? status : statuses;
+        List<String> selectedStatuses = Stream.of(requestedStatuses.split(","))
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .distinct()
+                .toList();
         return response(Map.of(
-                "items", applications.findAll(userId, status, keyword),
+                "items", applications.findAll(userId, selectedStatuses, keyword, sort),
                 "summary", applications.summary(userId)
         ));
     }
