@@ -30,6 +30,7 @@ public class AuthoritativeRecruitmentSource implements RecruitmentSource {
         TRUSTED_HOSTS.put("moe.gov.cn", "教育部");
         TRUSTED_HOSTS.put("sasac.gov.cn", "国务院国资委");
         TRUSTED_HOSTS.put("iguopin.com", "国聘");
+        TRUSTED_HOSTS.put("24365.smartedu.cn", "国家大学生就业服务平台");
         TRUSTED_HOSTS.put("chinajob.mohrss.gov.cn", "中国就业网");
     }
 
@@ -57,6 +58,7 @@ public class AuthoritativeRecruitmentSource implements RecruitmentSource {
                 "site:12333.gov.cn " + graduateYear + "届 招聘",
                 "site:sasac.gov.cn " + graduateYear + "届 校园招聘",
                 "site:iguopin.com " + graduateYear + "届 校园招聘",
+                "site:24365.smartedu.cn " + graduateYear + "届 校园招聘",
                 "site:chinajob.mohrss.gov.cn 高校毕业生 招聘"
         );
         List<RecruitmentCandidate> result = new ArrayList<>();

@@ -1,6 +1,7 @@
 package com.xzm.xzm_interview_helper.career;
 
 import com.xzm.xzm_interview_helper.model.dto.JobApplicationRequest;
+import com.xzm.xzm_interview_helper.recruitment.RecruitmentPostingRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -12,6 +13,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -95,6 +98,24 @@ class JobApplicationRepositoryTest {
                 contains("status = ? WHERE id = ? AND user_id = ?"),
                 eq("INTERVIEW_3"), eq(77L), eq(12)
         );
+    }
+
+    @Test
+    void creatingFromRecruitmentCarriesTheStructuredDeadline() {
+        LocalDate deadline = LocalDate.of(2026, 9, 30);
+        RecruitmentPostingRepository.Posting posting = new RecruitmentPostingRepository.Posting(
+                9L, "Example", "AI Agent Engineer", "民企", "IT/互联网", "AI应用/Agent",
+                "杭州", "Agent platform", "秋招", "2027届", LocalDate.of(2026, 8, 20),
+                "2026-09-30", deadline, "https://jobs.example.com/apply", "https://jobs.example.com/notice",
+                "Example招聘官网", "https://jobs.example.com/", "OFFICIAL", 100,
+                LocalDateTime.of(2026, 8, 20, 10, 0), LocalDateTime.of(2026, 8, 20, 10, 0)
+        );
+
+        repository.createFromRecruitment(12, posting);
+
+        ArgumentCaptor<Object[]> values = ArgumentCaptor.forClass(Object[].class);
+        verify(jdbcTemplate).update(contains("INSERT INTO job_application"), values.capture());
+        assertEquals(deadline, values.getValue()[8]);
     }
 
     @Test

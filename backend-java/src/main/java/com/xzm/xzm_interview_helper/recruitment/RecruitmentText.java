@@ -10,8 +10,17 @@ import java.time.LocalDate;
 import java.time.Year;
 import java.util.HexFormat;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class RecruitmentText {
+    private static final Pattern FULL_DATE = Pattern.compile(
+            "(20\\d{2})[-/.年](\\d{1,2})[-/.月](\\d{1,2})日?"
+    );
+    private static final Pattern DEADLINE_MONTH_DAY = Pattern.compile(
+            "(?<!\\d)(\\d{1,2})[-/.月](\\d{1,2})日?(?!\\d)"
+    );
+
     private RecruitmentText() {
     }
 
@@ -111,6 +120,34 @@ public final class RecruitmentText {
         }
         try {
             return LocalDate.parse(cleaned);
+        } catch (RuntimeException ignored) {
+            return null;
+        }
+    }
+
+    public static LocalDate parseDeadlineDate(String value) {
+        return parseDeadlineDate(value, LocalDate.now());
+    }
+
+    static LocalDate parseDeadlineDate(String value, LocalDate referenceDate) {
+        String cleaned = clean(value, 128);
+        Matcher matcher = FULL_DATE.matcher(cleaned);
+        try {
+            if (matcher.find()) {
+                return LocalDate.of(
+                        Integer.parseInt(matcher.group(1)),
+                        Integer.parseInt(matcher.group(2)),
+                        Integer.parseInt(matcher.group(3))
+                );
+            }
+            Matcher monthDay = DEADLINE_MONTH_DAY.matcher(cleaned);
+            if (!monthDay.find()) return null;
+            LocalDate candidate = LocalDate.of(
+                    referenceDate.getYear(),
+                    Integer.parseInt(monthDay.group(1)),
+                    Integer.parseInt(monthDay.group(2))
+            );
+            return candidate.isBefore(referenceDate.minusMonths(6)) ? candidate.plusYears(1) : candidate;
         } catch (RuntimeException ignored) {
             return null;
         }

@@ -150,8 +150,8 @@ public class JobApplicationRepository {
             jdbcTemplate.update("""
                             INSERT INTO job_application (
                                 user_id, recruitment_posting_id, company, role_name, status, location,
-                                apply_url, source_url, notes
-                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                apply_url, source_url, deadline, notes
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                             """,
                     userId,
                     posting.id(),
@@ -161,6 +161,7 @@ public class JobApplicationRepository {
                     posting.locations(),
                     requiredUrl(applyUrl),
                     safeUrl(posting.announcementUrl().isBlank() ? posting.sourceUrl() : posting.announcementUrl()),
+                    posting.deadlineDate(),
                     "来源：" + posting.sourceName()
             );
         } catch (DuplicateKeyException duplicate) {

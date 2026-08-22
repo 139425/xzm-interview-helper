@@ -29,9 +29,11 @@ public class RecruitmentController {
             @RequestParam(defaultValue = "") String city,
             @RequestParam(defaultValue = "false") boolean freshOnly,
             @RequestParam(defaultValue = "") String industry,
+            @RequestParam(defaultValue = "") String jobTrack,
             @RequestParam(defaultValue = "") String sourceKind,
             @RequestParam(defaultValue = "") String targetGraduates,
             @RequestParam(defaultValue = "0") int publishedWithinDays,
+            @RequestParam(defaultValue = "0") int deadlineWithinDays,
             @RequestParam(defaultValue = "false") boolean officialOnly,
             @RequestParam(defaultValue = "latest") String sort
     ) {
@@ -40,8 +42,9 @@ public class RecruitmentController {
         Map<String, Object> body = response(repository.findPage(
                 safePage, safeSize,
                 trimmed(keyword), trimmed(recruitmentType), trimmed(companyType), trimmed(city), freshOnly,
-                trimmed(industry), trimmed(sourceKind), trimmed(targetGraduates),
-                Math.max(0, publishedWithinDays), officialOnly, trimmed(sort).isEmpty() ? "latest" : trimmed(sort)
+                trimmed(industry), trimmed(jobTrack), trimmed(sourceKind), trimmed(targetGraduates),
+                Math.max(0, publishedWithinDays), Math.max(0, deadlineWithinDays), officialOnly,
+                trimmed(sort).isEmpty() ? "latest" : trimmed(sort)
         ));
         return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS).cachePublic()).body(body);
     }

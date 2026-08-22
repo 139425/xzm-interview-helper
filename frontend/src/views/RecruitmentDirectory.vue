@@ -116,6 +116,28 @@
             </select>
           </label>
           <label>
+            <span class="sr-only">岗位方向</span>
+            <select v-model="filters.jobTrack">
+              <option value="">全部方向</option>
+              <option
+                v-for="item in facet('jobTracks')"
+                :key="item.value"
+                :value="item.value"
+              >
+                {{ item.value }}
+              </option>
+            </select>
+          </label>
+          <label>
+            <span class="sr-only">截止时间</span>
+            <select v-model="filters.deadlineWithinDays">
+              <option value="">全部截止时间</option>
+              <option value="7">7 天内截止</option>
+              <option value="14">14 天内截止</option>
+              <option value="30">30 天内截止</option>
+            </select>
+          </label>
+          <label>
             <span class="sr-only">信息来源</span>
             <select v-model="filters.sourceKind">
               <option value="">全部来源</option>
@@ -140,7 +162,7 @@
             class="jobs-reset"
             @click="resetFilters"
           >
-            重置
+            重置（{{ activeFilterCount }}）
           </button>
         </form>
       </section>
@@ -154,6 +176,7 @@
               <option value="latest">公告最新</option>
               <option value="newlyAdded">收录最新</option>
               <option value="authority">官网优先</option>
+              <option value="deadline">截止最近</option>
             </select>
           </label>
         </header>
@@ -214,6 +237,9 @@
                 <span :title="item.positions">{{
                   item.positions || "岗位以原始公告为准"
                 }}</span>
+                <div v-if="item.jobTrack" class="jobs-position__meta">
+                  <span class="jobs-track">{{ item.jobTrack }}</span>
+                </div>
               </div>
               <div class="jobs-industry" role="cell" data-label="行业">
                 {{ item.industry || "其他行业" }}
@@ -234,9 +260,11 @@
                 class="jobs-deadline"
                 role="cell"
                 data-label="截止"
-                :class="{ 'is-urgent': isUrgent(item.deadline) }"
+                :class="{
+                  'is-urgent': isUrgent(item.deadlineDate || item.deadline),
+                }"
               >
-                {{ item.deadline || "以公告为准" }}
+                {{ item.deadline || item.deadlineDate || "以公告为准" }}
               </div>
               <div class="jobs-source" role="cell" data-label="来源">
                 <span :class="`is-${sourceMeta(item.sourceKind).tone}`">{{
@@ -334,6 +362,7 @@ const sourceKinds = {
   GOVERNMENT: { label: "政府部门", short: "政府", tone: "government" },
   PUBLIC_EMPLOYMENT: { label: "公共就业平台", short: "公共", tone: "public" },
   AGGREGATOR: { label: "求职平台", short: "平台", tone: "aggregate" },
+  UNIVERSITY: { label: "高校就业网", short: "高校", tone: "university" },
   WECHAT: { label: "微信公众号", short: "公众号", tone: "wechat" },
   WEB_SEARCH: { label: "公开检索", short: "检索", tone: "search" },
 };
@@ -344,6 +373,8 @@ const filters = reactive({
   city: String(route.query.city || ""),
   recruitmentType: String(route.query.recruitmentType || ""),
   companyType: String(route.query.companyType || ""),
+  jobTrack: String(route.query.jobTrack || ""),
+  deadlineWithinDays: String(route.query.deadlineWithinDays || ""),
   sourceKind: String(route.query.sourceKind || ""),
   freshOnly: route.query.freshOnly === "true",
   sort: String(route.query.sort || "latest"),
@@ -377,17 +408,21 @@ const sourceOptions = computed(() =>
     label: sourceMeta(item.value).label,
   })),
 );
-const hasFilters = computed(() =>
-  Boolean(
-    filters.keyword ||
-    filters.industry ||
-    filters.city ||
-    filters.recruitmentType ||
-    filters.companyType ||
-    filters.sourceKind ||
-    filters.freshOnly,
-  ),
+const activeFilterCount = computed(
+  () =>
+    [
+      filters.keyword,
+      filters.industry,
+      filters.city,
+      filters.recruitmentType,
+      filters.companyType,
+      filters.jobTrack,
+      filters.deadlineWithinDays,
+      filters.sourceKind,
+      filters.freshOnly,
+    ].filter(Boolean).length,
 );
+const hasFilters = computed(() => activeFilterCount.value > 0);
 const syncText = computed(() => {
   if (summary.running) return "正在更新";
   if (!summary.lastUpdated) return "等待首次同步";
@@ -474,6 +509,8 @@ function resetFilters() {
     city: "",
     recruitmentType: "",
     companyType: "",
+    jobTrack: "",
+    deadlineWithinDays: "",
     sourceKind: "",
     freshOnly: false,
     sort: "latest",
@@ -946,6 +983,22 @@ onBeforeUnmount(() => {
   color: #7a8596;
   font-size: 11px;
 }
+.jobs-position__meta {
+  display: flex;
+  min-width: 0;
+}
+.jobs-position .jobs-track {
+  width: fit-content;
+  max-width: 100%;
+  padding: 2px 6px;
+  border: 1px solid #dce8fb;
+  border-radius: 4px;
+  color: #315a8d;
+  background: #f2f7ff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.35;
+}
 .jobs-industry {
   color: #59667a;
 }
@@ -997,6 +1050,10 @@ onBeforeUnmount(() => {
 .jobs-source > span.is-wechat {
   color: #087941;
   background: #e7f7ef;
+}
+.jobs-source > span.is-university {
+  color: #5b4a94;
+  background: #f0edfb;
 }
 .jobs-source small {
   color: #8993a2;
@@ -1113,13 +1170,15 @@ onBeforeUnmount(() => {
     opacity: 0.45;
   }
 }
-@media (max-width: 1120px) {
+@media (max-width: 1280px) {
   .jobs-filterbar {
     flex-wrap: wrap;
   }
   .jobs-search {
     flex-basis: 100%;
   }
+}
+@media (max-width: 1120px) {
   .jobs-stats {
     grid-template-columns: repeat(4, 92px);
   }
@@ -1156,8 +1215,12 @@ onBeforeUnmount(() => {
   .jobs-stats dt {
     font-size: 18px;
   }
-  .jobs-filterbar select {
+  .jobs-filterbar > label:not(.jobs-search):not(.jobs-check) {
     flex: 1 1 calc(50% - 9px);
+    min-width: 0;
+  }
+  .jobs-filterbar select {
+    width: 100%;
     min-width: 0;
   }
   .jobs-check {
@@ -1201,6 +1264,9 @@ onBeforeUnmount(() => {
   .jobs-position span,
   .jobs-location {
     white-space: normal;
+  }
+  .jobs-position .jobs-track {
+    white-space: nowrap;
   }
   .jobs-actions {
     justify-content: flex-end;

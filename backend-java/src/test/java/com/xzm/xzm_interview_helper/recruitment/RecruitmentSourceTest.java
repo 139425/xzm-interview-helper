@@ -6,6 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class RecruitmentSourceTest {
     @Test
@@ -84,6 +87,23 @@ class RecruitmentSourceTest {
     }
 
     @Test
+    void authoritativeSourceAcceptsTheNational24365Platform() {
+        String rss = """
+                <rss><channel>
+                  <item><title>星河科技2027届校园招聘</title><link>https://24365.smartedu.cn/student/jobs/example</link><description>高校毕业生招聘，工作地点北京</description></item>
+                </channel></rss>
+                """;
+
+        List<RecruitmentCandidate> candidates = AuthoritativeRecruitmentSource.parse(rss, "https://bing.example/rss", 2027);
+
+        assertThat(candidates).singleElement().satisfies(candidate -> {
+            assertThat(candidate.getSourceName()).isEqualTo("国家大学生就业服务平台");
+            assertThat(candidate.getSourceKind()).isEqualTo("PUBLIC_EMPLOYMENT");
+            assertThat(candidate.getSourcePriority()).isEqualTo(90);
+        });
+    }
+
+    @Test
     void labelsIndexedWechatAndOfferShowResults() {
         String rss = """
                 <rss><channel>
@@ -97,6 +117,61 @@ class RecruitmentSourceTest {
         assertThat(candidates).extracting(RecruitmentCandidate::getSourceKind)
                 .containsExactly("WECHAT", "AGGREGATOR");
         assertThat(candidates.get(0).getDeadline()).isEqualTo("2026-09-30");
+    }
+
+    @Test
+    void labelsUniversityAndMainstreamCampusPlatformResults() {
+        String rss = """
+                <rss><channel>
+                  <item><title>星河科技2027届校园招聘</title><link>https://career.example.edu.cn/jobs/1</link><description>北京AI应用开发工程师</description></item>
+                  <item><title>甲公司2027届校招</title><link>https://www.yingjiesheng.com/job-1.html</link><description>上海后端开发</description></item>
+                  <item><title>乙公司2027届实习招聘</title><link>https://www.shixiseng.com/intern/2</link><description>杭州算法实习生</description></item>
+                  <item><title>丙公司2027届校园招聘</title><link>https://jobs.zhaopin.com/3.htm</link><description>深圳软件研发</description></item>
+                  <item><title>丁公司2027届秋招</title><link>https://jobs.51job.com/4.html</link><description>广州数据开发招聘</description></item>
+                </channel></rss>
+                """;
+
+        List<RecruitmentCandidate> candidates = IndexedRecruitmentSource.parse(rss, "https://bing.example/rss", 2027);
+
+        assertThat(candidates).extracting(RecruitmentCandidate::getSourceName)
+                .containsExactly("高校就业网", "应届生求职网", "实习僧", "智联招聘", "前程无忧");
+        assertThat(candidates.get(0).getSourceKind()).isEqualTo("UNIVERSITY");
+        assertThat(candidates.get(0).getSourcePriority()).isEqualTo(85);
+    }
+
+    @Test
+    void classifiesJobTracksAndExtractsStructuredDeadlines() {
+        assertThat(RecruitmentClassifier.jobTrack("大模型应用 Agent 开发工程师")).isEqualTo("AI应用/Agent");
+        assertThat(RecruitmentClassifier.jobTrack("AI全栈研发工程师 MCP 工作流编排")).isEqualTo("AI应用/Agent");
+        assertThat(RecruitmentClassifier.jobTrack("推荐算法工程师")).isEqualTo("算法/模型");
+        assertThat(RecruitmentClassifier.jobTrack("数据开发工程师")).isEqualTo("数据");
+        assertThat(RecruitmentClassifier.jobTrack("嵌入式开发工程师")).isEqualTo("硬件/芯片");
+        assertThat(RecruitmentClassifier.jobTrack("Storage backend engineer")).isEqualTo("软件研发");
+        assertThat(RecruitmentClassifier.jobTrack("品牌设计师")).isEqualTo("综合岗位");
+
+        assertThat(RecruitmentText.parseDeadlineDate("网申截止：2026年9月3日")).hasToString("2026-09-03");
+        assertThat(RecruitmentText.parseDeadlineDate("2026/10/21 前完成投递")).hasToString("2026-10-21");
+        assertThat(RecruitmentText.parseDeadlineDate("截止：9月30日", java.time.LocalDate.of(2026, 8, 22)))
+                .hasToString("2026-09-30");
+        assertThat(RecruitmentText.parseDeadlineDate("截止：1月15日", java.time.LocalDate.of(2026, 12, 20)))
+                .hasToString("2027-01-15");
+        assertThat(RecruitmentText.parseDeadlineDate("以官网为准")).isNull();
+        assertThat(RecruitmentText.parseDeadlineDate("2026-02-30")).isNull();
+    }
+
+    @Test
+    void keepsVerifiedSpaEntrancesWhenStaticHtmlDoesNotExposeTheGraduateYear() throws Exception {
+        RecruitmentHttpClient httpClient = mock(RecruitmentHttpClient.class);
+        when(httpClient.get(anyString())).thenReturn(
+                "<html><head><title>招聘门户</title></head><body><div id='app'></div><script src='app.js'></script></body></html>"
+        );
+
+        List<RecruitmentCandidate> candidates = new OfficialCampusRecruitmentSource(httpClient, 2027).fetch();
+
+        assertThat(candidates).extracting(RecruitmentCandidate::getCompany)
+                .containsExactlyInAnyOrder("360集团", "科大讯飞", "商汤科技", "海康威视", "顺丰科技");
+        assertThat(candidates)
+                .allSatisfy(candidate -> assertThat(candidate.getApplyUrl()).startsWith("https://"));
     }
 
     @Test

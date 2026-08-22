@@ -15,9 +15,11 @@ function normalizedParams(params) {
     city: params.city || '',
     freshOnly: Boolean(params.freshOnly),
     industry: params.industry || '',
+    jobTrack: params.jobTrack || '',
     sourceKind: params.sourceKind || '',
     targetGraduates: params.targetGraduates || '',
     publishedWithinDays: Number(params.publishedWithinDays) || 0,
+    deadlineWithinDays: Number(params.deadlineWithinDays) || 0,
     officialOnly: Boolean(params.officialOnly),
     sort: params.sort || 'latest',
   }

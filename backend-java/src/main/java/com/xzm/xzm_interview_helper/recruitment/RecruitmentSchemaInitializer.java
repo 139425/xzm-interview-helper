@@ -5,6 +5,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
 
 @Component
@@ -23,12 +25,14 @@ public class RecruitmentSchemaInitializer implements InitializingBean {
                     title VARCHAR(500) NOT NULL,
                     company_type VARCHAR(64) NOT NULL DEFAULT '企业',
                     industry VARCHAR(64) NOT NULL DEFAULT '其他行业',
+                    job_track VARCHAR(64) NOT NULL DEFAULT '综合岗位',
                     locations VARCHAR(500) NOT NULL DEFAULT '',
                     positions TEXT NULL,
                     recruitment_type VARCHAR(64) NOT NULL DEFAULT '校园招聘',
                     target_graduates VARCHAR(128) NOT NULL DEFAULT '',
                     published_date DATE NULL,
                     deadline VARCHAR(128) NOT NULL DEFAULT '以公告为准',
+                    deadline_date DATE NULL,
                     apply_url VARCHAR(1024) NOT NULL DEFAULT '',
                     announcement_url VARCHAR(1024) NOT NULL DEFAULT '',
                     source_name VARCHAR(100) NOT NULL,
@@ -46,18 +50,29 @@ public class RecruitmentSchemaInitializer implements InitializingBean {
                     KEY idx_recruitment_type (recruitment_type),
                     KEY idx_recruitment_company_type (company_type),
                     KEY idx_recruitment_industry (industry),
+                    KEY idx_recruitment_job_track (job_track),
+                    KEY idx_recruitment_deadline (deadline_date),
                     KEY idx_recruitment_source_kind (source_kind),
                     KEY idx_recruitment_active_seen (active, last_seen_at)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
                 """);
         ensureColumn("recruitment_posting", "industry",
                 "ALTER TABLE recruitment_posting ADD COLUMN industry VARCHAR(64) NOT NULL DEFAULT '其他行业' AFTER company_type");
+        ensureColumn("recruitment_posting", "job_track",
+                "ALTER TABLE recruitment_posting ADD COLUMN job_track VARCHAR(64) NOT NULL DEFAULT '综合岗位' AFTER industry");
+        ensureColumn("recruitment_posting", "deadline_date",
+                "ALTER TABLE recruitment_posting ADD COLUMN deadline_date DATE NULL AFTER deadline");
         ensureIndex("recruitment_posting", "idx_recruitment_industry",
                 "ALTER TABLE recruitment_posting ADD KEY idx_recruitment_industry (industry)");
+        ensureIndex("recruitment_posting", "idx_recruitment_job_track",
+                "ALTER TABLE recruitment_posting ADD KEY idx_recruitment_job_track (job_track)");
+        ensureIndex("recruitment_posting", "idx_recruitment_deadline",
+                "ALTER TABLE recruitment_posting ADD KEY idx_recruitment_deadline (deadline_date)");
         ensureIndex("recruitment_posting", "idx_recruitment_source_kind",
                 "ALTER TABLE recruitment_posting ADD KEY idx_recruitment_source_kind (source_kind)");
         ensureIndex("recruitment_posting", "idx_recruitment_active_seen",
                 "ALTER TABLE recruitment_posting ADD KEY idx_recruitment_active_seen (active, last_seen_at)");
+        backfillDerivedFields();
 
         jdbcTemplate.execute("""
                 CREATE TABLE IF NOT EXISTS recruitment_crawl_status (
@@ -95,5 +110,52 @@ public class RecruitmentSchemaInitializer implements InitializingBean {
                 index
         );
         if (Objects.requireNonNullElse(count, 0) == 0) jdbcTemplate.execute(ddl);
+    }
+
+    private void backfillDerivedFields() {
+        List<DerivedRow> rows = jdbcTemplate.query(
+                "SELECT id, title, positions, deadline, job_track, deadline_date FROM recruitment_posting "
+                        + "WHERE job_track IS NULL OR job_track = '' OR job_track IN ('综合岗位', '软件研发') "
+                        + "OR deadline_date IS NULL",
+                (resultSet, rowNum) -> {
+                    java.sql.Date deadlineDate = resultSet.getDate("deadline_date");
+                    return new DerivedRow(
+                            resultSet.getLong("id"),
+                            resultSet.getString("title"),
+                            resultSet.getString("positions"),
+                            resultSet.getString("deadline"),
+                            resultSet.getString("job_track"),
+                            deadlineDate == null ? null : deadlineDate.toLocalDate()
+                    );
+                }
+        );
+        for (DerivedRow row : rows) {
+            String jobTrack = row.jobTrack();
+            if (jobTrack == null || jobTrack.isBlank()
+                    || "综合岗位".equals(jobTrack) || "软件研发".equals(jobTrack)) {
+                jobTrack = RecruitmentClassifier.jobTrack(row.title(), row.positions());
+            }
+            LocalDate deadlineDate = row.deadlineDate() == null
+                    ? RecruitmentText.parseDeadlineDate(row.deadline())
+                    : row.deadlineDate();
+            if (!Objects.equals(jobTrack, row.jobTrack()) || !Objects.equals(deadlineDate, row.deadlineDate())) {
+                jdbcTemplate.update(
+                        "UPDATE recruitment_posting SET job_track = ?, deadline_date = ? WHERE id = ?",
+                        jobTrack,
+                        deadlineDate,
+                        row.id()
+                );
+            }
+        }
+    }
+
+    private record DerivedRow(
+            long id,
+            String title,
+            String positions,
+            String deadline,
+            String jobTrack,
+            LocalDate deadlineDate
+    ) {
     }
 }

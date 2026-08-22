@@ -14,7 +14,14 @@ import java.util.concurrent.Executors;
 
 @Component
 public class OfficialCampusRecruitmentSource implements RecruitmentSource {
-    private record OfficialSite(String company, String url, String companyType, String industry, String locations) {
+    private record OfficialSite(
+            String company,
+            String url,
+            String companyType,
+            String industry,
+            String locations,
+            boolean verifiedSpaPortal
+    ) {
     }
 
     private static final List<OfficialSite> SITES = List.of(
@@ -29,6 +36,9 @@ public class OfficialCampusRecruitmentSource implements RecruitmentSource {
             site("网易", "https://campus.163.com/", "民企", "IT/互联网", "杭州、广州、上海、北京"),
             site("快手", "https://zhaopin.kuaishou.cn/recruit/e/#/official/index/", "民企", "IT/互联网", "北京、杭州、深圳、全国"),
             site("哔哩哔哩", "https://jobs.bilibili.com/campus/positions", "民企", "IT/互联网", "上海、北京、全国"),
+            verifiedSpaSite("360集团", "https://360campus.zhiye.com/campus/jobs", "民企", "IT/互联网", "北京、上海、全国"),
+            verifiedSpaSite("科大讯飞", "https://iflytek.zhiye.com/campus/jobs", "民企", "IT/互联网", "合肥、北京、上海、全国"),
+            verifiedSpaSite("商汤科技", "https://hr.sensetime.com/", "民企", "IT/互联网", "上海、北京、深圳、杭州、全国"),
             site("滴滴", "https://talent.didiglobal.com/campus", "民企", "IT/互联网", "北京、杭州、上海、全国"),
             site("携程集团", "https://campus.ctrip.com/", "民企", "IT/互联网", "上海、全国"),
             site("小红书", "https://job.xiaohongshu.com/campus", "民企", "IT/互联网", "上海、北京、武汉"),
@@ -44,6 +54,7 @@ public class OfficialCampusRecruitmentSource implements RecruitmentSource {
             site("大疆", "https://we.dji.com/zh-CN/campus", "民企", "硬件/半导体", "深圳、上海、北京"),
             site("联想", "https://talent.lenovo.com.cn/campus", "民企", "硬件/半导体", "北京、深圳、上海、武汉、全国"),
             site("京东方", "https://campus.boe.com/", "民企", "硬件/半导体", "北京、成都、重庆、合肥、全国"),
+            verifiedSpaSite("海康威视", "https://campushr.hikvision.com/home", "民企", "硬件/半导体", "杭州、武汉、西安、全国"),
             site("中芯国际", "https://career.smics.com/campus", "民企", "硬件/半导体", "上海、北京、深圳、天津"),
             site("兆易创新", "https://gigadevice.zhiye.com/campus", "民企", "硬件/半导体", "北京、上海、深圳、合肥、苏州"),
             site("寒武纪", "https://career.cambricon.com/campus", "民企", "硬件/半导体", "北京、上海、南京、合肥"),
@@ -69,6 +80,7 @@ public class OfficialCampusRecruitmentSource implements RecruitmentSource {
             site("三一集团", "https://sany.zhiye.com/campus", "民企", "机械/制造业", "长沙、北京、上海、全国"),
             site("美的集团", "https://careers.midea.com/schoolOut/home", "民企", "机械/制造业", "佛山、上海、无锡、全国"),
             site("海尔智家", "https://maker.haier.net/client/campus", "民企", "机械/制造业", "青岛、上海、全国"),
+            verifiedSpaSite("顺丰科技", "https://campus.sf-express.com/", "民企", "物流/交通运输", "深圳、杭州、武汉、全国"),
             site("中国工商银行", "https://job.icbc.com.cn/", "央企", "金融行业", "全国"),
             site("中国建设银行", "https://job.ccb.com/", "央企", "金融行业", "全国"),
             site("中国农业银行", "https://career.abchina.com/", "央企", "金融行业", "全国"),
@@ -126,7 +138,9 @@ public class OfficialCampusRecruitmentSource implements RecruitmentSource {
             String text = RecruitmentText.clean(Jsoup.parse(httpClient.get(site.url())).text(), 25_000);
             boolean hasGraduateYear = text.contains(String.valueOf(graduateYear)) || text.contains((graduateYear % 100) + "届");
             boolean hasCampusSignal = List.of("校园招聘", "校招", "应届生", "毕业生", "实习生").stream().anyMatch(text::contains);
-            if (!hasGraduateYear || !hasCampusSignal) return null;
+            // These five current portals are client-rendered SPA shells. Their HTTP response can be healthy while
+            // the graduate year only appears after JavaScript runs, so retain the verified direct entrance.
+            if ((!hasGraduateYear || !hasCampusSignal) && !site.verifiedSpaPortal()) return null;
             String type = text.contains("提前批") ? "秋招提前批" : text.contains("实习") ? "实习" : "校园招聘";
             return RecruitmentCandidate.builder()
                     .externalId(site.url())
@@ -152,6 +166,16 @@ public class OfficialCampusRecruitmentSource implements RecruitmentSource {
     }
 
     private static OfficialSite site(String company, String url, String companyType, String industry, String locations) {
-        return new OfficialSite(company, url, companyType, industry, locations);
+        return new OfficialSite(company, url, companyType, industry, locations, false);
+    }
+
+    private static OfficialSite verifiedSpaSite(
+            String company,
+            String url,
+            String companyType,
+            String industry,
+            String locations
+    ) {
+        return new OfficialSite(company, url, companyType, industry, locations, true);
     }
 }

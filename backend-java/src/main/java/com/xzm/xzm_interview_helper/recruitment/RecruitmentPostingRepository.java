@@ -23,23 +23,29 @@ import java.util.Optional;
 public class RecruitmentPostingRepository {
     private static final String UPSERT_SQL = """
             INSERT INTO recruitment_posting (
-                fingerprint, external_id, company, title, company_type, industry, locations, positions,
-                recruitment_type, target_graduates, published_date, deadline, apply_url,
+                fingerprint, external_id, company, title, company_type, industry, job_track, locations, positions,
+                recruitment_type, target_graduates, published_date, deadline, deadline_date, apply_url,
                 announcement_url, source_name, source_url, source_kind, source_priority,
                 first_seen_at, last_seen_at, crawled_at, active
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), NOW(), 1)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), NOW(), 1)
             ON DUPLICATE KEY UPDATE
                 external_id = VALUES(external_id),
                 company = VALUES(company),
                 title = VALUES(title),
                 company_type = VALUES(company_type),
                 industry = VALUES(industry),
+                job_track = VALUES(job_track),
                 locations = VALUES(locations),
                 positions = VALUES(positions),
                 recruitment_type = VALUES(recruitment_type),
                 target_graduates = VALUES(target_graduates),
                 published_date = COALESCE(VALUES(published_date), published_date),
-                deadline = VALUES(deadline),
+                deadline = CASE
+                    WHEN VALUES(deadline_date) IS NOT NULL THEN VALUES(deadline)
+                    WHEN deadline_date IS NOT NULL THEN deadline
+                    ELSE VALUES(deadline)
+                END,
+                deadline_date = COALESCE(VALUES(deadline_date), deadline_date),
                 apply_url = VALUES(apply_url),
                 announcement_url = VALUES(announcement_url),
                 source_name = VALUES(source_name),
@@ -60,12 +66,14 @@ public class RecruitmentPostingRepository {
             String title,
             String companyType,
             String industry,
+            String jobTrack,
             String locations,
             String positions,
             String recruitmentType,
             String targetGraduates,
             LocalDate publishedDate,
             String deadline,
+            LocalDate deadlineDate,
             String applyUrl,
             String announcementUrl,
             String sourceName,
@@ -91,12 +99,14 @@ public class RecruitmentPostingRepository {
                     fallback(RecruitmentText.clean(candidate.getCompanyType(), 64), "企业"),
                     fallback(RecruitmentText.clean(candidate.getIndustry(), 64),
                             RecruitmentClassifier.industry(candidate.getCompany(), candidate.getTitle(), candidate.getCompanyType(), candidate.getPositions())),
+                    RecruitmentClassifier.jobTrack(candidate.getTitle(), candidate.getPositions()),
                     RecruitmentText.clean(candidate.getLocations(), 500),
                     RecruitmentText.clean(candidate.getPositions(), 4000),
                     fallback(RecruitmentText.clean(candidate.getRecruitmentType(), 64), "校园招聘"),
                     RecruitmentText.clean(candidate.getTargetGraduates(), 128),
                     candidate.getPublishedDate(),
                     fallback(RecruitmentText.clean(candidate.getDeadline(), 128), "以公告为准"),
+                    RecruitmentText.parseDeadlineDate(candidate.getDeadline()),
                     RecruitmentText.safeHttpUrl(candidate.getApplyUrl()),
                     RecruitmentText.safeHttpUrl(candidate.getAnnouncementUrl()),
                     RecruitmentText.clean(candidate.getSourceName(), 100),
@@ -119,9 +129,11 @@ public class RecruitmentPostingRepository {
             String city,
             boolean freshOnly,
             String industry,
+            String jobTrack,
             String sourceKind,
             String targetGraduates,
             int publishedWithinDays,
+            int deadlineWithinDays,
             boolean officialOnly,
             String sort
     ) {
@@ -148,6 +160,10 @@ public class RecruitmentPostingRepository {
             where.append(" AND industry = ?");
             params.add(industry);
         }
+        if (!jobTrack.isBlank()) {
+            where.append(" AND job_track = ?");
+            params.add(jobTrack);
+        }
         if (!sourceKind.isBlank()) {
             where.append(" AND source_kind = ?");
             params.add(sourceKind);
@@ -160,8 +176,12 @@ public class RecruitmentPostingRepository {
             where.append(" AND COALESCE(published_date, DATE(first_seen_at)) >= DATE_SUB(CURRENT_DATE, INTERVAL ? DAY)");
             params.add(Math.min(publishedWithinDays, 365));
         }
+        if (deadlineWithinDays > 0) {
+            where.append(" AND deadline_date BETWEEN CURRENT_DATE AND DATE_ADD(CURRENT_DATE, INTERVAL ? DAY)");
+            params.add(Math.min(deadlineWithinDays, 365));
+        }
         if (officialOnly) {
-            where.append(" AND source_kind IN ('OFFICIAL', 'GOVERNMENT', 'PUBLIC_EMPLOYMENT')");
+            where.append(" AND source_kind IN ('OFFICIAL', 'GOVERNMENT', 'PUBLIC_EMPLOYMENT', 'UNIVERSITY')");
         }
         if (freshOnly) {
             where.append(" AND first_seen_at >= CURRENT_DATE");
@@ -172,8 +192,8 @@ public class RecruitmentPostingRepository {
         pageParams.add(size);
         pageParams.add((long) (page - 1) * size);
         List<Posting> items = jdbcTemplate.query(
-                "SELECT id, company, title, company_type, industry, locations, positions, recruitment_type, "
-                        + "target_graduates, published_date, deadline, apply_url, announcement_url, "
+                "SELECT id, company, title, company_type, industry, job_track, locations, positions, recruitment_type, "
+                        + "target_graduates, published_date, deadline, deadline_date, apply_url, announcement_url, "
                         + "source_name, source_url, source_kind, source_priority, first_seen_at, last_seen_at "
                         + "FROM recruitment_posting" + where + orderBy(sort) + " LIMIT ? OFFSET ?",
                 POSTING_ROW_MAPPER,
@@ -193,6 +213,7 @@ public class RecruitmentPostingRepository {
     public Map<String, Object> facets() {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("industries", groupedFacet("industry"));
+        result.put("jobTracks", groupedFacet("job_track"));
         result.put("companyTypes", groupedFacet("company_type"));
         result.put("recruitmentTypes", groupedFacet("recruitment_type"));
         result.put("graduateYears", groupedFacet("target_graduates"));
@@ -207,6 +228,7 @@ public class RecruitmentPostingRepository {
                 Map.of("kind", "OFFICIAL", "label", "企业官网", "priority", 100),
                 Map.of("kind", "GOVERNMENT", "label", "政府部门", "priority", 95),
                 Map.of("kind", "PUBLIC_EMPLOYMENT", "label", "公共就业平台", "priority", 90),
+                Map.of("kind", "UNIVERSITY", "label", "高校就业网", "priority", 85),
                 Map.of("kind", "AGGREGATOR", "label", "求职平台", "priority", 75),
                 Map.of("kind", "WECHAT", "label", "微信公众号", "priority", 65),
                 Map.of("kind", "WEB_SEARCH", "label", "公开检索", "priority", 40)
@@ -216,8 +238,8 @@ public class RecruitmentPostingRepository {
 
     public Optional<Posting> findById(long id) {
         List<Posting> rows = jdbcTemplate.query(
-                "SELECT id, company, title, company_type, industry, locations, positions, recruitment_type, "
-                        + "target_graduates, published_date, deadline, apply_url, announcement_url, "
+                "SELECT id, company, title, company_type, industry, job_track, locations, positions, recruitment_type, "
+                        + "target_graduates, published_date, deadline, deadline_date, apply_url, announcement_url, "
                         + "source_name, source_url, source_kind, source_priority, first_seen_at, last_seen_at "
                         + "FROM recruitment_posting WHERE id = ? AND active = 1",
                 POSTING_ROW_MAPPER,
@@ -233,7 +255,11 @@ public class RecruitmentPostingRepository {
         result.put("newWeek", count("SELECT COUNT(*) FROM recruitment_posting WHERE active = 1 AND first_seen_at >= DATE_SUB(CURRENT_DATE, INTERVAL 7 DAY)"));
         result.put("newMonth", count("SELECT COUNT(*) FROM recruitment_posting WHERE active = 1 AND first_seen_at >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY)"));
         result.put("sourceCount", jdbcTemplate.queryForObject("SELECT COUNT(DISTINCT source_name) FROM recruitment_posting WHERE active = 1", Integer.class));
-        result.put("officialCount", count("SELECT COUNT(*) FROM recruitment_posting WHERE active = 1 AND source_kind IN ('OFFICIAL', 'GOVERNMENT', 'PUBLIC_EMPLOYMENT')"));
+        result.put("officialCount", count("SELECT COUNT(*) FROM recruitment_posting WHERE active = 1 AND source_kind IN ('OFFICIAL', 'GOVERNMENT', 'PUBLIC_EMPLOYMENT', 'UNIVERSITY')"));
+        result.put("closingSoon", count(
+                "SELECT COUNT(*) FROM recruitment_posting WHERE active = 1 "
+                        + "AND deadline_date BETWEEN CURRENT_DATE AND DATE_ADD(CURRENT_DATE, INTERVAL 7 DAY)"
+        ));
         Map<String, Object> status = jdbcTemplate.queryForMap(
                 "SELECT running, last_started_at, last_success_at, last_error, last_inserted, last_updated, successful_sources, failed_sources, duration_ms "
                         + "FROM recruitment_crawl_status WHERE id = 1"
@@ -283,9 +309,11 @@ public class RecruitmentPostingRepository {
 
     private static final RowMapper<Posting> POSTING_ROW_MAPPER = (resultSet, rowNum) -> new Posting(
             resultSet.getLong("id"), resultSet.getString("company"), resultSet.getString("title"),
-            resultSet.getString("company_type"), resultSet.getString("industry"), resultSet.getString("locations"),
+            resultSet.getString("company_type"), resultSet.getString("industry"), resultSet.getString("job_track"),
+            resultSet.getString("locations"),
             resultSet.getString("positions"), resultSet.getString("recruitment_type"), resultSet.getString("target_graduates"),
-            toLocalDate(resultSet, "published_date"), resultSet.getString("deadline"), resultSet.getString("apply_url"),
+            toLocalDate(resultSet, "published_date"), resultSet.getString("deadline"),
+            toLocalDate(resultSet, "deadline_date"), resultSet.getString("apply_url"),
             resultSet.getString("announcement_url"), resultSet.getString("source_name"), resultSet.getString("source_url"),
             resultSet.getString("source_kind"), resultSet.getInt("source_priority"),
             toLocalDateTime(resultSet, "first_seen_at"), toLocalDateTime(resultSet, "last_seen_at")
@@ -337,11 +365,20 @@ public class RecruitmentPostingRepository {
         return result;
     }
 
-    private static String orderBy(String sort) {
+    static String orderBy(String sort) {
         return switch (sort == null ? "" : sort) {
             case "authority" -> " ORDER BY source_priority DESC, COALESCE(published_date, DATE(first_seen_at)) DESC, id DESC";
             case "company" -> " ORDER BY company ASC, COALESCE(published_date, DATE(first_seen_at)) DESC, id DESC";
             case "newlyAdded" -> " ORDER BY first_seen_at DESC, id DESC";
+            case "deadline" -> """
+                     ORDER BY CASE
+                       WHEN deadline_date >= CURRENT_DATE THEN 0
+                       WHEN deadline_date IS NULL THEN 2
+                       ELSE 1
+                     END ASC,
+                     CASE WHEN deadline_date >= CURRENT_DATE THEN deadline_date END ASC,
+                     deadline_date DESC, source_priority DESC, id DESC
+                    """;
             default -> " ORDER BY COALESCE(published_date, DATE(first_seen_at)) DESC, first_seen_at DESC, id DESC";
         };
     }
