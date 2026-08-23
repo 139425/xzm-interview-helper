@@ -54,12 +54,12 @@ public class AuthoritativeRecruitmentSource implements RecruitmentSource {
     public List<RecruitmentCandidate> fetch() throws Exception {
         List<String> queries = List.of(
                 "site:ncss.cn " + graduateYear + "届 校园招聘",
-                "site:mohrss.gov.cn 高校毕业生 招聘",
+                "site:mohrss.gov.cn " + graduateYear + "届 校园招聘",
                 "site:12333.gov.cn " + graduateYear + "届 招聘",
                 "site:sasac.gov.cn " + graduateYear + "届 校园招聘",
                 "site:iguopin.com " + graduateYear + "届 校园招聘",
                 "site:24365.smartedu.cn " + graduateYear + "届 校园招聘",
-                "site:chinajob.mohrss.gov.cn 高校毕业生 招聘"
+                "site:chinajob.mohrss.gov.cn " + graduateYear + "届 校园招聘"
         );
         List<RecruitmentCandidate> result = new ArrayList<>();
         for (String query : queries) {
@@ -77,8 +77,8 @@ public class AuthoritativeRecruitmentSource implements RecruitmentSource {
             String title = text(item, "title", 500);
             String description = text(item, "description", 1800);
             String combined = title + " " + description;
-            if ((!combined.contains(String.valueOf(graduateYear)) && !combined.contains("高校毕业生"))
-                    || (!combined.contains("招聘") && !combined.contains("校招"))) continue;
+            if (!RecruitmentText.hasGraduateYear(combined, graduateYear)
+                    || !RecruitmentText.isAutumnCampaign(combined)) continue;
             String link = RecruitmentText.safeHttpUrl(text(item, "link", 1200));
             String trustedHost = trustedHost(link);
             if (link.isEmpty() || trustedHost == null) continue;
@@ -94,8 +94,8 @@ public class AuthoritativeRecruitmentSource implements RecruitmentSource {
                     .industry(RecruitmentClassifier.industry(combined))
                     .locations(inferLocations(combined))
                     .positions(description)
-                    .recruitmentType(combined.contains("实习") ? "实习" : "校园招聘")
-                    .targetGraduates(combined.contains(String.valueOf(graduateYear)) ? graduateYear + "届" : "高校毕业生")
+                    .recruitmentType(combined.contains("提前批") ? "秋招提前批" : "秋招")
+                    .targetGraduates(graduateYear + "届")
                     .publishedDate(parseRssDate(text(item, "pubDate", 128)))
                     .deadline("以原始公告为准")
                     .applyUrl(link)

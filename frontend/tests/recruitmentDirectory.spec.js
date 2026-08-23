@@ -129,6 +129,7 @@ describe('RecruitmentDirectory incremental job filters', () => {
         deadlineWithinDays: '14',
         sourceKind: 'UNIVERSITY',
         sort: 'deadline',
+        targetGraduates: '2027届',
       }),
       expect.any(Object),
     )
@@ -143,6 +144,8 @@ describe('RecruitmentDirectory incremental job filters', () => {
     expect(wrapper.findAll('[role="columnheader"]')).toHaveLength(9)
     expect(wrapper.get('.jobs-track').text()).toBe('AI应用/Agent')
     expect(wrapper.get('.jobs-source > span').text()).toBe('高校')
+    expect(wrapper.get('.jobs-overview__title').text()).toContain('2027 届秋招')
+    expect(wrapper.findAll('.jobs-actions > *')).toHaveLength(3)
     expect(wrapper.get('.jobs-reset').text()).toContain('3')
 
     wrapper.unmount()

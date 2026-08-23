@@ -9,6 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -90,16 +91,57 @@ public final class RecruitmentText {
      * and an aggregator row can be merged into a single opportunity.
      */
     public static String opportunityKey(RecruitmentCandidate candidate) {
-        String company = normalizeCompany(candidate.getCompany());
-        String recruitmentType = normalize(candidate.getRecruitmentType());
-        String graduates = normalize(candidate.getTargetGraduates());
+        return opportunityKey(
+                candidate.getCompany(),
+                candidate.getTitle(),
+                candidate.getRecruitmentType(),
+                candidate.getTargetGraduates()
+        );
+    }
+
+    public static String opportunityKey(String companyValue, String title, String recruitmentTypeValue, String graduatesValue) {
+        String company = normalizeCompany(companyValue);
+        String recruitmentType = normalizeRecruitmentRound(recruitmentTypeValue + " " + title);
+        String graduates = normalizeGraduateRound(graduatesValue);
         String identity = company + "|" + recruitmentType + "|" + graduates;
         if (company.isEmpty() || (recruitmentType.isEmpty() && graduates.isEmpty())) {
-            String primaryUrl = canonicalUrl(candidate.getApplyUrl());
-            if (primaryUrl.isEmpty()) primaryUrl = canonicalUrl(candidate.getAnnouncementUrl());
-            identity += "|" + (primaryUrl.isEmpty() ? normalize(candidate.getTitle()) : primaryUrl);
+            identity += "|" + normalize(title);
         }
         return identity;
+    }
+
+    public static boolean isTargetAutumnRecruitment(RecruitmentCandidate candidate, int graduateYear) {
+        if (candidate == null) return false;
+        String cohort = clean(candidate.getTargetGraduates() + " " + candidate.getTitle(), 1200);
+        String campaign = clean(candidate.getRecruitmentType() + " " + candidate.getTitle(), 1200);
+        return hasGraduateYear(cohort, graduateYear) && isAutumnCampaign(campaign);
+    }
+
+    public static boolean hasGraduateYear(String value, int graduateYear) {
+        String normalized = normalize(value);
+        String shortYear = String.valueOf(Math.floorMod(graduateYear, 100));
+        return normalized.contains(graduateYear + "届")
+                || normalized.contains(graduateYear + "年毕业")
+                || normalized.contains(shortYear + "届");
+    }
+
+    public static boolean isAutumnCampaign(String value) {
+        String cleaned = clean(value, 2000);
+        boolean explicitAutumn = List.of("秋招", "秋季招聘", "秋季校园招聘", "提前批", "补录")
+                .stream().anyMatch(cleaned::contains);
+        if (explicitAutumn) return true;
+        boolean excluded = List.of("春招", "春季招聘", "实习", "日常招聘", "社会招聘", "社招")
+                .stream().anyMatch(cleaned::contains);
+        if (excluded) return false;
+        return List.of("校园招聘", "校招", "应届生招聘", "毕业生招聘")
+                .stream().anyMatch(cleaned::contains);
+    }
+
+    public static String autumnRecruitmentType(RecruitmentCandidate candidate) {
+        String value = clean(candidate.getRecruitmentType() + " " + candidate.getTitle(), 1200);
+        if (value.contains("提前批")) return "秋招提前批";
+        if (value.contains("补录")) return "秋招补录";
+        return "秋招";
     }
 
     public static String fingerprint(RecruitmentCandidate candidate) {
@@ -169,8 +211,23 @@ public final class RecruitmentText {
 
     private static String normalizeCompany(String value) {
         return normalize(value)
-                .replaceAll("(集团|股份|有限责任|有限公司|公司)$", "")
+                .replaceAll("(集团股份有限公司|股份有限公司|有限责任公司|有限公司|集团|股份|公司)+$", "")
                 .replaceAll("(招聘官网|校园招聘)$", "");
+    }
+
+    private static String normalizeGraduateRound(String value) {
+        Matcher matcher = Pattern.compile("(?<!\\d)(20\\d{2}|\\d{2})届").matcher(normalize(value));
+        if (!matcher.find()) return normalize(value);
+        int year = Integer.parseInt(matcher.group(1));
+        return (year < 100 ? 2000 + year : year) + "届";
+    }
+
+    private static String normalizeRecruitmentRound(String value) {
+        String cleaned = clean(value, 1200);
+        if (cleaned.contains("提前批")) return "秋招提前批";
+        if (cleaned.contains("补录")) return "秋招补录";
+        if (isAutumnCampaign(cleaned)) return "秋招";
+        return normalize(cleaned);
     }
 
     private static String normalize(String value) {

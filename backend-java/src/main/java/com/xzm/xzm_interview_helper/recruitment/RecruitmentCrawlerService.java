@@ -28,6 +28,9 @@ public class RecruitmentCrawlerService {
     @Value("${recruitment.crawler.stale-after-days:60}")
     private int staleAfterDays = 60;
 
+    @Value("${recruitment.crawler.graduate-year:2027}")
+    private int graduateYear = 2027;
+
     @Scheduled(
             initialDelayString = "${recruitment.crawler.initial-delay-ms:20000}",
             fixedDelayString = "${recruitment.crawler.fixed-delay-ms:3600000}"
@@ -72,10 +75,13 @@ public class RecruitmentCrawlerService {
                 throw new IllegalStateException("All recruitment sources failed: " + String.join(", ", errors));
             }
             RecruitmentPostingRepository.UpsertStats stats = repository.upsertAll(new ArrayList<>(deduplicated.values()));
+            int outOfScope = repository.deactivateOutsideScope(graduateYear);
+            int duplicates = repository.deactivateDuplicateOpportunities(graduateYear);
             int deactivated = repository.deactivateStale(staleAfterDays);
             repository.markSucceeded(stats, successfulSources, failedSources, System.currentTimeMillis() - started);
-            log.info("Recruitment crawl completed: {} inserted, {} refreshed, {} stale deactivated, {} source failures",
-                    stats.inserted(), stats.updated(), deactivated, failedSources);
+            log.info("Recruitment crawl completed: {} inserted, {} refreshed, {} outside scope, {} duplicates, "
+                            + "{} stale deactivated, {} source failures",
+                    stats.inserted(), stats.updated(), outOfScope, duplicates, deactivated, failedSources);
         } catch (Exception error) {
             repository.markFailed(error.getMessage(), System.currentTimeMillis() - started);
             log.error("Recruitment crawl failed", error);
@@ -100,7 +106,7 @@ public class RecruitmentCrawlerService {
                 .publishedDate(latest(primary.getPublishedDate(), secondary.getPublishedDate()))
                 .deadline(specificDeadline(primary.getDeadline(), secondary.getDeadline()))
                 .applyUrl(nonBlank(primary.getApplyUrl(), secondary.getApplyUrl()))
-                .announcementUrl(nonBlank(primary.getAnnouncementUrl(), secondary.getAnnouncementUrl()))
+                .announcementUrl(preferredAnnouncement(primary, secondary))
                 .sourceName(primary.getSourceName())
                 .sourceUrl(primary.getSourceUrl())
                 .sourceKind(primary.getSourceKind())
@@ -127,8 +133,23 @@ public class RecruitmentCrawlerService {
 
     private boolean isUsable(RecruitmentCandidate candidate) {
         if (candidate == null || candidate.getCompany() == null || candidate.getCompany().isBlank()) return false;
-        return !RecruitmentText.safeHttpUrl(candidate.getApplyUrl()).isEmpty()
-                || !RecruitmentText.safeHttpUrl(candidate.getAnnouncementUrl()).isEmpty();
+        return RecruitmentText.isTargetAutumnRecruitment(candidate, graduateYear)
+                && (!RecruitmentText.safeHttpUrl(candidate.getApplyUrl()).isEmpty()
+                || !RecruitmentText.safeHttpUrl(candidate.getAnnouncementUrl()).isEmpty());
+    }
+
+    private static String preferredAnnouncement(RecruitmentCandidate primary, RecruitmentCandidate secondary) {
+        String primaryAnnouncement = RecruitmentText.safeHttpUrl(primary.getAnnouncementUrl());
+        String primaryApply = RecruitmentText.canonicalUrl(primary.getApplyUrl());
+        String secondaryAnnouncement = RecruitmentText.safeHttpUrl(secondary.getAnnouncementUrl());
+        boolean primaryOnlyRepeatsApply = !primaryApply.isBlank()
+                && primaryApply.equals(RecruitmentText.canonicalUrl(primaryAnnouncement));
+        boolean secondaryAddsAnnouncement = !secondaryAnnouncement.isBlank()
+                && !RecruitmentText.canonicalUrl(secondaryAnnouncement).equals(primaryApply);
+        if ((primaryAnnouncement.isBlank() || primaryOnlyRepeatsApply) && secondaryAddsAnnouncement) {
+            return secondaryAnnouncement;
+        }
+        return nonBlank(primaryAnnouncement, secondaryAnnouncement);
     }
 
     private static String nonBlank(String preferred, String fallback) {

@@ -523,8 +523,8 @@ body[data-theme='light'] :is(
   background: var(--xzm-surface-elevated) !important;
 }
 
-html[data-theme='light'] :is(.jobs-search, .jobs-actions a, .jobs-actions button, .jobs-pagination button, .dropzone),
-body[data-theme='light'] :is(.jobs-search, .jobs-actions a, .jobs-actions button, .jobs-pagination button, .dropzone) {
+html[data-theme='light'] :is(.jobs-search, .jobs-actions a:not(.is-primary), .jobs-actions button, .jobs-pagination button, .dropzone),
+body[data-theme='light'] :is(.jobs-search, .jobs-actions a:not(.is-primary), .jobs-actions button, .jobs-pagination button, .dropzone) {
   border-color: var(--xzm-border-color) !important;
   background: var(--xzm-surface-control) !important;
 }

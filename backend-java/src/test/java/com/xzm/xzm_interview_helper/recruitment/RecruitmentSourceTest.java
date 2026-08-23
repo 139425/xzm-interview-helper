@@ -128,13 +128,19 @@ class RecruitmentSourceTest {
                   <item><title>乙公司2027届实习招聘</title><link>https://www.shixiseng.com/intern/2</link><description>杭州算法实习生</description></item>
                   <item><title>丙公司2027届校园招聘</title><link>https://jobs.zhaopin.com/3.htm</link><description>深圳软件研发</description></item>
                   <item><title>丁公司2027届秋招</title><link>https://jobs.51job.com/4.html</link><description>广州数据开发招聘</description></item>
+                  <item><title>戊公司2027届秋招</title><link>https://www.zhipin.com/job_detail/5.html</link><description>北京后端开发</description></item>
+                  <item><title>己公司2027届校园招聘</title><link>https://www.liepin.com/job/6.shtml</link><description>苏州芯片研发</description></item>
+                  <item><title>庚公司2027届秋季校园招聘</title><link>https://xyzp.haitou.cc/article/7.html</link><description>武汉产品岗位</description></item>
                 </channel></rss>
                 """;
 
         List<RecruitmentCandidate> candidates = IndexedRecruitmentSource.parse(rss, "https://bing.example/rss", 2027);
 
         assertThat(candidates).extracting(RecruitmentCandidate::getSourceName)
-                .containsExactly("高校就业网", "应届生求职网", "实习僧", "智联招聘", "前程无忧");
+                .containsExactly(
+                        "高校就业网", "应届生求职网", "智联招聘", "前程无忧",
+                        "BOSS直聘", "猎聘", "鱼泡直聘校招"
+                );
         assertThat(candidates.get(0).getSourceKind()).isEqualTo("UNIVERSITY");
         assertThat(candidates.get(0).getSourcePriority()).isEqualTo(85);
     }
@@ -193,6 +199,37 @@ class RecruitmentSourceTest {
 
         assertThat(RecruitmentText.fingerprint(official)).isEqualTo(RecruitmentText.fingerprint(wechat));
         assertThat(RecruitmentText.safeHttpUrl("javascript:alert(1)")).isEmpty();
+    }
+
+    @Test
+    void fingerprintNormalizesAutumnRoundNamesAndRejectsOtherCampaigns() {
+        RecruitmentCandidate official = RecruitmentCandidate.builder()
+                .company("测试科技集团")
+                .title("测试科技2027届校园招聘")
+                .recruitmentType("校园招聘")
+                .targetGraduates("2027 届毕业生")
+                .applyUrl("https://jobs.example.com/campus")
+                .build();
+        RecruitmentCandidate aggregator = RecruitmentCandidate.builder()
+                .company("测试科技")
+                .title("测试科技2027届秋招正式批")
+                .recruitmentType("秋季校园招聘")
+                .targetGraduates("2027届")
+                .announcementUrl("https://example.com/post")
+                .build();
+        RecruitmentCandidate internship = RecruitmentCandidate.builder()
+                .company("测试科技")
+                .title("测试科技2027届暑期实习")
+                .recruitmentType("实习")
+                .targetGraduates("2027届")
+                .applyUrl("https://jobs.example.com/intern")
+                .build();
+
+        assertThat(RecruitmentText.opportunityKey(official))
+                .isEqualTo(RecruitmentText.opportunityKey(aggregator));
+        assertThat(RecruitmentText.isTargetAutumnRecruitment(official, 2027)).isTrue();
+        assertThat(RecruitmentText.isTargetAutumnRecruitment(internship, 2027)).isFalse();
+        assertThat(RecruitmentText.isTargetAutumnRecruitment(official, 2026)).isFalse();
     }
 
     @Test

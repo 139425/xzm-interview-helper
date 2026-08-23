@@ -1,6 +1,7 @@
 package com.xzm.xzm_interview_helper.recruitment;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -21,6 +22,7 @@ import java.util.Optional;
 @Repository
 @RequiredArgsConstructor
 public class RecruitmentPostingRepository {
+    private static final String ACTIVE_SCOPE = "active = 1 AND target_graduates = ? AND recruitment_type LIKE '%秋招%'";
     private static final String UPSERT_SQL = """
             INSERT INTO recruitment_posting (
                 fingerprint, external_id, company, title, company_type, industry, job_track, locations, positions,
@@ -56,6 +58,9 @@ public class RecruitmentPostingRepository {
             """;
 
     private final JdbcTemplate jdbcTemplate;
+
+    @Value("${recruitment.crawler.graduate-year:2027}")
+    private int graduateYear = 2027;
 
     public record UpsertStats(int inserted, int updated) {
     }
@@ -102,8 +107,12 @@ public class RecruitmentPostingRepository {
                     RecruitmentClassifier.jobTrack(candidate.getTitle(), candidate.getPositions()),
                     RecruitmentText.clean(candidate.getLocations(), 500),
                     RecruitmentText.clean(candidate.getPositions(), 4000),
-                    fallback(RecruitmentText.clean(candidate.getRecruitmentType(), 64), "校园招聘"),
-                    RecruitmentText.clean(candidate.getTargetGraduates(), 128),
+                    RecruitmentText.isTargetAutumnRecruitment(candidate, graduateYear)
+                            ? RecruitmentText.autumnRecruitmentType(candidate)
+                            : fallback(RecruitmentText.clean(candidate.getRecruitmentType(), 64), "校园招聘"),
+                    RecruitmentText.isTargetAutumnRecruitment(candidate, graduateYear)
+                            ? targetGraduateLabel(graduateYear)
+                            : RecruitmentText.clean(candidate.getTargetGraduates(), 128),
                     candidate.getPublishedDate(),
                     fallback(RecruitmentText.clean(candidate.getDeadline(), 128), "以公告为准"),
                     RecruitmentText.parseDeadlineDate(candidate.getDeadline()),
@@ -137,8 +146,9 @@ public class RecruitmentPostingRepository {
             boolean officialOnly,
             String sort
     ) {
-        StringBuilder where = new StringBuilder(" WHERE active = 1");
+        StringBuilder where = new StringBuilder(" WHERE ").append(ACTIVE_SCOPE);
         List<Object> params = new ArrayList<>();
+        params.add(targetGraduateLabel(graduateYear));
         if (!keyword.isBlank()) {
             where.append(" AND (company LIKE ? OR title LIKE ? OR positions LIKE ?)");
             String like = "%" + escapeLike(keyword) + "%";
@@ -220,8 +230,9 @@ public class RecruitmentPostingRepository {
         result.put("sourceKinds", groupedFacet("source_kind"));
         result.put("sources", jdbcTemplate.queryForList(
                 "SELECT source_name AS name, source_kind AS kind, MAX(source_priority) AS priority, COUNT(*) AS count "
-                        + "FROM recruitment_posting WHERE active = 1 GROUP BY source_name, source_kind "
-                        + "ORDER BY priority DESC, count DESC, name ASC"
+                        + "FROM recruitment_posting WHERE " + ACTIVE_SCOPE + " GROUP BY source_name, source_kind "
+                        + "ORDER BY priority DESC, count DESC, name ASC",
+                targetGraduateLabel(graduateYear)
         ));
         result.put("cities", popularCities());
         result.put("authorityPolicy", List.of(
@@ -241,24 +252,35 @@ public class RecruitmentPostingRepository {
                 "SELECT id, company, title, company_type, industry, job_track, locations, positions, recruitment_type, "
                         + "target_graduates, published_date, deadline, deadline_date, apply_url, announcement_url, "
                         + "source_name, source_url, source_kind, source_priority, first_seen_at, last_seen_at "
-                        + "FROM recruitment_posting WHERE id = ? AND active = 1",
+                        + "FROM recruitment_posting WHERE id = ? AND " + ACTIVE_SCOPE,
                 POSTING_ROW_MAPPER,
-                id
+                id,
+                targetGraduateLabel(graduateYear)
         );
         return rows.stream().findFirst();
     }
 
     public Map<String, Object> summary() {
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("total", count("SELECT COUNT(*) FROM recruitment_posting WHERE active = 1"));
-        result.put("newToday", count("SELECT COUNT(*) FROM recruitment_posting WHERE active = 1 AND first_seen_at >= CURRENT_DATE"));
-        result.put("newWeek", count("SELECT COUNT(*) FROM recruitment_posting WHERE active = 1 AND first_seen_at >= DATE_SUB(CURRENT_DATE, INTERVAL 7 DAY)"));
-        result.put("newMonth", count("SELECT COUNT(*) FROM recruitment_posting WHERE active = 1 AND first_seen_at >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY)"));
-        result.put("sourceCount", jdbcTemplate.queryForObject("SELECT COUNT(DISTINCT source_name) FROM recruitment_posting WHERE active = 1", Integer.class));
-        result.put("officialCount", count("SELECT COUNT(*) FROM recruitment_posting WHERE active = 1 AND source_kind IN ('OFFICIAL', 'GOVERNMENT', 'PUBLIC_EMPLOYMENT', 'UNIVERSITY')"));
+        String target = targetGraduateLabel(graduateYear);
+        result.put("total", count("SELECT COUNT(*) FROM recruitment_posting WHERE " + ACTIVE_SCOPE, target));
+        result.put("newToday", count("SELECT COUNT(*) FROM recruitment_posting WHERE " + ACTIVE_SCOPE
+                + " AND first_seen_at >= CURRENT_DATE", target));
+        result.put("newWeek", count("SELECT COUNT(*) FROM recruitment_posting WHERE " + ACTIVE_SCOPE
+                + " AND first_seen_at >= DATE_SUB(CURRENT_DATE, INTERVAL 7 DAY)", target));
+        result.put("newMonth", count("SELECT COUNT(*) FROM recruitment_posting WHERE " + ACTIVE_SCOPE
+                + " AND first_seen_at >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY)", target));
+        result.put("sourceCount", jdbcTemplate.queryForObject(
+                "SELECT COUNT(DISTINCT source_name) FROM recruitment_posting WHERE " + ACTIVE_SCOPE,
+                Integer.class,
+                target
+        ));
+        result.put("officialCount", count("SELECT COUNT(*) FROM recruitment_posting WHERE " + ACTIVE_SCOPE
+                + " AND source_kind IN ('OFFICIAL', 'GOVERNMENT', 'PUBLIC_EMPLOYMENT', 'UNIVERSITY')", target));
         result.put("closingSoon", count(
-                "SELECT COUNT(*) FROM recruitment_posting WHERE active = 1 "
-                        + "AND deadline_date BETWEEN CURRENT_DATE AND DATE_ADD(CURRENT_DATE, INTERVAL 7 DAY)"
+                "SELECT COUNT(*) FROM recruitment_posting WHERE " + ACTIVE_SCOPE
+                        + " AND deadline_date BETWEEN CURRENT_DATE AND DATE_ADD(CURRENT_DATE, INTERVAL 7 DAY)",
+                target
         ));
         Map<String, Object> status = jdbcTemplate.queryForMap(
                 "SELECT running, last_started_at, last_success_at, last_error, last_inserted, last_updated, successful_sources, failed_sources, duration_ms "
@@ -286,6 +308,46 @@ public class RecruitmentPostingRepository {
                 "UPDATE recruitment_posting SET active = 0 WHERE active = 1 AND last_seen_at < DATE_SUB(NOW(), INTERVAL ? DAY)",
                 Math.max(30, Math.min(staleAfterDays, 365))
         );
+    }
+
+    public int deactivateOutsideScope(int targetYear) {
+        return jdbcTemplate.update(
+                "UPDATE recruitment_posting SET active = 0 WHERE active = 1 "
+                        + "AND (target_graduates <> ? OR recruitment_type NOT LIKE '%秋招%')",
+                targetGraduateLabel(targetYear)
+        );
+    }
+
+    public int deactivateDuplicateOpportunities(int targetYear) {
+        List<Posting> active = jdbcTemplate.query(
+                "SELECT id, company, title, company_type, industry, job_track, locations, positions, recruitment_type, "
+                        + "target_graduates, published_date, deadline, deadline_date, apply_url, announcement_url, "
+                        + "source_name, source_url, source_kind, source_priority, first_seen_at, last_seen_at "
+                        + "FROM recruitment_posting WHERE " + ACTIVE_SCOPE,
+                POSTING_ROW_MAPPER,
+                targetGraduateLabel(targetYear)
+        );
+        Map<String, Posting> winners = new LinkedHashMap<>();
+        List<Long> duplicateIds = new ArrayList<>();
+        for (Posting posting : active) {
+            String key = RecruitmentText.opportunityKey(
+                    posting.company(), posting.title(), posting.recruitmentType(), posting.targetGraduates()
+            );
+            Posting previous = winners.get(key);
+            if (previous == null) {
+                winners.put(key, posting);
+            } else if (isPreferred(posting, previous)) {
+                duplicateIds.add(previous.id());
+                winners.put(key, posting);
+            } else {
+                duplicateIds.add(posting.id());
+            }
+        }
+        int deactivated = 0;
+        for (Long id : duplicateIds) {
+            deactivated += jdbcTemplate.update("UPDATE recruitment_posting SET active = 0 WHERE id = ? AND active = 1", id);
+        }
+        return deactivated;
     }
 
     public void markStarted() {
@@ -337,15 +399,17 @@ public class RecruitmentPostingRepository {
         return RecruitmentText.clean(value, 100).replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
-    private long count(String sql) {
-        Long value = jdbcTemplate.queryForObject(sql, Long.class);
+    private long count(String sql, Object... params) {
+        Long value = jdbcTemplate.queryForObject(sql, Long.class, params);
         return value == null ? 0 : value;
     }
 
     private List<Map<String, Object>> groupedFacet(String column) {
         return jdbcTemplate.queryForList(
                 "SELECT " + column + " AS value, COUNT(*) AS count FROM recruitment_posting "
-                        + "WHERE active = 1 AND " + column + " <> '' GROUP BY " + column + " ORDER BY count DESC, value ASC"
+                        + "WHERE " + ACTIVE_SCOPE + " AND " + column + " <> '' GROUP BY " + column
+                        + " ORDER BY count DESC, value ASC",
+                targetGraduateLabel(graduateYear)
         );
     }
 
@@ -357,12 +421,44 @@ public class RecruitmentPostingRepository {
         List<Map<String, Object>> result = new ArrayList<>();
         for (String city : cityNames) {
             Long cityCount = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM recruitment_posting WHERE active = 1 AND locations LIKE ?", Long.class, "%" + city + "%"
+                    "SELECT COUNT(*) FROM recruitment_posting WHERE " + ACTIVE_SCOPE + " AND locations LIKE ?",
+                    Long.class,
+                    targetGraduateLabel(graduateYear),
+                    "%" + city + "%"
             );
             if (cityCount != null && cityCount > 0) result.add(Map.of("value", city, "count", cityCount));
         }
         result.sort((left, right) -> Long.compare(((Number) right.get("count")).longValue(), ((Number) left.get("count")).longValue()));
         return result;
+    }
+
+    private static boolean isPreferred(Posting candidate, Posting current) {
+        if (candidate.sourcePriority() != current.sourcePriority()) {
+            return candidate.sourcePriority() > current.sourcePriority();
+        }
+        int candidateCompleteness = completeness(candidate);
+        int currentCompleteness = completeness(current);
+        if (candidateCompleteness != currentCompleteness) return candidateCompleteness > currentCompleteness;
+        if (candidate.lastSeenAt() != null && current.lastSeenAt() != null
+                && !candidate.lastSeenAt().equals(current.lastSeenAt())) {
+            return candidate.lastSeenAt().isAfter(current.lastSeenAt());
+        }
+        return candidate.id() > current.id();
+    }
+
+    private static int completeness(Posting posting) {
+        int score = 0;
+        if (posting.positions() != null && !posting.positions().isBlank() && !posting.positions().contains("以公告为准")) score++;
+        if (posting.locations() != null && !posting.locations().isBlank()) score++;
+        if (posting.deadlineDate() != null) score++;
+        if (posting.applyUrl() != null && !posting.applyUrl().isBlank()) score++;
+        if (posting.announcementUrl() != null && !posting.announcementUrl().isBlank()) score++;
+        return score;
+    }
+
+    private static String targetGraduateLabel(int year) {
+        int safeYear = year >= 2000 && year <= 2100 ? year : 2027;
+        return safeYear + "届";
     }
 
     static String orderBy(String sort) {

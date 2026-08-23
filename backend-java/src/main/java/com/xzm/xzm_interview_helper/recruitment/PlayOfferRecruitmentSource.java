@@ -87,9 +87,8 @@ public class PlayOfferRecruitmentSource implements RecruitmentSource {
     }
 
     private static boolean isCampusOpportunity(String type, String target, int graduateYear) {
-        boolean campusType = List.of("秋招", "春招", "校招", "实习", "提前批", "人才专项", "校园大使")
-                .stream().anyMatch(type::contains);
-        return campusType && (target.contains(String.valueOf(graduateYear)) || target.contains("在校生"));
+        return RecruitmentText.isAutumnCampaign(type)
+                && RecruitmentText.hasGraduateYear(target, graduateYear);
     }
 
     private static String text(Element row, String selector) {

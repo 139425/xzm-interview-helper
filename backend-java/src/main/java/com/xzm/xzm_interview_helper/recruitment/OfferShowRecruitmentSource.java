@@ -76,6 +76,8 @@ public class OfferShowRecruitmentSource implements RecruitmentSource {
             if (company.isBlank() || title.isBlank()) continue;
             if (!combined.contains(String.valueOf(graduateYear))
                     && !combined.contains((graduateYear % 100) + "届")) continue;
+            String recruitmentType = recruitmentType(plan.path("recruit_type").asInt(0), title);
+            if (!RecruitmentText.isAutumnCampaign(recruitmentType)) continue;
 
             String uuid = cleanText(plan, "uuid", 100);
             String noticeUrl = RecruitmentText.safeHttpUrl(plan.path("notice_url").asText(""));
@@ -95,7 +97,7 @@ public class OfferShowRecruitmentSource implements RecruitmentSource {
                     .industry(RecruitmentClassifier.industry(company, title, locations))
                     .locations(locations)
                     .positions("进入 OfferShow 查看岗位清单与投递要求")
-                    .recruitmentType(recruitmentType(plan.path("recruit_type").asInt(0), title))
+                    .recruitmentType(recruitmentType)
                     .targetGraduates(graduateYear + "届")
                     .publishedDate(published)
                     .deadline(compactDate(cleanText(plan, "end_time", 16)))

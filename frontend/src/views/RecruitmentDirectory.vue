@@ -20,8 +20,8 @@
     <main class="jobs-main">
       <section class="jobs-overview" aria-label="招聘信息概览">
         <div class="jobs-overview__title">
-          <h1>招聘信息汇总</h1>
-          <span>每日自动更新</span>
+          <h1>2027 届秋招信息汇总</h1>
+          <span>多来源去重 · 每日自动更新</span>
         </div>
         <dl class="jobs-stats">
           <div>
@@ -34,7 +34,7 @@
           </div>
           <div>
             <dt>{{ number(summary.total) }}</dt>
-            <dd>全部岗位</dd>
+            <dd>秋招岗位</dd>
           </div>
           <div>
             <dt>{{ number(summary.sourceCount) }}</dt>
@@ -92,7 +92,7 @@
           <label>
             <span class="sr-only">招聘批次</span>
             <select v-model="filters.recruitmentType">
-              <option value="">全部批次</option>
+              <option value="">全部秋招批次</option>
               <option
                 v-for="item in facet('recruitmentTypes')"
                 :key="item.value"
@@ -394,7 +394,7 @@ const summary = reactive({
 });
 const loading = ref(true);
 const error = ref("");
-const liveMessage = ref("正在加载招聘信息");
+const liveMessage = ref("正在加载 2027 届秋招信息");
 let requestController = null;
 let filterTimer = null;
 let initialized = false;
@@ -438,7 +438,12 @@ function sourceMeta(kind) {
 }
 
 function params() {
-  return { page: page.value, size: PAGE_SIZE, ...filters };
+  return {
+    page: page.value,
+    size: PAGE_SIZE,
+    targetGraduates: "2027届",
+    ...filters,
+  };
 }
 
 function syncUrl() {
@@ -470,7 +475,7 @@ async function load(force = false) {
     items.value = data.items || [];
     total.value = Number(data.total || 0);
     Object.assign(summary, data.summary || {});
-    liveMessage.value = `已加载第 ${page.value} 页，共 ${total.value} 条招聘信息`;
+    liveMessage.value = `已加载第 ${page.value} 页，共 ${total.value} 条 2027 届秋招信息`;
   } catch (requestError) {
     if (
       requestError?.name === "CanceledError" ||
@@ -900,7 +905,7 @@ onBeforeUnmount(() => {
   grid-template-columns: 70px 130px minmax(
       250px,
       1.9fr
-    ) 105px 130px 120px 100px 105px 92px;
+    ) 105px 130px 120px 100px 105px 142px;
   column-gap: 14px;
   align-items: center;
   padding: 0 17px;
@@ -1061,7 +1066,7 @@ onBeforeUnmount(() => {
 }
 .jobs-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
 }
 .jobs-actions a,
@@ -1078,6 +1083,7 @@ onBeforeUnmount(() => {
   font: inherit;
   font-size: 10px;
   text-decoration: none;
+  white-space: nowrap;
   cursor: pointer;
 }
 .jobs-actions a:hover,
@@ -1271,7 +1277,8 @@ onBeforeUnmount(() => {
   .jobs-actions {
     justify-content: flex-end;
   }
-  .jobs-actions a {
+  .jobs-actions a,
+  .jobs-actions button {
     min-width: 54px;
     height: 34px;
   }
@@ -1345,8 +1352,15 @@ onBeforeUnmount(() => {
   border-color: var(--xzm-brand);
   color: var(--xzm-brand);
 }
-.jobs-actions a.is-primary {
+.jobs-actions a.is-primary,
+.jobs-actions a.is-primary:visited {
   border-color: var(--xzm-brand);
+  color: var(--xzm-text-on-brand);
   background: var(--xzm-brand);
+}
+.jobs-actions a.is-primary:hover {
+  border-color: var(--xzm-brand-hover);
+  color: var(--xzm-text-on-brand);
+  background: var(--xzm-brand-hover);
 }
 </style>

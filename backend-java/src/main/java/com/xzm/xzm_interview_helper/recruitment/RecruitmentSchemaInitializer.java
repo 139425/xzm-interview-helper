@@ -72,6 +72,8 @@ public class RecruitmentSchemaInitializer implements InitializingBean {
                 "ALTER TABLE recruitment_posting ADD KEY idx_recruitment_source_kind (source_kind)");
         ensureIndex("recruitment_posting", "idx_recruitment_active_seen",
                 "ALTER TABLE recruitment_posting ADD KEY idx_recruitment_active_seen (active, last_seen_at)");
+        ensureIndex("recruitment_posting", "idx_recruitment_scope",
+                "ALTER TABLE recruitment_posting ADD KEY idx_recruitment_scope (active, target_graduates, recruitment_type)");
         backfillDerivedFields();
 
         jdbcTemplate.execute("""

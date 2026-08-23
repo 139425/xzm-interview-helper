@@ -51,7 +51,9 @@ public class NowcoderRecruitmentSource implements RecruitmentSource {
                     .map(value -> RecruitmentText.clean(value, 100))
                     .filter(value -> value.contains("届") || value.contains("秋招") || value.contains("实习") || value.contains("校招"))
                     .findFirst().orElse("校园招聘");
-            if (company.isBlank() || link.isBlank() || !recruitmentType.contains(String.valueOf(graduateYear % 100))) continue;
+            if (company.isBlank() || link.isBlank()
+                    || !RecruitmentText.hasGraduateYear(recruitmentType, graduateYear)
+                    || !RecruitmentText.isAutumnCampaign(recruitmentType)) continue;
 
             String locations = text(row, ".city-hidden", 500);
             String introduction = text(row, ".introduce", 1200);

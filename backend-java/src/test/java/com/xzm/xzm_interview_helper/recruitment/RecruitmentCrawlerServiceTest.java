@@ -71,6 +71,42 @@ class RecruitmentCrawlerServiceTest {
         });
     }
 
+    @Test
+    void keepsOnly2027AutumnAndMergesOfficialWithASeparateAnnouncement() throws Exception {
+        RecruitmentPostingRepository repository = mock(RecruitmentPostingRepository.class);
+        when(repository.upsertAll(any())).thenReturn(new RecruitmentPostingRepository.UpsertStats(1, 0));
+        RecruitmentCandidate official = scopedCandidate(
+                "OFFICIAL", 100, "官网岗位", "校园招聘", "2027届",
+                "https://jobs.example.com/campus", "https://jobs.example.com/campus"
+        );
+        RecruitmentCandidate wechat = scopedCandidate(
+                "WECHAT", 79, "岗位清单", "秋招", "2027届",
+                "https://offershow.cn/recruit/1", "https://mp.weixin.qq.com/s/example"
+        );
+        RecruitmentCandidate internship = scopedCandidate(
+                "AGGREGATOR", 70, "暑期实习", "实习", "2027届",
+                "https://jobs.example.com/intern", ""
+        );
+        RecruitmentCandidate wrongYear = scopedCandidate(
+                "AGGREGATOR", 70, "2026届秋招", "秋招", "2026届",
+                "https://jobs.example.com/2026", ""
+        );
+
+        new RecruitmentCrawlerService(
+                List.of(source("all", List.of(official, wechat, internship, wrongYear))), repository
+        ).refresh();
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<RecruitmentCandidate>> captor = ArgumentCaptor.forClass(List.class);
+        verify(repository).upsertAll(captor.capture());
+        assertThat(captor.getValue()).singleElement().satisfies(item -> {
+            assertThat(item.getSourceKind()).isEqualTo("OFFICIAL");
+            assertThat(item.getAnnouncementUrl()).isEqualTo("https://mp.weixin.qq.com/s/example");
+        });
+        verify(repository).deactivateOutsideScope(2027);
+        verify(repository).deactivateDuplicateOpportunities(2027);
+    }
+
     private static RecruitmentSource source(String name, List<RecruitmentCandidate> candidates) throws Exception {
         RecruitmentSource source = mock(RecruitmentSource.class);
         when(source.sourceName()).thenReturn(name);
@@ -86,6 +122,30 @@ class RecruitmentCrawlerServiceTest {
                 .targetGraduates("2027届")
                 .positions(positions)
                 .applyUrl(applyUrl)
+                .sourceName(kind)
+                .sourceUrl(applyUrl)
+                .sourceKind(kind)
+                .sourcePriority(priority)
+                .build();
+    }
+
+    private static RecruitmentCandidate scopedCandidate(
+            String kind,
+            int priority,
+            String positions,
+            String recruitmentType,
+            String targetGraduates,
+            String applyUrl,
+            String announcementUrl
+    ) {
+        return RecruitmentCandidate.builder()
+                .company("测试科技")
+                .title("测试科技" + targetGraduates + recruitmentType)
+                .recruitmentType(recruitmentType)
+                .targetGraduates(targetGraduates)
+                .positions(positions)
+                .applyUrl(applyUrl)
+                .announcementUrl(announcementUrl)
                 .sourceName(kind)
                 .sourceUrl(applyUrl)
                 .sourceKind(kind)

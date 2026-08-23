@@ -141,7 +141,7 @@ public class OfficialCampusRecruitmentSource implements RecruitmentSource {
             // These five current portals are client-rendered SPA shells. Their HTTP response can be healthy while
             // the graduate year only appears after JavaScript runs, so retain the verified direct entrance.
             if ((!hasGraduateYear || !hasCampusSignal) && !site.verifiedSpaPortal()) return null;
-            String type = text.contains("提前批") ? "秋招提前批" : text.contains("实习") ? "实习" : "校园招聘";
+            String type = text.contains("提前批") ? "秋招提前批" : text.contains("补录") ? "秋招补录" : "秋招";
             return RecruitmentCandidate.builder()
                     .externalId(site.url())
                     .company(site.company())

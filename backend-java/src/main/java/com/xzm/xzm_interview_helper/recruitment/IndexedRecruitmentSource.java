@@ -24,13 +24,18 @@ import java.util.regex.Pattern;
 @Slf4j
 public class IndexedRecruitmentSource implements RecruitmentSource {
     private static final List<String> SEGMENTS = List.of(
-            "互联网 软件 AI 游戏",
-            "芯片 半导体 硬件 通信",
-            "央企 国企 事业单位",
-            "银行 证券 金融",
+            "互联网 软件 AI 大模型 数据 云计算 网络安全",
+            "游戏 互动娱乐 内容平台",
+            "芯片 半导体 硬件 机器人",
+            "通信 运营商 电子信息",
+            "央企 国企 事业单位 航空航天",
+            "银行 证券 保险 金融科技",
             "汽车 新能源 自动驾驶",
-            "机械 制造 能源 化工",
-            "外企 快消 咨询 医疗"
+            "机械 智能制造 工业自动化",
+            "能源 电力 化工 材料 环境",
+            "消费 零售 电商 物流 交通",
+            "生物 医药 医疗器械 健康",
+            "外企 快消 咨询 会计 建筑"
     );
     private static final List<String> CITIES = List.of(
             "北京", "上海", "深圳", "广州", "杭州", "南京", "苏州", "成都", "武汉", "西安",
@@ -57,7 +62,7 @@ public class IndexedRecruitmentSource implements RecruitmentSource {
     public List<RecruitmentCandidate> fetch() throws Exception {
         List<String> queries = new ArrayList<>();
         for (String segment : SEGMENTS) {
-            queries.add(graduateYear + "届 校园招聘 秋招 实习 " + segment);
+            queries.add(graduateYear + "届 校园招聘 秋招 " + segment);
         }
         queries.add("site:nowcoder.com/discuss " + graduateYear + "届 秋招 招聘");
         queries.add("site:offershow.cn " + graduateYear + "届 校园招聘");
@@ -66,6 +71,11 @@ public class IndexedRecruitmentSource implements RecruitmentSource {
         queries.add("site:shixiseng.com " + graduateYear + "届 实习 AI 后端 开发");
         queries.add("site:zhaopin.com " + graduateYear + "届 校招 AI 后端 开发");
         queries.add("site:51job.com " + graduateYear + "届 校招 AI 后端 开发");
+        queries.add("site:zhipin.com " + graduateYear + "届 秋招 校园招聘");
+        queries.add("site:liepin.com " + graduateYear + "届 秋招 校园招聘");
+        queries.add("site:haitou.cc " + graduateYear + "届 秋招 校园招聘");
+        queries.add("site:lagou.com " + graduateYear + "届 秋招 校园招聘");
+        queries.add("site:dajie.com " + graduateYear + "届 秋招 校园招聘");
         queries.add("site:mp.weixin.qq.com/s " + graduateYear + "届 校园招聘");
         queries.add("site:mp.weixin.qq.com/s " + graduateYear + "届 秋招 提前批");
 
@@ -94,8 +104,8 @@ public class IndexedRecruitmentSource implements RecruitmentSource {
             String title = text(item, "title", 500);
             String description = text(item, "description", 1800);
             String combined = title + " " + description;
-            if (!combined.contains(String.valueOf(graduateYear))
-                    || List.of("招聘", "秋招", "校招", "实习").stream().noneMatch(combined::contains)) continue;
+            if (!RecruitmentText.hasGraduateYear(combined, graduateYear)
+                    || !RecruitmentText.isAutumnCampaign(combined)) continue;
             String link = RecruitmentText.safeHttpUrl(text(item, "link", 1200));
             if (link.isEmpty()) continue;
 
@@ -137,6 +147,11 @@ public class IndexedRecruitmentSource implements RecruitmentSource {
         if (matchesHost(host, "shixiseng.com")) return new SourceMeta("实习僧", "AGGREGATOR", 70);
         if (matchesHost(host, "zhaopin.com")) return new SourceMeta("智联招聘", "AGGREGATOR", 70);
         if (matchesHost(host, "51job.com")) return new SourceMeta("前程无忧", "AGGREGATOR", 70);
+        if (matchesHost(host, "zhipin.com")) return new SourceMeta("BOSS直聘", "AGGREGATOR", 70);
+        if (matchesHost(host, "liepin.com")) return new SourceMeta("猎聘", "AGGREGATOR", 70);
+        if (matchesHost(host, "haitou.cc")) return new SourceMeta("鱼泡直聘校招", "AGGREGATOR", 70);
+        if (matchesHost(host, "lagou.com")) return new SourceMeta("拉勾招聘", "AGGREGATOR", 68);
+        if (matchesHost(host, "dajie.com")) return new SourceMeta("大街网", "AGGREGATOR", 68);
         return new SourceMeta("公开招聘检索", "WEB_SEARCH", 40);
     }
 
@@ -164,10 +179,8 @@ public class IndexedRecruitmentSource implements RecruitmentSource {
 
     private static String inferRecruitmentType(String text) {
         if (text.contains("提前批")) return "秋招提前批";
-        if (text.contains("实习")) return "实习";
-        if (text.contains("春招")) return "春招";
-        if (text.contains("秋招")) return "秋招";
-        return "校园招聘";
+        if (text.contains("补录")) return "秋招补录";
+        return "秋招";
     }
 
     private static String inferLocations(String text) {
