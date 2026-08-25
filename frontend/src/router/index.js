@@ -58,6 +58,12 @@ const routes = [
     meta: { title: '投递追踪' }
   },
   {
+    path: '/applications/schedule',
+    name: 'AssessmentSchedule',
+    component: () => import('@/views/AssessmentSchedule.vue'),
+    meta: { title: '笔面测待办' }
+  },
+  {
     path: '/knowledge',
     name: 'KnowledgeBase',
     component: () => import('@/views/KnowledgeBase.vue'),

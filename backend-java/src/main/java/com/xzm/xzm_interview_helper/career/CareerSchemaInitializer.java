@@ -52,5 +52,24 @@ public class CareerSchemaInitializer implements InitializingBean {
                     KEY idx_knowledge_user_updated (user_id, updated_at)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
                 """);
+
+        jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS assessment_schedule (
+                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                    user_id INT NOT NULL,
+                    company VARCHAR(200) NOT NULL,
+                    role_name VARCHAR(300) NOT NULL DEFAULT '',
+                    event_type VARCHAR(32) NOT NULL,
+                    start_at DATETIME NOT NULL,
+                    end_at DATETIME NULL,
+                    notes VARCHAR(1000) NOT NULL DEFAULT '',
+                    completed_at DATETIME NULL,
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    PRIMARY KEY (id),
+                    KEY idx_schedule_user_pending_start (user_id, completed_at, start_at),
+                    KEY idx_schedule_user_updated (user_id, updated_at)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                """);
     }
 }

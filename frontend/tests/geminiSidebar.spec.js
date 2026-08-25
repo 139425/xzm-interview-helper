@@ -129,7 +129,7 @@ describe("GeminiSidebar workspaces", () => {
     expect(wrapper.find(".logo-section").exists()).toBe(false);
     expect(wrapper.find(".workspace-label").exists()).toBe(false);
     expect(wrapper.find(".mode-copy").exists()).toBe(false);
-    expect(wrapper.findAll(".mode-btn")).toHaveLength(6);
+    expect(wrapper.findAll(".mode-btn")).toHaveLength(7);
     expect(wrapper.find(".algorithm-context").exists()).toBe(false);
   });
 
@@ -147,8 +147,8 @@ describe("GeminiSidebar workspaces", () => {
     await wrapper.get(".workspace-density-toggle").trigger("click");
 
     expect(mocks.uiStore.toggleWorkspaceList).toHaveBeenCalledOnce();
-    expect(wrapper.findAll(".mode-btn")).toHaveLength(6);
-    expect(wrapper.findAll(".mode-copy small")).toHaveLength(6);
+    expect(wrapper.findAll(".mode-btn")).toHaveLength(7);
+    expect(wrapper.findAll(".mode-copy small")).toHaveLength(7);
   });
 
   it("shows the server Agent workspace only to administrators", async () => {

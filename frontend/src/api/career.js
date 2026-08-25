@@ -25,6 +25,24 @@ export const applicationApi = {
   },
 }
 
+export const scheduleApi = {
+  async list() {
+    return data(await request.get('/api/schedules'), { items: [], summary: {} })
+  },
+  async create(payload) {
+    return data(await request.post('/api/schedules', payload), null)
+  },
+  async setCompleted(id, completed) {
+    return data(
+      await request.patch(`/api/schedules/${id}/completed`, { completed }),
+      null,
+    )
+  },
+  async remove(id) {
+    return data(await request.delete(`/api/schedules/${id}`), null)
+  },
+}
+
 export const knowledgeApi = {
   async list() {
     return data(await request.get('/api/knowledge'), [])

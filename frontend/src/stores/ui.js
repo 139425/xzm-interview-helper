@@ -206,6 +206,7 @@ export const useUIStore = defineStore('ui', () => {
         'algorithm',
         'recruitment',
         'applications',
+        'schedule',
         'knowledge',
         'serverAgent',
       ].includes(mode)
