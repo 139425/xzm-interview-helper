@@ -49,19 +49,74 @@
               <small>QUICK ENTRY</small>
               <h2 id="entry-title">录入新安排</h2>
             </div>
-            <div class="entry-heading-actions">
-              <button
-                type="button"
-                class="image-import-button"
-                :disabled="importParsing"
-                @click="openImagePicker"
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M4 7.5h3l1.4-2h7.2l1.4 2h3v11H4z" />
-                  <circle cx="12" cy="13" r="3.2" />
-                </svg>
-                {{ importParsing ? "识别中…" : "截图录入" }}
-              </button>
+            <div ref="importControl" class="entry-heading-actions">
+              <div class="image-import-control">
+                <button
+                  type="button"
+                  class="image-import-button"
+                  :disabled="importParsing"
+                  aria-haspopup="menu"
+                  :aria-expanded="importMenuOpen"
+                  @click="importMenuOpen = !importMenuOpen"
+                  @keydown.esc="importMenuOpen = false"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 7.5h3l1.4-2h7.2l1.4 2h3v11H4z" />
+                    <circle cx="12" cy="13" r="3.2" />
+                  </svg>
+                  {{ importParsing ? "识别中…" : "截图录入" }}
+                  <svg
+                    class="menu-chevron"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="m8 10 4 4 4-4" />
+                  </svg>
+                </button>
+
+                <div
+                  v-if="importMenuOpen"
+                  class="image-import-menu"
+                  role="menu"
+                  aria-label="选择截图录入方式"
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    @click="openPasteCapture"
+                  >
+                    <span
+                      class="import-menu-icon paste-icon"
+                      aria-hidden="true"
+                    >
+                      <svg viewBox="0 0 24 24">
+                        <path d="M9 5h6m-5-2h4l1 2h3v16H6V5h3l1-2Z" />
+                        <path d="M9 12h6m-6 4h4" />
+                      </svg>
+                    </span>
+                    <span>
+                      <strong>粘贴截图</strong>
+                      <small>直接按 Ctrl + V</small>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    @click="openImagePicker"
+                  >
+                    <span class="import-menu-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24">
+                        <path d="M4 19V6h16v13H4Z" />
+                        <path d="m7 16 3-3 2 2 2-2 3 3M9 10h.01" />
+                      </svg>
+                    </span>
+                    <span>
+                      <strong>上传图片</strong>
+                      <small>选择 PNG、JPG 或 BMP</small>
+                    </span>
+                  </button>
+                </div>
+              </div>
               <input
                 ref="imageInput"
                 class="visually-hidden"
@@ -322,6 +377,51 @@
     </main>
 
     <div
+      v-if="pasteCaptureOpen"
+      class="dialog-backdrop paste-backdrop"
+      @click.self="closePasteCapture"
+    >
+      <section
+        ref="pasteZone"
+        class="paste-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="paste-title"
+        tabindex="0"
+        @paste="handleScreenshotPaste"
+        @keydown.esc="closePasteCapture"
+      >
+        <header>
+          <div>
+            <small>PASTE FROM CLIPBOARD</small>
+            <h2 id="paste-title">粘贴截图</h2>
+          </div>
+          <button
+            type="button"
+            aria-label="关闭粘贴截图"
+            @click="closePasteCapture"
+          >
+            ×
+          </button>
+        </header>
+
+        <div class="paste-target">
+          <span class="paste-keys" aria-hidden="true">
+            <kbd>Ctrl</kbd><i>+</i><kbd>V</kbd>
+          </span>
+          <strong>把截图粘贴到这里</strong>
+          <p>先在微信、邮件或网页中复制截图，然后直接按 Ctrl + V。</p>
+          <em>当前窗口已准备接收剪贴板图片</em>
+        </div>
+
+        <footer>
+          <span>仅处理图片，不会读取剪贴板中的其他内容。</span>
+          <button type="button" @click="openImagePicker">改为上传图片</button>
+        </footer>
+      </section>
+    </div>
+
+    <div
       v-if="importOpen"
       class="dialog-backdrop import-backdrop"
       @click.self="closeImportDialog"
@@ -365,7 +465,10 @@
           <span aria-hidden="true">!</span>
           <strong>这张截图暂时没识别成功</strong>
           <p>{{ importError }}</p>
-          <button type="button" @click="openImagePicker">换一张截图</button>
+          <div class="import-retry-actions">
+            <button type="button" @click="retryPasteCapture">重新粘贴</button>
+            <button type="button" @click="openImagePicker">上传图片</button>
+          </div>
         </div>
 
         <form v-else class="import-review" @submit.prevent="confirmImageImport">
@@ -553,6 +656,7 @@
 <script setup>
 import {
   computed,
+  nextTick,
   onBeforeUnmount,
   onMounted,
   reactive,
@@ -575,7 +679,11 @@ const loading = ref(true);
 const saving = ref(false);
 const busyId = ref(null);
 const trashOpen = ref(false);
+const importControl = ref(null);
+const importMenuOpen = ref(false);
 const imageInput = ref(null);
+const pasteCaptureOpen = ref(false);
+const pasteZone = ref(null);
 const importOpen = ref(false);
 const importParsing = ref(false);
 const importSaving = ref(false);
@@ -818,7 +926,50 @@ function trashRemainingLabel(item) {
   return days > 0 ? `${days} 天后自动清除` : "即将自动清除";
 }
 
+function handleImportOutsidePointer(event) {
+  if (!importMenuOpen.value) return;
+  if (!importControl.value?.contains(event.target))
+    importMenuOpen.value = false;
+}
+
+function openPasteCapture() {
+  importMenuOpen.value = false;
+  pasteCaptureOpen.value = true;
+  nextTick(() => pasteZone.value?.focus());
+}
+
+function closePasteCapture() {
+  pasteCaptureOpen.value = false;
+}
+
+function retryPasteCapture() {
+  closeImportDialog();
+  openPasteCapture();
+}
+
+function handleScreenshotPaste(event) {
+  const clipboardItems = Array.from(event.clipboardData?.items || []);
+  const imageItem = clipboardItems.find((item) =>
+    item.type?.toLowerCase().startsWith("image/"),
+  );
+  const clipboardFiles = Array.from(event.clipboardData?.files || []);
+  const file =
+    imageItem?.getAsFile() ||
+    clipboardFiles.find((candidate) =>
+      candidate.type?.toLowerCase().startsWith("image/"),
+    );
+  if (!file) {
+    ElMessage.warning("剪贴板里没有图片，请先复制一张截图");
+    return;
+  }
+  event.preventDefault();
+  pasteCaptureOpen.value = false;
+  void processImageFile(file);
+}
+
 function openImagePicker() {
+  importMenuOpen.value = false;
+  pasteCaptureOpen.value = false;
   imageInput.value?.click();
 }
 
@@ -826,6 +977,10 @@ async function handleImageSelected(event) {
   const file = event.target.files?.[0];
   event.target.value = "";
   if (!file) return;
+  await processImageFile(file);
+}
+
+async function processImageFile(file) {
   if (file.size > 10 * 1024 * 1024) {
     ElMessage.warning("截图不能超过 10MB");
     return;
@@ -1006,8 +1161,14 @@ function localDateTimeValue(date) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-onMounted(load);
-onBeforeUnmount(releaseImportPreview);
+onMounted(() => {
+  load();
+  document.addEventListener("pointerdown", handleImportOutsidePointer);
+});
+onBeforeUnmount(() => {
+  releaseImportPreview();
+  document.removeEventListener("pointerdown", handleImportOutsidePointer);
+});
 </script>
 
 <style scoped>
@@ -1233,6 +1394,10 @@ onBeforeUnmount(releaseImportPreview);
   font-size: 0.64rem;
 }
 
+.image-import-control {
+  position: relative;
+}
+
 .image-import-button svg,
 .trash-button svg {
   width: 15px;
@@ -1241,6 +1406,107 @@ onBeforeUnmount(releaseImportPreview);
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.7;
+}
+
+.image-import-button .menu-chevron {
+  width: 12px;
+  margin-left: 1px;
+  transition: transform 160ms ease;
+}
+
+.image-import-button[aria-expanded="true"] .menu-chevron {
+  transform: rotate(180deg);
+}
+
+.image-import-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: calc(var(--xzm-z-dropdown) + 2);
+  display: grid;
+  width: 236px;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--xzm-border-color);
+  border-radius: 12px;
+  background: var(--xzm-surface-elevated);
+  box-shadow: 0 18px 42px rgba(13, 38, 35, 0.18);
+}
+
+.image-import-menu::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  right: 28px;
+  width: 9px;
+  height: 9px;
+  border-top: 1px solid var(--xzm-border-color);
+  border-left: 1px solid var(--xzm-border-color);
+  background: var(--xzm-surface-elevated);
+  transform: rotate(45deg);
+}
+
+.image-import-menu > button {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-height: 58px;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 7px 9px;
+  border: 0 !important;
+  border-radius: 8px;
+  color: var(--xzm-text-primary) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  text-align: left;
+  cursor: pointer;
+}
+
+.image-import-menu > button:hover,
+.image-import-menu > button:focus-visible {
+  outline: none;
+  background: var(--xzm-brand-soft) !important;
+}
+
+.import-menu-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--xzm-brand);
+  background: var(--xzm-surface-2);
+}
+
+.import-menu-icon.paste-icon {
+  color: #627b00;
+  background: var(--xzm-signal-soft);
+}
+
+.import-menu-icon svg {
+  width: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.image-import-menu strong,
+.image-import-menu small {
+  display: block;
+}
+
+.image-import-menu strong {
+  font-size: 0.69rem;
+}
+
+.image-import-menu small {
+  margin-top: 4px;
+  color: var(--xzm-text-tertiary);
+  font-size: 0.56rem;
 }
 
 .image-import-button:hover:not(:disabled),
@@ -2051,6 +2317,151 @@ onBeforeUnmount(releaseImportPreview);
   box-shadow: 0 28px 80px rgba(13, 38, 35, 0.24);
 }
 
+.paste-dialog {
+  width: min(520px, 100%);
+  overflow: hidden;
+  border: 1px solid var(--xzm-border-color);
+  border-radius: 4px 18px 18px 18px;
+  outline: none;
+  color: var(--xzm-text-primary);
+  background: var(--xzm-surface-elevated);
+  box-shadow: 0 28px 80px rgba(13, 38, 35, 0.24);
+}
+
+.paste-dialog > header {
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--xzm-border-color);
+}
+
+.paste-dialog header small {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--xzm-brand);
+  font: 800 0.57rem/1 var(--xzm-font-data);
+  letter-spacing: 0.14em;
+}
+
+.paste-dialog h2 {
+  margin: 0;
+  font-family: var(--xzm-font-display);
+  font-size: 1.22rem;
+  letter-spacing: -0.03em;
+}
+
+.paste-dialog > header > button {
+  width: 34px;
+  height: 34px;
+  border: 0 !important;
+  border-radius: 8px;
+  color: var(--xzm-text-tertiary) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 1.35rem;
+  cursor: pointer;
+}
+
+.paste-target {
+  display: grid;
+  min-height: 285px;
+  place-content: center;
+  justify-items: center;
+  margin: 18px;
+  padding: 28px;
+  border: 1px dashed
+    color-mix(in srgb, var(--xzm-brand) 46%, var(--xzm-border-color));
+  border-radius: 14px;
+  background:
+    radial-gradient(
+      circle at 50% 16%,
+      color-mix(in srgb, var(--xzm-signal-soft) 48%, transparent),
+      transparent 42%
+    ),
+    var(--xzm-surface-1);
+  text-align: center;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.paste-dialog:focus .paste-target {
+  border-color: var(--xzm-brand);
+}
+
+.paste-keys {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 21px;
+}
+
+.paste-keys kbd {
+  display: grid;
+  min-width: 58px;
+  height: 47px;
+  place-items: center;
+  border: 1px solid var(--xzm-border-strong);
+  border-bottom-width: 3px;
+  border-radius: 9px;
+  color: var(--xzm-brand);
+  background: var(--xzm-surface-elevated);
+  box-shadow: 0 7px 17px rgba(13, 38, 35, 0.08);
+  font: 750 0.78rem/1 var(--xzm-font-data);
+}
+
+.paste-keys i {
+  color: var(--xzm-text-tertiary);
+  font-style: normal;
+}
+
+.paste-target strong {
+  font-family: var(--xzm-font-display);
+  font-size: 1rem;
+}
+
+.paste-target p {
+  max-width: 340px;
+  margin: 8px 0 0;
+  color: var(--xzm-text-tertiary);
+  font-size: 0.67rem;
+  line-height: 1.6;
+}
+
+.paste-target em {
+  margin-top: 17px;
+  color: var(--xzm-brand);
+  font-size: 0.58rem;
+  font-style: normal;
+  font-weight: 720;
+}
+
+.paste-dialog > footer {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 18px;
+  border-top: 1px solid var(--xzm-border-color);
+  color: var(--xzm-text-muted);
+  font-size: 0.57rem;
+}
+
+.paste-dialog > footer button {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--xzm-border-strong) !important;
+  border-radius: 8px;
+  color: var(--xzm-brand) !important;
+  background: transparent !important;
+  font: inherit;
+  font-weight: 720;
+  cursor: pointer;
+}
+
 .import-dialog > header,
 .trash-drawer > header {
   display: flex;
@@ -2153,9 +2564,14 @@ onBeforeUnmount(releaseImportPreview);
   font-weight: 800;
 }
 
+.import-retry-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
 .import-error button {
   min-height: 36px;
-  margin-top: 16px;
   padding: 0 13px;
   border: 1px solid var(--xzm-brand) !important;
   border-radius: 8px;
@@ -2645,6 +3061,9 @@ onBeforeUnmount(releaseImportPreview);
     min-height: 36px;
     padding-inline: 9px;
   }
+  .image-import-menu {
+    width: min(236px, calc(100vw - 36px));
+  }
   .timeline-tools .sort-note {
     display: none;
   }
@@ -2732,6 +3151,23 @@ onBeforeUnmount(releaseImportPreview);
   .dialog-backdrop {
     padding: 0;
   }
+  .paste-dialog {
+    width: calc(100% - 18px);
+    border-radius: 14px;
+  }
+  .paste-dialog > header {
+    min-height: 62px;
+    padding: 10px 13px;
+  }
+  .paste-target {
+    min-height: 270px;
+    margin: 12px;
+    padding: 22px 16px;
+  }
+  .paste-dialog > footer {
+    align-items: flex-start;
+    padding: 11px 13px;
+  }
   .import-dialog {
     width: 100%;
     max-height: 100dvh;
@@ -2814,7 +3250,9 @@ onBeforeUnmount(releaseImportPreview);
   .type-picker label,
   .submit-button,
   .schedule-card,
-  .complete-button span {
+  .complete-button span,
+  .image-import-button .menu-chevron,
+  .paste-target {
     transition: none;
   }
   .loading-ring {

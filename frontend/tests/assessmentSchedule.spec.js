@@ -217,7 +217,23 @@ describe("AssessmentSchedule workspace", () => {
     expect(wrapper.find(".trash-list").exists()).toBe(false);
   });
 
-  it("parses a screenshot into an editable DeepSeek Flash preview before saving", async () => {
+  it("offers upload and paste inside one screenshot import menu", async () => {
+    const wrapper = mountPage();
+    await flushPromises();
+
+    expect(wrapper.find(".image-import-menu").exists()).toBe(false);
+    await wrapper.get(".image-import-button").trigger("click");
+    expect(wrapper.get(".image-import-menu").text()).toContain("粘贴截图");
+    expect(wrapper.get(".image-import-menu").text()).toContain("上传图片");
+
+    const input = wrapper.get('input[type="file"]');
+    const inputClick = vi.spyOn(input.element, "click");
+    await wrapper.findAll(".image-import-menu > button")[1].trigger("click");
+    expect(inputClick).toHaveBeenCalledOnce();
+    expect(wrapper.find(".image-import-menu").exists()).toBe(false);
+  });
+
+  it("parses an uploaded image into an editable DeepSeek Flash preview before saving", async () => {
     const wrapper = mountPage();
     await flushPromises();
 
@@ -247,6 +263,33 @@ describe("AssessmentSchedule workspace", () => {
       eventUrl: "https://exam.nowcoder.com/cts/example",
       notes: "在线笔试，时长 120 分钟",
     });
+  });
+
+  it("accepts a clipboard screenshot and sends it through the same AI review", async () => {
+    const wrapper = mountPage();
+    await flushPromises();
+
+    await wrapper.get(".image-import-button").trigger("click");
+    await wrapper.findAll(".image-import-menu > button")[0].trigger("click");
+    await flushPromises();
+
+    const file = new File(["clipboard-image"], "clipboard.png", {
+      type: "image/png",
+    });
+    await wrapper.get(".paste-dialog").trigger("paste", {
+      clipboardData: {
+        items: [{ type: "image/png", getAsFile: () => file }],
+        files: [],
+      },
+    });
+    await flushPromises();
+
+    expect(mocks.parseImage).toHaveBeenCalledWith(file);
+    expect(wrapper.find(".paste-dialog").exists()).toBe(false);
+    expect(wrapper.get(".import-review").text()).toContain("DeepSeek V4 Flash");
+    expect(wrapper.get(".import-grid input[required]").element.value).toBe(
+      "用友",
+    );
   });
 
   it("permanently deletes only after an explicit trash confirmation", async () => {
