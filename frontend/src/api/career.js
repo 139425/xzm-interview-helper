@@ -27,7 +27,11 @@ export const applicationApi = {
 
 export const scheduleApi = {
   async list() {
-    return data(await request.get('/api/schedules'), { items: [], summary: {} })
+    return data(await request.get('/api/schedules'), {
+      items: [],
+      summary: {},
+      trash: [],
+    })
   },
   async create(payload) {
     return data(await request.post('/api/schedules', payload), null)
@@ -40,6 +44,23 @@ export const scheduleApi = {
   },
   async remove(id) {
     return data(await request.delete(`/api/schedules/${id}`), null)
+  },
+  async restore(id) {
+    return data(await request.patch(`/api/schedules/${id}/restore`), null)
+  },
+  async permanentDelete(id) {
+    return data(await request.delete(`/api/schedules/trash/${id}`), null)
+  },
+  async parseImage(file) {
+    const form = new FormData()
+    form.append('file', file)
+    return data(
+      await request.post('/api/schedules/parse-image', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 130_000,
+      }),
+      null,
+    )
   },
 }
 

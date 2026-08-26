@@ -47,7 +47,7 @@ class AssessmentScheduleRepositoryTest {
     }
 
     @Test
-    void completionAndDeletionAreAlwaysUserScoped() {
+    void completionAndSoftDeletionAreAlwaysUserScoped() {
         when(jdbcTemplate.update(
                 contains("completed_at = NULL WHERE id = ? AND user_id = ?"),
                 eq(77L), eq(12)
@@ -55,19 +55,44 @@ class AssessmentScheduleRepositoryTest {
         assertThrows(ResponseStatusException.class, () -> repository.setCompleted(12, 77L, false));
 
         when(jdbcTemplate.update(
-                contains("DELETE FROM assessment_schedule WHERE id = ? AND user_id = ?"),
+                contains("SET deleted_at = NOW()"),
                 eq(77L), eq(12)
         )).thenReturn(1);
-        repository.delete(12, 77L);
+        repository.softDelete(12, 77L);
 
         verify(jdbcTemplate).update(
                 contains("completed_at = NULL WHERE id = ? AND user_id = ?"),
                 eq(77L), eq(12)
         );
         verify(jdbcTemplate).update(
-                contains("DELETE FROM assessment_schedule WHERE id = ? AND user_id = ?"),
+                contains("SET deleted_at = NOW()"),
                 eq(77L), eq(12)
         );
+    }
+
+    @Test
+    void trashRetentionSupportsRestorePermanentDeleteAndAutomaticPurge() {
+        when(jdbcTemplate.query(any(String.class), any(RowMapper.class), any(Object[].class)))
+                .thenReturn(List.of());
+        repository.findTrash(12);
+
+        ArgumentCaptor<String> listSql = ArgumentCaptor.forClass(String.class);
+        verify(jdbcTemplate).query(listSql.capture(), any(RowMapper.class), any(Object[].class));
+        assertTrue(listSql.getValue().contains("deleted_at >= DATE_SUB(NOW(), INTERVAL 14 DAY)"));
+
+        when(jdbcTemplate.update(
+                contains("DELETE FROM assessment_schedule"),
+                eq(77L), eq(12)
+        )).thenReturn(1);
+        repository.permanentDelete(12, 77L);
+        verify(jdbcTemplate).update(
+                contains("user_id = ? AND deleted_at IS NOT NULL"),
+                eq(77L), eq(12)
+        );
+
+        when(jdbcTemplate.update(contains("deleted_at < DATE_SUB(NOW(), INTERVAL 14 DAY)")))
+                .thenReturn(3);
+        assertEquals(3, repository.purgeExpiredTrash());
     }
 
     @Test

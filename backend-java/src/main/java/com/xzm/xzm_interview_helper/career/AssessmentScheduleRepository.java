@@ -19,6 +19,12 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AssessmentScheduleRepository {
     public static final Set<String> EVENT_TYPES = Set.of("WRITTEN_TEST", "INTERVIEW", "ASSESSMENT");
+    public static final int TRASH_RETENTION_DAYS = 14;
+
+    private static final String SELECT_FIELDS = """
+            id, company, role_name, event_type, start_at, end_at, event_url, notes,
+            completed_at, deleted_at, created_at, updated_at
+            """;
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -29,8 +35,11 @@ public class AssessmentScheduleRepository {
             String eventType,
             LocalDateTime startAt,
             LocalDateTime endAt,
+            String eventUrl,
             String notes,
             LocalDateTime completedAt,
+            LocalDateTime deletedAt,
+            LocalDateTime purgeAt,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ) {
@@ -38,10 +47,9 @@ public class AssessmentScheduleRepository {
 
     public List<Schedule> findAll(int userId) {
         return jdbcTemplate.query("""
-                SELECT id, company, role_name, event_type, start_at, end_at, notes,
-                       completed_at, created_at, updated_at
+                SELECT %s
                 FROM assessment_schedule
-                WHERE user_id = ?
+                WHERE user_id = ? AND deleted_at IS NULL
                 ORDER BY
                     CASE WHEN completed_at IS NULL THEN 0 ELSE 1 END,
                     CASE WHEN completed_at IS NULL AND COALESCE(end_at, start_at) < NOW() THEN 0 ELSE 1 END,
@@ -50,7 +58,18 @@ public class AssessmentScheduleRepository {
                     completed_at DESC,
                     id DESC
                 LIMIT 1000
-                """, ROW_MAPPER, userId);
+                """.formatted(SELECT_FIELDS), ROW_MAPPER, userId);
+    }
+
+    public List<Schedule> findTrash(int userId) {
+        return jdbcTemplate.query("""
+                SELECT %s
+                FROM assessment_schedule
+                WHERE user_id = ? AND deleted_at IS NOT NULL
+                  AND deleted_at >= DATE_SUB(NOW(), INTERVAL %d DAY)
+                ORDER BY deleted_at DESC, id DESC
+                LIMIT 1000
+                """.formatted(SELECT_FIELDS, TRASH_RETENTION_DAYS), ROW_MAPPER, userId);
     }
 
     public Map<String, Object> summary(int userId) {
@@ -63,7 +82,7 @@ public class AssessmentScheduleRepository {
                              AND start_at < DATE_ADD(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) AS upcoming_week,
                     SUM(CASE WHEN completed_at IS NOT NULL THEN 1 ELSE 0 END) AS completed
                 FROM assessment_schedule
-                WHERE user_id = ?
+                WHERE user_id = ? AND deleted_at IS NULL
                 """, (rs, rowNum) -> {
             Map<String, Object> values = new LinkedHashMap<>();
             values.put("pending", rs.getLong("pending"));
@@ -81,8 +100,8 @@ public class AssessmentScheduleRepository {
         validateRange(request.getStartAt(), request.getEndAt());
         jdbcTemplate.update("""
                         INSERT INTO assessment_schedule (
-                            user_id, company, role_name, event_type, start_at, end_at, notes
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                            user_id, company, role_name, event_type, start_at, end_at, event_url, notes
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                 userId,
                 required(request.getCompany(), 200, "公司不能为空"),
@@ -90,55 +109,88 @@ public class AssessmentScheduleRepository {
                 eventType,
                 request.getStartAt(),
                 request.getEndAt(),
+                safeUrl(request.getEventUrl()),
                 clip(request.getNotes(), 1_000)
         );
         Long id = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        return findOwned(userId, id == null ? 0 : id);
+        return findOwnedActive(userId, id == null ? 0 : id);
     }
 
     public Schedule setCompleted(int userId, long id, boolean completed) {
-        int changed = jdbcTemplate.update(
+        jdbcTemplate.update(
                 "UPDATE assessment_schedule SET completed_at = "
                         + (completed ? "COALESCE(completed_at, NOW())" : "NULL")
-                        + " WHERE id = ? AND user_id = ?",
+                        + " WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
                 id,
                 userId
         );
-        if (changed == 0) throw notFound();
-        return findOwned(userId, id);
+        return findOwnedActive(userId, id);
     }
 
-    public void delete(int userId, long id) {
-        if (jdbcTemplate.update(
-                "DELETE FROM assessment_schedule WHERE id = ? AND user_id = ?", id, userId
-        ) == 0) {
+    public void softDelete(int userId, long id) {
+        if (jdbcTemplate.update("""
+                UPDATE assessment_schedule SET deleted_at = NOW()
+                WHERE id = ? AND user_id = ? AND deleted_at IS NULL
+                """, id, userId) == 0) {
             throw notFound();
         }
     }
 
-    private Schedule findOwned(int userId, long id) {
+    public Schedule restore(int userId, long id) {
+        if (jdbcTemplate.update("""
+                UPDATE assessment_schedule SET deleted_at = NULL
+                WHERE id = ? AND user_id = ? AND deleted_at IS NOT NULL
+                  AND deleted_at >= DATE_SUB(NOW(), INTERVAL 14 DAY)
+                """, id, userId) == 0) {
+            throw notFound();
+        }
+        return findOwnedActive(userId, id);
+    }
+
+    public void permanentDelete(int userId, long id) {
+        if (jdbcTemplate.update("""
+                DELETE FROM assessment_schedule
+                WHERE id = ? AND user_id = ? AND deleted_at IS NOT NULL
+                """, id, userId) == 0) {
+            throw notFound();
+        }
+    }
+
+    public int purgeExpiredTrash() {
+        return jdbcTemplate.update(
+                "DELETE FROM assessment_schedule WHERE deleted_at IS NOT NULL "
+                        + "AND deleted_at < DATE_SUB(NOW(), INTERVAL " + TRASH_RETENTION_DAYS + " DAY)"
+        );
+    }
+
+    private Schedule findOwnedActive(int userId, long id) {
         List<Schedule> rows = jdbcTemplate.query("""
-                        SELECT id, company, role_name, event_type, start_at, end_at, notes,
-                               completed_at, created_at, updated_at
+                        SELECT %s
                         FROM assessment_schedule
-                        WHERE id = ? AND user_id = ?
-                        """, ROW_MAPPER, id, userId);
+                        WHERE id = ? AND user_id = ? AND deleted_at IS NULL
+                        """.formatted(SELECT_FIELDS), ROW_MAPPER, id, userId);
         if (rows.isEmpty()) throw notFound();
         return rows.get(0);
     }
 
-    private static final RowMapper<Schedule> ROW_MAPPER = (rs, rowNum) -> new Schedule(
-            rs.getLong("id"),
-            rs.getString("company"),
-            rs.getString("role_name"),
-            rs.getString("event_type"),
-            toLocalDateTime(rs.getTimestamp("start_at")),
-            toLocalDateTime(rs.getTimestamp("end_at")),
-            rs.getString("notes"),
-            toLocalDateTime(rs.getTimestamp("completed_at")),
-            toLocalDateTime(rs.getTimestamp("created_at")),
-            toLocalDateTime(rs.getTimestamp("updated_at"))
-    );
+    private static final RowMapper<Schedule> ROW_MAPPER = (rs, rowNum) -> {
+        LocalDateTime deletedAt = toLocalDateTime(rs.getTimestamp("deleted_at"));
+        return new Schedule(
+                rs.getLong("id"),
+                rs.getString("company"),
+                rs.getString("role_name"),
+                rs.getString("event_type"),
+                toLocalDateTime(rs.getTimestamp("start_at")),
+                toLocalDateTime(rs.getTimestamp("end_at")),
+                rs.getString("event_url"),
+                rs.getString("notes"),
+                toLocalDateTime(rs.getTimestamp("completed_at")),
+                deletedAt,
+                deletedAt == null ? null : deletedAt.plusDays(TRASH_RETENTION_DAYS),
+                toLocalDateTime(rs.getTimestamp("created_at")),
+                toLocalDateTime(rs.getTimestamp("updated_at"))
+        );
+    };
 
     private static LocalDateTime toLocalDateTime(Timestamp value) {
         return value == null ? null : value.toLocalDateTime();
@@ -167,6 +219,15 @@ public class AssessmentScheduleRepository {
         return clipped;
     }
 
+    private static String safeUrl(String value) {
+        String clipped = clip(value, 2_048);
+        if (clipped.isBlank()) return "";
+        if (!clipped.startsWith("https://") && !clipped.startsWith("http://")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "链接必须以 http:// 或 https:// 开头");
+        }
+        return clipped;
+    }
+
     private static String clip(String value, int max) {
         if (value == null) return "";
         String normalized = value.strip();
@@ -174,6 +235,6 @@ public class AssessmentScheduleRepository {
     }
 
     private static ResponseStatusException notFound() {
-        return new ResponseStatusException(HttpStatus.NOT_FOUND, "日程不存在");
+        return new ResponseStatusException(HttpStatus.NOT_FOUND, "日程不存在或已被清除");
     }
 }

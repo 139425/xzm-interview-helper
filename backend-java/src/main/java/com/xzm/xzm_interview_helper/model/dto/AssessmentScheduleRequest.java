@@ -25,6 +25,9 @@ public class AssessmentScheduleRequest {
 
     private LocalDateTime endAt;
 
+    @Size(max = 2_048)
+    private String eventUrl;
+
     @Size(max = 1_000)
     private String notes;
 }

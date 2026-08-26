@@ -62,14 +62,55 @@ public class CareerSchemaInitializer implements InitializingBean {
                     event_type VARCHAR(32) NOT NULL,
                     start_at DATETIME NOT NULL,
                     end_at DATETIME NULL,
+                    event_url VARCHAR(2048) NOT NULL DEFAULT '',
                     notes VARCHAR(1000) NOT NULL DEFAULT '',
                     completed_at DATETIME NULL,
+                    deleted_at DATETIME NULL,
                     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     PRIMARY KEY (id),
                     KEY idx_schedule_user_pending_start (user_id, completed_at, start_at),
+                    KEY idx_schedule_user_deleted (user_id, deleted_at),
                     KEY idx_schedule_user_updated (user_id, updated_at)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
                 """);
+
+        ensureColumn(
+                "assessment_schedule",
+                "event_url",
+                "event_url VARCHAR(2048) NOT NULL DEFAULT '' AFTER end_at"
+        );
+        ensureColumn(
+                "assessment_schedule",
+                "deleted_at",
+                "deleted_at DATETIME NULL AFTER completed_at"
+        );
+        ensureIndex(
+                "assessment_schedule",
+                "idx_schedule_user_deleted",
+                "KEY idx_schedule_user_deleted (user_id, deleted_at)"
+        );
+    }
+
+    private void ensureColumn(String table, String column, String definition) {
+        Integer count = jdbcTemplate.queryForObject("""
+                SELECT COUNT(*)
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?
+                """, Integer.class, table, column);
+        if (count == null || count == 0) {
+            jdbcTemplate.execute("ALTER TABLE " + table + " ADD COLUMN " + definition);
+        }
+    }
+
+    private void ensureIndex(String table, String index, String definition) {
+        Integer count = jdbcTemplate.queryForObject("""
+                SELECT COUNT(*)
+                FROM INFORMATION_SCHEMA.STATISTICS
+                WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?
+                """, Integer.class, table, index);
+        if (count == null || count == 0) {
+            jdbcTemplate.execute("ALTER TABLE " + table + " ADD " + definition);
+        }
     }
 }

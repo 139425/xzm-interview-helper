@@ -7,6 +7,9 @@ const mocks = vi.hoisted(() => ({
   create: vi.fn(),
   setCompleted: vi.fn(),
   remove: vi.fn(),
+  restore: vi.fn(),
+  permanentDelete: vi.fn(),
+  parseImage: vi.fn(),
   success: vi.fn(),
   error: vi.fn(),
   warning: vi.fn(),
@@ -19,6 +22,9 @@ vi.mock("@/api/career", () => ({
     create: mocks.create,
     setCompleted: mocks.setCompleted,
     remove: mocks.remove,
+    restore: mocks.restore,
+    permanentDelete: mocks.permanentDelete,
+    parseImage: mocks.parseImage,
   },
 }));
 
@@ -90,6 +96,7 @@ describe("AssessmentSchedule workspace", () => {
     vi.clearAllMocks();
     mocks.list.mockResolvedValue({
       items: schedules.map((item) => ({ ...item })),
+      trash: [],
     });
     mocks.confirm.mockResolvedValue("confirm");
     mocks.create.mockImplementation(async (payload) => ({
@@ -102,6 +109,28 @@ describe("AssessmentSchedule workspace", () => {
       completedAt: completed ? "2026-08-24T12:01:00" : null,
     }));
     mocks.remove.mockResolvedValue({ deleted: true });
+    mocks.restore.mockResolvedValue({ ...schedules[0], deletedAt: null });
+    mocks.permanentDelete.mockResolvedValue({ deleted: true });
+    mocks.parseImage.mockResolvedValue({
+      company: "用友",
+      roleName: "全栈开发工程师【高潜】-27届",
+      eventType: "WRITTEN_TEST",
+      startAt: "2026-08-27T14:00:00",
+      endAt: "2026-08-31T12:00:00",
+      eventUrl: "https://exam.nowcoder.com/cts/example",
+      notes: "在线笔试，时长 120 分钟",
+      confidence: 0.97,
+      warnings: [],
+      ocrText: "笔试时间：2026-08-27 14:00至2026-08-31 12:00",
+    });
+    Object.defineProperty(URL, "createObjectURL", {
+      configurable: true,
+      value: vi.fn(() => "blob:preview"),
+    });
+    Object.defineProperty(URL, "revokeObjectURL", {
+      configurable: true,
+      value: vi.fn(),
+    });
   });
 
   afterEach(() => vi.useRealTimers());
@@ -146,12 +175,13 @@ describe("AssessmentSchedule workspace", () => {
       eventType: "ASSESSMENT",
       startAt: "2026-08-26T14:00",
       endAt: "2026-08-26T15:30",
+      eventUrl: "",
       notes: "",
     });
     expect(wrapper.text()).toContain("星河云");
   });
 
-  it("completes, restores, and deletes schedules through direct actions", async () => {
+  it("completes and restores completed schedules through direct actions", async () => {
     const wrapper = mountPage();
     await flushPromises();
 
@@ -166,10 +196,82 @@ describe("AssessmentSchedule workspace", () => {
     await restore.trigger("click");
     await flushPromises();
     expect(mocks.setCompleted).toHaveBeenCalledWith(3, false);
+  });
+
+  it("moves deletions to the 14-day trash and allows restoration", async () => {
+    const wrapper = mountPage();
+    await flushPromises();
 
     await wrapper.get(".delete-button").trigger("click");
     await flushPromises();
-    expect(mocks.confirm).toHaveBeenCalledOnce();
-    expect(mocks.remove).toHaveBeenCalled();
+
+    expect(mocks.confirm).not.toHaveBeenCalled();
+    expect(mocks.remove).toHaveBeenCalledWith(2);
+    await wrapper.get(".trash-button").trigger("click");
+    expect(wrapper.get(".trash-list").text()).toContain("昨日智能");
+    expect(wrapper.get(".trash-list").text()).toContain("14 天后自动清除");
+
+    await wrapper.get(".restore-button").trigger("click");
+    await flushPromises();
+    expect(mocks.restore).toHaveBeenCalledWith(2);
+    expect(wrapper.find(".trash-list").exists()).toBe(false);
+  });
+
+  it("parses a screenshot into an editable DeepSeek Flash preview before saving", async () => {
+    const wrapper = mountPage();
+    await flushPromises();
+
+    const file = new File(["image"], "notice.png", { type: "image/png" });
+    const input = wrapper.get('input[type="file"]');
+    Object.defineProperty(input.element, "files", {
+      configurable: true,
+      value: [file],
+    });
+    await input.trigger("change");
+    await flushPromises();
+
+    expect(mocks.parseImage).toHaveBeenCalledWith(file);
+    expect(wrapper.get(".import-grid input[required]").element.value).toBe(
+      "用友",
+    );
+    expect(wrapper.get(".import-review").text()).toContain("DeepSeek V4 Flash");
+    await wrapper.get(".import-review").trigger("submit");
+    await flushPromises();
+
+    expect(mocks.create).toHaveBeenLastCalledWith({
+      company: "用友",
+      roleName: "全栈开发工程师【高潜】-27届",
+      eventType: "WRITTEN_TEST",
+      startAt: "2026-08-27T14:00",
+      endAt: "2026-08-31T12:00",
+      eventUrl: "https://exam.nowcoder.com/cts/example",
+      notes: "在线笔试，时长 120 分钟",
+    });
+  });
+
+  it("permanently deletes only after an explicit trash confirmation", async () => {
+    mocks.list.mockResolvedValueOnce({
+      items: schedules.map((item) => ({ ...item })),
+      trash: [
+        {
+          ...schedules[0],
+          deletedAt: "2026-08-24T11:00:00",
+          purgeAt: "2026-09-07T11:00:00",
+        },
+      ],
+    });
+    const wrapper = mountPage();
+    await flushPromises();
+
+    await wrapper.get(".trash-button").trigger("click");
+    await wrapper.get(".purge-button").trigger("click");
+    await flushPromises();
+
+    expect(mocks.confirm).toHaveBeenCalledWith(
+      expect.stringContaining("无法恢复"),
+      "永久删除日程",
+      expect.any(Object),
+    );
+    expect(mocks.permanentDelete).toHaveBeenCalledWith(1);
   });
 });
