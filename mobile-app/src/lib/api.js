@@ -1,7 +1,8 @@
 import { Browser } from '@capacitor/browser'
 import { Capacitor, CapacitorHttp } from '@capacitor/core'
 
-const API_URL_KEY = 'xzm.mobile.apiUrl'
+export const DEFAULT_API_URL = 'http://120.48.47.80:8104/xzm'
+const API_URL_KEY = 'xzm.mobile.apiUrl.v2'
 const TOKEN_KEY = 'token'
 const USER_KEY = 'userInfo'
 
@@ -31,7 +32,7 @@ export function normalizeApiUrl(value) {
 }
 
 export function getApiUrl() {
-  return localStorage.getItem(API_URL_KEY) || ''
+  return localStorage.getItem(API_URL_KEY) || DEFAULT_API_URL
 }
 
 export function setApiUrl(value) {
@@ -60,9 +61,8 @@ export function clearAuth() {
   localStorage.removeItem(USER_KEY)
 }
 
-function buildUrl(path, params) {
+export function buildUrl(path, params) {
   const base = getApiUrl()
-  if (!base) throw new ApiError('请先配置后端服务地址')
   const url = new URL(`${base}${path.startsWith('/') ? path : `/${path}`}`)
   Object.entries(params || {}).forEach(([key, value]) => {
     if (value !== '' && value !== null && value !== undefined && value !== false) {
@@ -114,7 +114,10 @@ async function webRequest(url, options) {
 
 export async function request(path, { method = 'GET', params, body, auth = true, timeout, responseType } = {}) {
   const url = buildUrl(path, params)
-  const headers = { Accept: 'application/json', 'Content-Type': 'application/json' }
+  const headers = {
+    Accept: responseType === 'text' ? 'text/event-stream, text/plain' : 'application/json',
+    'Content-Type': 'application/json',
+  }
   const token = getAuth().token
   if (auth && token) headers.Authorization = `Bearer ${token}`
 
@@ -169,6 +172,45 @@ function unwrap(response, fallback = null) {
   return response?.data ?? fallback
 }
 
+export function parseChatStreamPayload(raw) {
+  const text = typeof raw === 'string' ? raw : String(raw ?? '')
+  if (!text.trim()) throw new ApiError('AI 没有返回内容，请稍后重试')
+
+  // Older gateways may still return a completed plain-text response.
+  if (!/^\s*(?:data:|event:|:)/m.test(text)) return text.trim()
+
+  let answer = ''
+  let failure = ''
+  let completed = false
+  let dataLines = []
+
+  const dispatch = () => {
+    if (!dataLines.length || completed || failure) {
+      dataLines = []
+      return
+    }
+    const payload = dataLines.join('\n')
+    dataLines = []
+    if (payload === '[DONE]') completed = true
+    else if (payload.startsWith('[ERROR]')) failure = payload.slice(7).trim() || 'AI 服务暂时不可用'
+    else if (payload.startsWith('[CONTENT]')) answer += payload.slice(9)
+    else if (payload.startsWith('[THINKING]') || payload.startsWith('[STAGE]')) return
+    else if (payload) failure = 'AI 返回了无法识别的数据，请重试'
+  }
+
+  for (const rawLine of text.split(/\n/)) {
+    const line = rawLine.endsWith('\r') ? rawLine.slice(0, -1) : rawLine
+    if (!line) dispatch()
+    else if (line.startsWith('data:')) dataLines.push(line.slice(5).replace(/^ /, ''))
+  }
+  dispatch()
+
+  if (failure) throw new ApiError(failure)
+  if (!completed) throw new ApiError('AI 回复中断，请重试')
+  if (!answer.trim()) throw new ApiError('AI 没有返回有效回复，请稍后重试')
+  return answer
+}
+
 export const authApi = {
   async verificationConfig() {
     const result = await request('/user/verification/config', { auth: false })
@@ -205,7 +247,7 @@ export const chatApi = {
   history: (memoryId) => request(`/record/history/${memoryId}`),
   histories: () => request('/record/histories'),
   reply(memoryId, message, deepThinking = false) {
-    return request('/longcat/directChat', {
+    return request(deepThinking ? '/longcat/streamThinkChat' : '/longcat/streamChat', {
       method: 'POST',
       body: {
         userMemoryId: memoryId,
@@ -216,7 +258,7 @@ export const chatApi = {
       },
       timeout: 180_000,
       responseType: 'text',
-    })
+    }).then(parseChatStreamPayload)
   },
 }
 
@@ -228,6 +270,8 @@ export const scheduleApi = {
     method: 'PATCH', body: { completed },
   })),
   remove: (id) => request(`/api/schedules/${id}`, { method: 'DELETE' }),
+  restore: async (id) => unwrap(await request(`/api/schedules/${id}/restore`, { method: 'PATCH' })),
+  permanentRemove: (id) => request(`/api/schedules/trash/${id}`, { method: 'DELETE' }),
 }
 
 export const applicationApi = {

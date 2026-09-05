@@ -17,4 +17,4 @@ npm run dev
 npm run android:apk
 ```
 
-产物位于 `android/app/build/outputs/apk/debug/app-debug.apk`。首次打开 App 后，在登录页右上角或“我的”页面配置 API 根地址（需包含 `/xzm`）。Android 模拟器访问本机后端可填写 `http://10.0.2.2:8104/xzm`。
+产物位于 `android/app/build/outputs/apk/debug/app-debug.apk`。App 默认连接 `http://120.48.47.80:8104/xzm`，首次打开无需填写 API 地址；“我的”页面仍可按需切换到其他后端。

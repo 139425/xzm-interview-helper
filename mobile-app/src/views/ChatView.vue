@@ -10,7 +10,7 @@
     <div class="chat-mode-row">
       <button :class="{ active: !deepThinking }" type="button" @click="deepThinking = false">快速回答</button>
       <button :class="{ active: deepThinking }" type="button" @click="deepThinking = true"><AppIcon name="sparkle" /> 深度分析</button>
-      <span>DeepSeek</span>
+      <span class="model-status"><i></i>DeepSeek 在线</span>
     </div>
 
     <section ref="messageList" class="message-list" :class="{ empty: !messages.length }" @click="handleContentClick">
@@ -41,6 +41,11 @@
           <small>XZM AI</small><div class="thinking-dots"><i></i><i></i><i></i></div><p>{{ deepThinking ? '正在深入分析…' : '正在组织回答…' }}</p>
         </div>
       </article>
+
+      <aside v-if="chatError && !loading" class="chat-error" role="alert">
+        <span>!</span><div><strong>这次没有成功回复</strong><p>{{ chatError }}</p></div>
+        <button type="button" @click="retryLast">重试</button>
+      </aside>
     </section>
 
     <form class="chat-composer" @submit.prevent="send">
@@ -80,6 +85,8 @@ const composer = ref(null)
 const historyOpen = ref(false)
 const historyLoading = ref(false)
 const histories = ref([])
+const chatError = ref('')
+const lastFailedText = ref('')
 let nextId = 1
 
 const prompts = [
@@ -111,6 +118,11 @@ async function send() {
   if (!text || loading.value) return
   draft.value = ''
   messages.value.push({ id: nextId++, role: 'user', content: text })
+  await requestReply(text)
+}
+
+async function requestReply(text) {
+  chatError.value = ''
   loading.value = true
   scrollBottom()
   try {
@@ -118,7 +130,10 @@ async function send() {
     const response = await chatApi.reply(memoryId.value, text, deepThinking.value)
     const content = typeof response === 'string' ? response : response?.message || response?.content || String(response || '')
     messages.value.push({ id: nextId++, role: 'assistant', content })
+    lastFailedText.value = ''
   } catch (error) {
+    lastFailedText.value = text
+    chatError.value = error.message || 'AI 服务暂时不可用，请稍后重试'
     emit('toast', error.message, 'error')
   } finally {
     loading.value = false
@@ -126,10 +141,17 @@ async function send() {
   }
 }
 
+async function retryLast() {
+  if (!lastFailedText.value || loading.value) return
+  await requestReply(lastFailedText.value)
+}
+
 function newChat() {
   messages.value = []
   memoryId.value = null
   draft.value = ''
+  chatError.value = ''
+  lastFailedText.value = ''
   emit('toast', '已开启新对话')
 }
 

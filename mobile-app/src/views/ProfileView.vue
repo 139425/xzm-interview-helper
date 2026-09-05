@@ -17,7 +17,7 @@
       <button type="button" @click="$emit('navigate', 'chat')"><span class="settings-icon settings-icon--purple"><AppIcon name="chat" /></span><span><b>AI 对话</b><small>DeepSeek · 专业求职模式</small></span><AppIcon name="arrow" /></button>
       <button class="logout-row" type="button" @click="$emit('logout')"><span class="settings-icon settings-icon--red"><AppIcon name="logout" /></span><span><b>退出登录</b><small>本机登录凭证会被清除</small></span><AppIcon name="arrow" /></button>
     </section>
-    <footer class="app-version"><span class="brand-mark brand-mark--small">X</span><p>XZM 面试助手<br><small>Android · Version 1.0.0</small></p></footer>
+    <footer class="app-version"><span class="brand-mark brand-mark--small">X</span><p>XZM 面试助手<br><small>Android · Version 1.1.0</small></p></footer>
   </main>
 </template>
 

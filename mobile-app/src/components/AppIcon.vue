@@ -46,6 +46,12 @@
       <template v-else-if="name === 'trash'">
         <path d="M4 7h16M9 7V4h6v3M7 7l1 14h8l1-14M10 11v6M14 11v6"/>
       </template>
+      <template v-else-if="name === 'edit'">
+        <path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4M12 20h8"/>
+      </template>
+      <template v-else-if="name === 'undo'">
+        <path d="M9 7 4 12l5 5M5 12h8a6 6 0 0 1 6 6v1"/>
+      </template>
       <template v-else-if="name === 'history'">
         <path d="M4 4v5h5M4.8 9A8 8 0 1 1 4 14"/><path d="M12 7v5l3 2"/>
       </template>
