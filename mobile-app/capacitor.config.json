@@ -1,0 +1,23 @@
+{
+  "appId": "com.xzm.interviewhelper",
+  "appName": "XZM 面试助手",
+  "webDir": "dist",
+  "backgroundColor": "#F6F7FB",
+  "android": {
+    "allowMixedContent": true,
+    "backgroundColor": "#F6F7FB"
+  },
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#F6F7FB",
+      "overlaysWebView": false
+    }
+  }
+}

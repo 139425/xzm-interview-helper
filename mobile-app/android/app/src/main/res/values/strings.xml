@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">XZM 面试助手</string>
+    <string name="title_activity_main">XZM 面试助手</string>
+    <string name="package_name">com.xzm.interviewhelper</string>
+    <string name="custom_url_scheme">com.xzm.interviewhelper</string>
+</resources>

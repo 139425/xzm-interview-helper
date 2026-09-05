@@ -1,0 +1,29 @@
+{
+  "name": "xzm-interview-helper-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "test": "vitest run",
+    "android:sync": "npm run build && cap sync android",
+    "android:apk": "npm run android:sync && cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "7.4.3",
+    "@capacitor/browser": "7.0.2",
+    "@capacitor/core": "7.4.3",
+    "@capacitor/status-bar": "7.0.3",
+    "dompurify": "3.4.14",
+    "marked": "17.0.1",
+    "vue": "3.5.21"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "7.4.3",
+    "@vitejs/plugin-vue": "6.0.1",
+    "jsdom": "26.1.0",
+    "vite": "7.1.7",
+    "vitest": "3.2.4"
+  }
+}

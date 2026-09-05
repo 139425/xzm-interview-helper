@@ -42,6 +42,8 @@ frontend/test-artifacts/
 **/*.jar
 **/*.zip
 **/*.tar.gz
+/*.apk
+/*.idsig
 
 # Logs, reports, IDE files, and operating-system metadata
 **/*.log
