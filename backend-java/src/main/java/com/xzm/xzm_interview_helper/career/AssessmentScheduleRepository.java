@@ -116,6 +116,28 @@ public class AssessmentScheduleRepository {
         return findOwnedActive(userId, id == null ? 0 : id);
     }
 
+    public Schedule update(int userId, long id, AssessmentScheduleRequest request) {
+        String eventType = requireEventType(request.getEventType());
+        validateRange(request.getStartAt(), request.getEndAt());
+        jdbcTemplate.update("""
+                        UPDATE assessment_schedule
+                        SET company = ?, role_name = ?, event_type = ?, start_at = ?, end_at = ?,
+                            event_url = ?, notes = ?
+                        WHERE id = ? AND user_id = ? AND deleted_at IS NULL
+                        """,
+                required(request.getCompany(), 200, "公司不能为空"),
+                clip(request.getRoleName(), 300),
+                eventType,
+                request.getStartAt(),
+                request.getEndAt(),
+                safeUrl(request.getEventUrl()),
+                clip(request.getNotes(), 1_000),
+                id,
+                userId
+        );
+        return findOwnedActive(userId, id);
+    }
+
     public Schedule setCompleted(int userId, long id, boolean completed) {
         jdbcTemplate.update(
                 "UPDATE assessment_schedule SET completed_at = "

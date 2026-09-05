@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -56,6 +57,15 @@ public class AssessmentScheduleController {
             HttpServletRequest request
     ) {
         return response(schedules.create(AuthenticatedUser.id(request), body));
+    }
+
+    @PutMapping("/{id}")
+    public Map<String, Object> update(
+            @PathVariable long id,
+            @Valid @RequestBody AssessmentScheduleRequest body,
+            HttpServletRequest request
+    ) {
+        return response(schedules.update(AuthenticatedUser.id(request), id, body));
     }
 
     @PatchMapping("/{id}/completed")

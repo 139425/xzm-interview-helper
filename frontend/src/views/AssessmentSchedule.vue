@@ -330,15 +330,26 @@
                     <span aria-hidden="true">✓</span>
                     完成
                   </button>
-                  <button
-                    type="button"
-                    class="delete-button"
-                    :disabled="busyId === item.id"
-                    :aria-label="`将 ${item.company} 的日程移到回收站`"
-                    @click="removeSchedule(item)"
-                  >
-                    删除
-                  </button>
+                  <div class="secondary-actions">
+                    <button
+                      type="button"
+                      class="edit-button"
+                      :disabled="busyId === item.id"
+                      :aria-label="`编辑 ${item.company} 的${eventMeta(item.eventType).label}`"
+                      @click="openEditDialog(item)"
+                    >
+                      编辑
+                    </button>
+                    <button
+                      type="button"
+                      class="delete-button"
+                      :disabled="busyId === item.id"
+                      :aria-label="`将 ${item.company} 的日程移到回收站`"
+                      @click="removeSchedule(item)"
+                    >
+                      删除
+                    </button>
+                  </div>
                 </div>
               </article>
             </li>
@@ -362,19 +373,139 @@
                     {{ shortTime(item.startAt) }}
                   </small>
                 </div>
-                <button
-                  type="button"
-                  :disabled="busyId === item.id"
-                  @click="setCompleted(item, false)"
-                >
-                  恢复
-                </button>
+                <div class="completed-actions">
+                  <button
+                    type="button"
+                    class="completed-edit-button"
+                    :disabled="busyId === item.id"
+                    @click="openEditDialog(item)"
+                  >
+                    编辑
+                  </button>
+                  <button
+                    type="button"
+                    :disabled="busyId === item.id"
+                    @click="setCompleted(item, false)"
+                  >
+                    恢复
+                  </button>
+                </div>
               </li>
             </ul>
           </details>
         </section>
       </div>
     </main>
+
+    <div
+      v-if="editOpen"
+      class="dialog-backdrop edit-backdrop"
+      @click.self="closeEditDialog"
+    >
+      <section
+        class="edit-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-title"
+        @keydown.esc="closeEditDialog"
+      >
+        <header>
+          <div>
+            <small>EDIT SCHEDULE</small>
+            <h2 id="edit-title">编辑日程</h2>
+          </div>
+          <button
+            type="button"
+            aria-label="关闭编辑日程"
+            :disabled="editSaving"
+            @click="closeEditDialog"
+          >
+            ×
+          </button>
+        </header>
+
+        <form class="edit-form" @submit.prevent="saveEdit">
+          <fieldset class="import-type-picker">
+            <legend>安排类型</legend>
+            <label
+              v-for="type in eventTypes"
+              :key="type.value"
+              :class="{ active: editForm.eventType === type.value }"
+            >
+              <input
+                v-model="editForm.eventType"
+                type="radio"
+                :value="type.value"
+              />
+              {{ type.label }}
+            </label>
+          </fieldset>
+
+          <div class="import-grid">
+            <label>
+              <span>公司名 <b>*</b></span>
+              <input
+                v-model.trim="editForm.company"
+                maxlength="200"
+                required
+                autocomplete="organization"
+              />
+            </label>
+            <label>
+              <span>岗位名称 <em>选填</em></span>
+              <input v-model.trim="editForm.roleName" maxlength="300" />
+            </label>
+            <label>
+              <span>开始时间 <b>*</b></span>
+              <input
+                v-model="editForm.startAt"
+                type="datetime-local"
+                required
+              />
+            </label>
+            <label>
+              <span>结束时间 <em>选填</em></span>
+              <input v-model="editForm.endAt" type="datetime-local" />
+            </label>
+            <label class="wide">
+              <span>笔试 / 面试链接 <em>选填</em></span>
+              <input
+                v-model.trim="editForm.eventUrl"
+                type="url"
+                maxlength="2048"
+                placeholder="https://"
+              />
+            </label>
+            <label class="wide">
+              <span>备注 <em>选填</em></span>
+              <textarea
+                v-model.trim="editForm.notes"
+                maxlength="1000"
+                rows="4"
+              ></textarea>
+            </label>
+          </div>
+
+          <footer>
+            <button
+              type="button"
+              class="quiet-button"
+              :disabled="editSaving"
+              @click="closeEditDialog"
+            >
+              取消
+            </button>
+            <button
+              type="submit"
+              class="confirm-import-button"
+              :disabled="editSaving"
+            >
+              {{ editSaving ? "正在保存…" : "保存修改" }}
+            </button>
+          </footer>
+        </form>
+      </section>
+    </div>
 
     <div
       v-if="pasteCaptureOpen"
@@ -678,6 +809,8 @@ const trashItems = ref([]);
 const loading = ref(true);
 const saving = ref(false);
 const busyId = ref(null);
+const editOpen = ref(false);
+const editSaving = ref(false);
 const trashOpen = ref(false);
 const importControl = ref(null);
 const importMenuOpen = ref(false);
@@ -732,6 +865,21 @@ function emptyForm() {
 }
 
 const form = reactive(emptyForm());
+
+function emptyEditForm() {
+  return {
+    id: null,
+    company: "",
+    roleName: "",
+    eventType: "INTERVIEW",
+    startAt: "",
+    endAt: "",
+    eventUrl: "",
+    notes: "",
+  };
+}
+
+const editForm = reactive(emptyEditForm());
 
 const pendingItems = computed(() =>
   items.value
@@ -843,6 +991,57 @@ async function createSchedule() {
     ElMessage.error(error.response?.data?.message || "日程添加失败");
   } finally {
     saving.value = false;
+  }
+}
+
+function openEditDialog(item) {
+  Object.assign(editForm, emptyEditForm(), {
+    id: item.id,
+    company: item.company || "",
+    roleName: item.roleName || "",
+    eventType: item.eventType || "INTERVIEW",
+    startAt: item.startAt?.slice(0, 16) || "",
+    endAt: item.endAt?.slice(0, 16) || "",
+    eventUrl: item.eventUrl || "",
+    notes: item.notes || "",
+  });
+  editOpen.value = true;
+}
+
+function closeEditDialog() {
+  if (editSaving.value) return;
+  editOpen.value = false;
+  Object.assign(editForm, emptyEditForm());
+}
+
+async function saveEdit() {
+  if (
+    editForm.endAt &&
+    timestamp(editForm.endAt) <= timestamp(editForm.startAt)
+  ) {
+    ElMessage.warning("结束时间需要晚于开始时间");
+    return;
+  }
+  editSaving.value = true;
+  try {
+    const updated = await scheduleApi.update(editForm.id, {
+      company: editForm.company,
+      roleName: editForm.roleName || "",
+      eventType: editForm.eventType,
+      startAt: editForm.startAt,
+      endAt: editForm.endAt || null,
+      eventUrl: editForm.eventUrl || "",
+      notes: editForm.notes || "",
+    });
+    const current = items.value.find((item) => item.id === editForm.id);
+    if (current && updated) Object.assign(current, updated);
+    editOpen.value = false;
+    Object.assign(editForm, emptyEditForm());
+    ElMessage.success("日程修改已保存");
+  } catch (error) {
+    ElMessage.error(error.response?.data?.message || "日程修改失败");
+  } finally {
+    editSaving.value = false;
   }
 }
 
@@ -2136,6 +2335,7 @@ onBeforeUnmount(() => {
 }
 
 .complete-button,
+.edit-button,
 .delete-button,
 .completed-section button {
   border: 0 !important;
@@ -2144,6 +2344,7 @@ onBeforeUnmount(() => {
 }
 
 .complete-button,
+.edit-button,
 .delete-button {
   background: transparent !important;
   box-shadow: none !important;
@@ -2181,11 +2382,29 @@ onBeforeUnmount(() => {
   transform: scale(1.05);
 }
 
+.secondary-actions {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.edit-button,
 .delete-button {
   padding: 5px;
-  color: var(--xzm-text-muted) !important;
   background: transparent !important;
   font-size: 0.58rem;
+}
+
+.edit-button {
+  color: var(--xzm-brand) !important;
+}
+
+.edit-button:hover {
+  color: var(--xzm-brand-strong) !important;
+}
+
+.delete-button {
+  color: var(--xzm-text-muted) !important;
 }
 
 .delete-button:hover {
@@ -2295,6 +2514,15 @@ onBeforeUnmount(() => {
   background: var(--xzm-brand-soft);
 }
 
+.completed-actions {
+  display: flex !important;
+  gap: 2px !important;
+}
+
+.completed-edit-button {
+  color: var(--xzm-text-tertiary) !important;
+}
+
 .dialog-backdrop {
   position: fixed;
   inset: 0;
@@ -2304,6 +2532,66 @@ onBeforeUnmount(() => {
   padding: 18px;
   background: rgba(12, 27, 25, 0.42);
   backdrop-filter: blur(6px) saturate(115%);
+}
+
+.edit-dialog {
+  width: min(680px, 100%);
+  max-height: calc(100dvh - 36px);
+  overflow: auto;
+  border: 1px solid var(--xzm-border-color);
+  border-radius: 4px 18px 18px 18px;
+  color: var(--xzm-text-primary);
+  background: var(--xzm-surface-elevated);
+  box-shadow: 0 28px 80px rgba(13, 38, 35, 0.24);
+}
+
+.edit-dialog > header {
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--xzm-border-color);
+}
+
+.edit-dialog header small {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--xzm-brand);
+  font: 800 0.57rem/1 var(--xzm-font-data);
+  letter-spacing: 0.14em;
+}
+
+.edit-dialog h2 {
+  margin: 0;
+  font-family: var(--xzm-font-display);
+  font-size: 1.22rem;
+  letter-spacing: -0.03em;
+}
+
+.edit-dialog > header > button {
+  width: 34px;
+  height: 34px;
+  border: 0 !important;
+  border-radius: 8px;
+  color: var(--xzm-text-tertiary) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 1.35rem;
+  cursor: pointer;
+}
+
+.edit-form {
+  padding: 4px 20px 20px;
+}
+
+.edit-form > footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--xzm-border-color);
 }
 
 .import-dialog {
@@ -3145,6 +3433,9 @@ onBeforeUnmount(() => {
   .delete-button {
     padding-inline: 8px;
   }
+  .edit-button {
+    padding-inline: 8px;
+  }
   .completed-section {
     margin: 0 11px 6px 69px;
   }
@@ -3173,6 +3464,27 @@ onBeforeUnmount(() => {
     max-height: 100dvh;
     border: 0;
     border-radius: 0;
+  }
+  .edit-dialog {
+    width: calc(100% - 18px);
+    max-height: calc(100dvh - 18px);
+    border-radius: 14px;
+  }
+  .edit-dialog > header {
+    min-height: 62px;
+    padding: 10px 13px;
+  }
+  .edit-form {
+    padding: 4px 14px 18px;
+  }
+  .edit-form .import-grid {
+    grid-template-columns: 1fr;
+  }
+  .edit-form .import-grid .wide {
+    grid-column: auto;
+  }
+  .edit-form .import-grid input {
+    height: 44px;
   }
   .import-dialog > header,
   .trash-drawer > header {

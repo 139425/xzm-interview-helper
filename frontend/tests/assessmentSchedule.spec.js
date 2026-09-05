@@ -5,6 +5,7 @@ import AssessmentSchedule from "@/views/AssessmentSchedule.vue";
 const mocks = vi.hoisted(() => ({
   list: vi.fn(),
   create: vi.fn(),
+  update: vi.fn(),
   setCompleted: vi.fn(),
   remove: vi.fn(),
   restore: vi.fn(),
@@ -20,6 +21,7 @@ vi.mock("@/api/career", () => ({
   scheduleApi: {
     list: mocks.list,
     create: mocks.create,
+    update: mocks.update,
     setCompleted: mocks.setCompleted,
     remove: mocks.remove,
     restore: mocks.restore,
@@ -104,6 +106,11 @@ describe("AssessmentSchedule workspace", () => {
       ...payload,
       completedAt: null,
     }));
+    mocks.update.mockImplementation(async (id, payload) => ({
+      ...schedules.find((item) => item.id === id),
+      ...payload,
+      id,
+    }));
     mocks.setCompleted.mockImplementation(async (id, completed) => ({
       ...schedules.find((item) => item.id === id),
       completedAt: completed ? "2026-08-24T12:01:00" : null,
@@ -181,6 +188,45 @@ describe("AssessmentSchedule workspace", () => {
     expect(wrapper.text()).toContain("星河云");
   });
 
+  it("edits every active schedule field and updates the card in place", async () => {
+    const wrapper = mountPage();
+    await flushPromises();
+
+    expect(wrapper.findAll(".edit-button")).toHaveLength(2);
+    expect(wrapper.findAll(".completed-edit-button")).toHaveLength(1);
+    await wrapper.get(".edit-button").trigger("click");
+
+    const editForm = wrapper.get(".edit-form");
+    const textInputs = editForm.findAll(
+      'input:not([type="radio"]):not([type="datetime-local"])',
+    );
+    expect(textInputs[0].element.value).toBe("昨日智能");
+    await textInputs[0].setValue("昨日智能科技");
+    await textInputs[1].setValue("Java 后端");
+    await editForm
+      .get('input[type="radio"][value="ASSESSMENT"]')
+      .setValue(true);
+    const dateInputs = editForm.findAll('input[type="datetime-local"]');
+    await dateInputs[0].setValue("2026-08-28T09:30");
+    await dateInputs[1].setValue("2026-08-28T10:30");
+    await textInputs[2].setValue("https://example.com/assessment");
+    await editForm.get("textarea").setValue("提前测试设备");
+    await editForm.trigger("submit");
+    await flushPromises();
+
+    expect(mocks.update).toHaveBeenCalledWith(2, {
+      company: "昨日智能科技",
+      roleName: "Java 后端",
+      eventType: "ASSESSMENT",
+      startAt: "2026-08-28T09:30",
+      endAt: "2026-08-28T10:30",
+      eventUrl: "https://example.com/assessment",
+      notes: "提前测试设备",
+    });
+    expect(wrapper.find(".edit-dialog").exists()).toBe(false);
+    expect(wrapper.get(".schedule-list").text()).toContain("昨日智能科技");
+  });
+
   it("completes and restores completed schedules through direct actions", async () => {
     const wrapper = mountPage();
     await flushPromises();
@@ -192,7 +238,7 @@ describe("AssessmentSchedule workspace", () => {
     const completedRecord = wrapper
       .findAll(".completed-section li")
       .find((row) => row.text().includes("完成网络"));
-    const restore = completedRecord.get("button");
+    const restore = completedRecord.findAll("button").at(-1);
     await restore.trigger("click");
     await flushPromises();
     expect(mocks.setCompleted).toHaveBeenCalledWith(3, false);

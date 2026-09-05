@@ -36,6 +36,9 @@ export const scheduleApi = {
   async create(payload) {
     return data(await request.post('/api/schedules', payload), null)
   },
+  async update(id, payload) {
+    return data(await request.put(`/api/schedules/${id}`, payload), null)
+  },
   async setCompleted(id, completed) {
     return data(
       await request.patch(`/api/schedules/${id}/completed`, { completed }),

@@ -114,6 +114,52 @@ class AssessmentScheduleRepositoryTest {
         assertEquals(HttpStatus.BAD_REQUEST, rangeError.getStatusCode());
     }
 
+    @Test
+    void updateChangesOnlyAnOwnedActiveSchedule() {
+        AssessmentScheduleRepository.Schedule existing = new AssessmentScheduleRepository.Schedule(
+                77L,
+                "Updated Company",
+                "Backend Engineer",
+                "WRITTEN_TEST",
+                LocalDateTime.of(2026, 9, 10, 14, 0),
+                LocalDateTime.of(2026, 9, 10, 16, 0),
+                "https://example.com/exam",
+                "Bring an ID",
+                null,
+                null,
+                null,
+                LocalDateTime.of(2026, 9, 1, 10, 0),
+                LocalDateTime.of(2026, 9, 3, 10, 0)
+        );
+        when(jdbcTemplate.query(any(String.class), any(RowMapper.class), any(Object[].class)))
+                .thenReturn(List.of(existing));
+
+        AssessmentScheduleRequest request = request();
+        request.setCompany(" Updated Company ");
+        request.setRoleName("Backend Engineer");
+        request.setEventType("written_test");
+        request.setStartAt(LocalDateTime.of(2026, 9, 10, 14, 0));
+        request.setEndAt(LocalDateTime.of(2026, 9, 10, 16, 0));
+        request.setEventUrl("https://example.com/exam");
+        request.setNotes("Bring an ID");
+
+        AssessmentScheduleRepository.Schedule updated = repository.update(12, 77L, request);
+
+        assertEquals("Updated Company", updated.company());
+        verify(jdbcTemplate).update(
+                contains("WHERE id = ? AND user_id = ? AND deleted_at IS NULL"),
+                eq("Updated Company"),
+                eq("Backend Engineer"),
+                eq("WRITTEN_TEST"),
+                eq(LocalDateTime.of(2026, 9, 10, 14, 0)),
+                eq(LocalDateTime.of(2026, 9, 10, 16, 0)),
+                eq("https://example.com/exam"),
+                eq("Bring an ID"),
+                eq(77L),
+                eq(12)
+        );
+    }
+
     private AssessmentScheduleRequest request() {
         AssessmentScheduleRequest request = new AssessmentScheduleRequest();
         request.setCompany("Example");
