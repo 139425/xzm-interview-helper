@@ -23,7 +23,7 @@ describe('MessageItem', () => {
     })
 
     await wrapper.vm.$nextTick()
-    expect(wrapper.text()).toContain('Assistant')
+    expect(wrapper.text()).toContain('面试助手')
     expect(wrapper.text()).toContain('hello from assistant')
   })
 })

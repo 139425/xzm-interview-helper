@@ -10,6 +10,7 @@
   <!-- 收起状态的展开按钮（所有设备） -->
   <!-- 侧边栏容器 -->
   <aside
+    ref="sidebarElement"
     class="gemini-sidebar"
     :class="{
       expanded: uiStore.sidebarExpanded,
@@ -42,7 +43,7 @@
       <!-- Logo 和标题（仅展开时显示） -->
       <div v-if="showExpandedContent" class="logo-section">
         <span class="app-icon" aria-hidden="true">IA</span>
-        <span class="logo-text">AI 助手</span>
+        <span class="logo-text">面试助手</span>
       </div>
     </div>
 
@@ -63,19 +64,19 @@
 
     <nav class="workspace-switcher" aria-label="工作区切换">
       <div v-if="showExpandedContent" class="workspace-heading">
-        <span class="workspace-label">WORKSPACES</span>
+        <span class="workspace-label">工作空间</span>
         <button
           type="button"
           class="workspace-density-toggle"
           :aria-expanded="uiStore.workspaceListExpanded"
           :title="
             uiStore.workspaceListExpanded
-              ? '只展开当前工作区'
+              ? '收起功能说明'
               : '展开全部工作区说明'
           "
           @click="uiStore.toggleWorkspaceList"
         >
-          <span>{{ uiStore.workspaceListExpanded ? '收拢' : '展开' }}</span>
+          <span>{{ uiStore.workspaceListExpanded ? '精简' : '说明' }}</span>
           <el-icon :size="13">
             <ArrowUp v-if="uiStore.workspaceListExpanded" />
             <ArrowDown v-else />
@@ -106,7 +107,7 @@
           <span v-if="showExpandedContent" class="mode-copy">
             <strong>{{ item.label }}</strong>
             <small
-              v-if="uiStore.workspaceListExpanded || activeMode === item.id"
+              v-if="uiStore.workspaceListExpanded"
             >
               {{ item.description }}
             </small>
@@ -280,7 +281,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeUnmount, onMounted, watch } from 'vue'
+import { ref, computed, onBeforeUnmount, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUIStore } from '../stores/ui'
 import { useChatStore } from '../stores/chat'
@@ -321,6 +322,7 @@ const props = defineProps({
         'schedule',
         'knowledge',
         'serverAgent',
+        'users',
       ].includes(value),
   },
 })
@@ -339,6 +341,30 @@ const router = useRouter()
 const uiStore = useUIStore()
 const chatStore = useChatStore()
 const userStore = useUserStore()
+const sidebarElement = ref(null)
+let sidebarReturnFocus
+function handleSidebarKey(event) {
+  if (!uiStore.isMobile || !uiStore.sidebarExpanded) return
+  if (event.key === 'Escape') { event.preventDefault(); uiStore.collapseSidebar(); return }
+  if (event.key !== 'Tab') return
+  const nodes = [...sidebarElement.value.querySelectorAll('button:not(:disabled), input, a[href]')].filter(el => el.getClientRects().length)
+  const first = nodes[0], last = nodes.at(-1)
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+}
+watch(() => uiStore.isMobile && uiStore.sidebarExpanded, async (open) => {
+  if (open) {
+    sidebarReturnFocus = document.activeElement
+    document.addEventListener('keydown', handleSidebarKey)
+    await nextTick()
+    sidebarElement.value?.querySelector('button')?.focus({ preventScroll: true })
+  } else {
+    document.removeEventListener('keydown', handleSidebarKey)
+    await nextTick()
+    if (sidebarReturnFocus?.isConnected) sidebarReturnFocus.focus({ preventScroll: true })
+    sidebarReturnFocus = null
+  }
+}, { immediate: true })
 
 // 状态
 const loading = ref(false)
@@ -417,16 +443,11 @@ const modeItems = [
     adminOnly: true,
   },
 ]
+modeItems.push({ id: 'users', label: '用户管理', description: '账号与权限', icon: Collection, route: '/admin/users', adminOnly: true })
 const availableModeItems = computed(() =>
   modeItems.filter((item) => !item.adminOnly || userStore.isAdmin),
 )
-const visibleModeItems = computed(() => {
-  // “工作区收拢”只保留当前入口；侧边栏整体收窄为图标轨道时，
-  // 仍展示全部图标，保证不必先展开侧栏才能切换功能。
-  if (!showExpandedContent.value || uiStore.workspaceListExpanded)
-    return availableModeItems.value
-  return availableModeItems.value.filter((item) => item.id === activeMode.value)
-})
+const visibleModeItems = availableModeItems
 
 // 分页状态
 const currentPage = ref(1)
@@ -913,6 +934,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleSidebarKey)
   isUnmounted = true
   historyRequestId += 1
   historySelectionRequestId += 1
@@ -1682,4 +1704,36 @@ defineExpose({
     transition-duration: 1ms;
   }
 }
+
+/* Mist: fixed navigation above independently scrolling task context. */
+.gemini-sidebar { height: 100dvh; background: var(--xzm-surface-1); will-change: auto; }
+.sidebar-top { min-height: 60px; gap: 6px; border-bottom: 0; padding: 8px; flex-shrink: 0; }
+.app-icon { box-shadow: none; border-radius: 6px; }
+.logo-text { font-size: 14px; letter-spacing: .02em; }
+.sidebar-actions { padding: 4px 10px 12px; border-bottom: 0; flex-shrink: 0; }
+.new-chat-btn { background: var(--xzm-surface-elevated); border: 1px solid var(--xzm-border-color); border-radius: 10px; box-shadow: var(--xzm-shadow-soft); }
+.workspace-switcher { flex-shrink: 0; padding: 4px 10px 12px; max-height: 53dvh; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.workspace-label { font-size: 10px; font-weight: 500; letter-spacing: .08em; }
+.mode-switcher { gap: 3px; }
+.mode-btn, .mode-btn.is-compact { min-height: 36px; padding: 7px 10px; border: 0; border-radius: 8px; box-shadow: none; background: transparent; gap: 10px; }
+.mode-btn.active { background: var(--xzm-signal); color: var(--xzm-signal-ink); box-shadow: none; }
+.mode-btn.active::before { display: none; }
+.mode-copy strong { font-size: 13px; font-weight: 500; }
+.mode-copy small { font-size: 10px; }
+.mode-icon { width: 20px; height: 22px; flex: 0 0 20px; border: 0; background: transparent; box-shadow: none; color: inherit; }
+.mode-btn.active .mode-icon { color: inherit; background: transparent; }
+.history-section, .algorithm-context { min-height: 0; flex: 1; overflow: hidden; }
+.history-header { padding-top: 16px; }
+.history-title { font-size: 11px; font-weight: 500; color: var(--xzm-text-tertiary); }
+.history-item { border-radius: 8px; }
+.history-item.active { background: var(--xzm-brand-soft); border-color: transparent; }
+.history-primary { padding: 9px; }
+.item-title { font-size: 12px; font-weight: 400; line-height: 1.5; }
+.item-meta { font-size: 10px; }
+.gemini-sidebar.collapsed .mode-btn { width: 40px; min-width: 40px; padding: 9px; }
+.gemini-sidebar.collapsed .workspace-switcher { padding-inline: 11px; }
+.gemini-sidebar.collapsed .sidebar-actions { padding-inline: 10px; }
+.gemini-sidebar.collapsed .new-chat-btn { padding: 0; justify-content: center; }
+@media (max-width: 768px) { .workspace-switcher { max-height: 53dvh; } .mode-btn, .mode-btn.is-compact { min-height: 42px; } }
+
 </style>

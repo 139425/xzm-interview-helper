@@ -4,6 +4,7 @@
 
     <section
       class="workspace-frame__body"
+      :inert="uiStore.isMobile && uiStore.sidebarExpanded"
       :style="{ marginLeft: `${uiStore.sidebarWidth}px` }"
     >
       <header class="workspace-frame__topbar">
@@ -24,7 +25,6 @@
             mark
           }}</span>
           <div>
-            <small>{{ eyebrow }}</small>
             <strong>{{ title }}</strong>
           </div>
         </div>
@@ -47,11 +47,11 @@
 </template>
 
 <script setup>
-import { watch } from 'vue'
-import { Expand, Fold } from '@element-plus/icons-vue'
-import GeminiSidebar from '@/components/GeminiSidebar.vue'
-import UserAvatar from '@/components/UserAvatar.vue'
-import { useUIStore } from '@/stores/ui'
+import { watch } from "vue";
+import { Expand, Fold } from "@element-plus/icons-vue";
+import GeminiSidebar from "@/components/GeminiSidebar.vue";
+import UserAvatar from "@/components/UserAvatar.vue";
+import { useUIStore } from "@/stores/ui";
 
 const props = defineProps({
   mode: {
@@ -64,41 +64,28 @@ const props = defineProps({
   },
   eyebrow: {
     type: String,
-    default: 'WORKSPACE',
+    default: "WORKSPACE",
   },
   mark: {
     type: String,
-    default: 'IA',
+    default: "IA",
   },
-})
+});
 
-const uiStore = useUIStore()
+const uiStore = useUIStore();
 
 watch(
   () => props.mode,
   (mode) => uiStore.switchMode(mode),
   { immediate: true },
-)
+);
 </script>
 
 <style scoped>
 .workspace-frame {
   min-height: 100vh;
   color: var(--xzm-text-primary);
-  background:
-    linear-gradient(rgba(11, 107, 100, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(11, 107, 100, 0.025) 1px, transparent 1px),
-    radial-gradient(
-      circle at 78% 0%,
-      rgba(11, 107, 100, 0.1),
-      transparent 31rem
-    ),
-    var(--xzm-surface-0);
-  background-size:
-    28px 28px,
-    28px 28px,
-    auto,
-    auto;
+  background: var(--xzm-surface-0);
   font-family: var(--xzm-font-sans);
 }
 
@@ -120,7 +107,7 @@ watch(
   padding: 8px 24px;
   border-bottom: 1px solid var(--xzm-border-color);
   background: color-mix(in srgb, var(--xzm-surface-elevated) 93%, transparent);
-  box-shadow: 0 1px 0 rgba(7, 72, 66, 0.025);
+  box-shadow: 0 1px 0 rgba(52, 78, 124, 0.025);
   backdrop-filter: blur(18px) saturate(130%);
 }
 
@@ -257,6 +244,35 @@ watch(
 @media (prefers-reduced-motion: reduce) {
   .workspace-frame__body {
     transition-duration: 1ms;
+  }
+}
+
+.workspace-frame__topbar {
+  min-height: 60px;
+  box-shadow: none;
+  backdrop-filter: none;
+  background: var(--xzm-surface-0);
+}
+.workspace-frame__identity strong {
+  font-size: 13px;
+  font-weight: 550;
+}
+.workspace-frame__mark {
+  width: 27px;
+  height: 27px;
+  flex-basis: 27px;
+  border: 0;
+  box-shadow: none;
+  background: var(--xzm-brand-soft);
+  color: var(--xzm-brand);
+  font-size: 10px;
+}
+.workspace-frame__content {
+  min-height: calc(100dvh - 60px);
+}
+@media (max-width: 768px) {
+  .workspace-frame__actions {
+    gap: 6px;
   }
 }
 </style>

@@ -1,0 +1,99 @@
+{
+  "JOBS": [
+    {
+      "id": "job-1",
+      "company": "\u661f\u6cb3\u4e91\u8ba1\u7b97",
+      "title": "2027 \u5c4a\u6821\u56ed\u62db\u8058\u6b63\u5f0f\u542f\u52a8",
+      "positions": "Java \u540e\u7aef\u3001\u7b97\u6cd5\u5de5\u7a0b\u5e08\u3001\u6570\u636e\u5e73\u53f0\u5f00\u53d1",
+      "industry": "IT/\u4e92\u8054\u7f51",
+      "locations": "\u5317\u4eac / \u4e0a\u6d77 / \u6df1\u5733",
+      "recruitmentType": "\u79cb\u62db\u6b63\u5f0f\u6279",
+      "targetGraduates": "2027 \u5c4a\u6bd5\u4e1a\u751f",
+      "deadline": "2026-09-30",
+      "publishedDate": "2026-08-12",
+      "firstSeenAt": "2026-08-12T12:00:00Z",
+      "sourceKind": "OFFICIAL",
+      "sourceName": "\u661f\u6cb3\u62db\u8058\u5b98\u7f51",
+      "announcementUrl": "https://example.com/announcement",
+      "applyUrl": "https://example.com/apply"
+    },
+    {
+      "id": "job-2",
+      "company": "\u5f00\u6e90\u667a\u9020",
+      "title": "\u7814\u53d1\u5c97\u4f4d\u63d0\u524d\u6279",
+      "positions": "\u5d4c\u5165\u5f0f\u3001\u82af\u7247\u9a8c\u8bc1\u3001\u6d4b\u8bd5\u5f00\u53d1",
+      "industry": "\u786c\u4ef6/\u534a\u5bfc\u4f53",
+      "locations": "\u676d\u5dde / \u82cf\u5dde",
+      "recruitmentType": "\u63d0\u524d\u6279",
+      "targetGraduates": "\u672c\u7855\u535a",
+      "deadline": "\u4ee5\u516c\u544a\u4e3a\u51c6",
+      "publishedDate": "2026-08-11",
+      "firstSeenAt": "2026-08-11T12:00:00Z",
+      "sourceKind": "WECHAT",
+      "sourceName": "\u5fae\u4fe1\u516c\u4f17\u53f7\u516c\u5f00\u6587\u7ae0",
+      "announcementUrl": "https://example.com/wechat",
+      "applyUrl": "https://example.com/apply-2"
+    }
+  ],
+  "APPLICATIONS": [
+    {
+      "id": "application-1",
+      "company": "\u661f\u6cb3\u4e91\u8ba1\u7b97",
+      "applyUrl": "https://example.com/apply",
+      "roleName": "Java \u540e\u7aef\u5de5\u7a0b\u5e08",
+      "status": "APPLIED",
+      "location": "\u5317\u4eac",
+      "deadline": "2026-09-30",
+      "nextAction": "\u590d\u4e60 MySQL \u7d22\u5f15",
+      "nextActionAt": "2026-08-15T20:00:00",
+      "notes": "\u5b98\u7f51\u6295\u9012",
+      "updatedAt": "2026-08-14T09:20:00Z"
+    },
+    {
+      "id": "application-2",
+      "company": "\u5f00\u6e90\u667a\u9020",
+      "applyUrl": "https://example.com/apply-2",
+      "roleName": "\u6d4b\u8bd5\u5f00\u53d1\u5de5\u7a0b\u5e08",
+      "status": "INTERVIEW_1",
+      "location": "\u676d\u5dde",
+      "nextAction": "\u51c6\u5907\u9879\u76ee\u4ecb\u7ecd",
+      "nextActionAt": "2026-08-16T10:00:00",
+      "updatedAt": "2026-08-13T12:00:00Z"
+    }
+  ],
+  "DOCUMENTS": [
+    {
+      "id": "knowledge-1",
+      "title": "Java \u540e\u7aef\u5c97\u4f4d\u8bf4\u660e",
+      "sourceType": "CAREER_CONTEXT",
+      "contentChars": 1260,
+      "updatedAt": "2026-08-12T11:00:00Z"
+    }
+  ],
+  "PROBLEMS": [
+    {
+      "slug": "two-sum",
+      "frontendId": "1",
+      "title": "\u4e24\u6570\u4e4b\u548c",
+      "difficulty": "EASY",
+      "timeLimitMinutes": 20,
+      "sources": ["HOT100", "CODETOP"],
+      "judgeable": true
+    }
+  ],
+  "PROBLEM_DETAIL": {
+    "slug": "two-sum",
+    "frontendId": "1",
+    "title": "\u4e24\u6570\u4e4b\u548c",
+    "difficulty": "EASY",
+    "timeLimitMinutes": 20,
+    "sources": ["HOT100", "CODETOP"],
+    "judgeable": true,
+    "contentHtml": "<h2>\u9898\u76ee</h2><p>\u7ed9\u5b9a\u4e00\u4e2a\u6574\u6570\u6570\u7ec4\u548c\u76ee\u6807\u503c\uff0c\u8fd4\u56de\u548c\u4e3a\u76ee\u6807\u503c\u7684\u4e24\u4e2a\u4e0b\u6807\u3002</p><h3>\u8981\u6c42</h3><p>\u8bf7\u5206\u6790\u65f6\u95f4\u590d\u6742\u5ea6\u4e0e\u7a7a\u95f4\u590d\u6742\u5ea6\u3002</p>",
+    "sampleTestCase": "nums = [2,7,11,15], target = 9",
+    "tags": ["\u6570\u7ec4", "\u54c8\u5e0c\u8868"],
+    "codeTemplates": {
+      "java": "class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        return new int[0];\n    }\n}"
+    }
+  }
+}

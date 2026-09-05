@@ -401,23 +401,23 @@ monaco.editor.defineTheme("xzm-light", {
   inherit: true,
   rules: [
     { token: "keyword", foreground: "245B8A", fontStyle: "bold" },
-    { token: "type.identifier", foreground: "0D8068" },
+    { token: "type.identifier", foreground: "526FA6" },
     { token: "identifier", foreground: "263442" },
     { token: "string", foreground: "9A5D00" },
     { token: "number", foreground: "A33A58" },
     { token: "comment", foreground: "7B8794", fontStyle: "italic" },
   ],
   colors: {
-    "editor.background": "#EDF3EF",
-    "editor.foreground": "#263832",
-    "editor.lineHighlightBackground": "#E3EBE6",
-    "editorLineNumber.foreground": "#87968F",
-    "editorLineNumber.activeForeground": "#0D8068",
-    "editor.selectionBackground": "#C7E4DB",
-    "editorCursor.foreground": "#0D8068",
-    "editorSuggestWidget.background": "#F4F7F3",
-    "editorSuggestWidget.border": "#CDD8D1",
-    "editorSuggestWidget.selectedBackground": "#DDECE6",
+    "editor.background": "#F6F7FB",
+    "editor.foreground": "#252D3D",
+    "editor.lineHighlightBackground": "#EDF0F7",
+    "editorLineNumber.foreground": "#8792A5",
+    "editorLineNumber.activeForeground": "#526FA6",
+    "editor.selectionBackground": "#DCE7FA",
+    "editorCursor.foreground": "#526FA6",
+    "editorSuggestWidget.background": "#F8F9FC",
+    "editorSuggestWidget.border": "#D0D8E6",
+    "editorSuggestWidget.selectedBackground": "#E8EDF7",
   },
 });
 
@@ -426,7 +426,7 @@ monaco.editor.defineTheme("xzm-dark", {
   inherit: true,
   rules: [
     { token: "keyword", foreground: "7DB8E8", fontStyle: "bold" },
-    { token: "type.identifier", foreground: "65DFBD" },
+    { token: "type.identifier", foreground: "A8BEE9" },
     { token: "identifier", foreground: "D8E1EB" },
     { token: "string", foreground: "E8B86D" },
     { token: "number", foreground: "E58BA5" },
@@ -437,12 +437,12 @@ monaco.editor.defineTheme("xzm-dark", {
     "editor.foreground": "#D8E1EB",
     "editor.lineHighlightBackground": "#172431",
     "editorLineNumber.foreground": "#647282",
-    "editorLineNumber.activeForeground": "#65DFBD",
-    "editor.selectionBackground": "#245A50",
-    "editorCursor.foreground": "#65DFBD",
+    "editorLineNumber.activeForeground": "#A8BEE9",
+    "editor.selectionBackground": "#34496B",
+    "editorCursor.foreground": "#A8BEE9",
     "editorSuggestWidget.background": "#14212C",
     "editorSuggestWidget.border": "#2B3B48",
-    "editorSuggestWidget.selectedBackground": "#1E4A43",
+    "editorSuggestWidget.selectedBackground": "#293D5D",
   },
 });
 
@@ -764,7 +764,7 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-rows: minmax(0, 1fr) 29px;
   overflow: hidden;
-  background: #edf3ef;
+  background: #f6f7fb;
 }
 
 .monaco-host {
@@ -781,9 +781,9 @@ onBeforeUnmount(() => {
   gap: 2px;
   min-width: 0;
   padding: 0 6px 0 12px;
-  color: #52665e;
-  background: #e1e9e4;
-  border-top: 1px solid #ccd8d1;
+  color: #566176;
+  background: #edf0f6;
+  border-top: 1px solid #e3e7ef;
   font:
     500 11px/1 "JetBrains Mono",
     "Cascadia Code",
@@ -818,7 +818,7 @@ onBeforeUnmount(() => {
 .editor-statusbar button:hover,
 .editor-statusbar button:focus-visible,
 .editor-statusbar button.active {
-  color: #087b68;
+  color: #526fa6;
   background: rgba(13, 128, 104, 0.1);
   outline: none;
 }
@@ -836,7 +836,7 @@ onBeforeUnmount(() => {
 .theme-dark .editor-statusbar button:hover,
 .theme-dark .editor-statusbar button:focus-visible,
 .theme-dark .editor-statusbar button.active {
-  color: #70e0c1;
+  color: #a8bee9;
   background: rgba(101, 223, 189, 0.12);
 }
 

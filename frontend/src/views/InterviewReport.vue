@@ -1580,4 +1580,12 @@ onUnmounted(() => {
     #e2e8f0 80%, 
     transparent 100%);
 }
+
+.report-page { background: var(--xzm-surface-0); color: var(--xzm-text-primary); }
+.report-header { background: var(--xzm-surface-0); border-color: var(--xzm-border-color); backdrop-filter: none; }
+.report-cover { border-radius: 16px; box-shadow: none; }
+.cover-decoration { display: none; }
+.cover-title { font-family: var(--xzm-font-sans); font-size: clamp(26px, 3vw, 38px); letter-spacing: -.03em; }
+.summary-card, .round-card { border-radius: 12px; box-shadow: none; }
+
 </style>

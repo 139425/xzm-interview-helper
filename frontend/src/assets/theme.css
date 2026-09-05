@@ -1,7 +1,7 @@
 /**
- * theme.css — XZM 主题语义层 (V3 · Fluid clarity)
+ * theme.css — XZM 主题语义层 (V5 · Mist)
  *
- * V3 默认主题：light（柔和空气感）。
+ * V5 默认主题：light（中性画布与雾蓝）。
  * 通过 [data-theme="dark"] 切换到深色。
  * 桥接旧 --gemini-* / --primary-* / --bg-* / --el-* 变量，使存量组件零侵入获得新主题。
  *
@@ -17,30 +17,30 @@
   color-scheme: light;
 
   /* ========== Surface ========== */
-  --xzm-surface-0: #f3f6f2;
-  --xzm-surface-1: #eef2ee;
-  --xzm-surface-2: #e4ebe6;
-  --xzm-surface-3: #d8e2dc;
-  --xzm-surface-elevated: #f8faf6;
-  --xzm-surface-control: #f2f6f1;
-  --xzm-surface-inset: #e9efeb;
-  --xzm-surface-code: #e6ede9;
-  --xzm-surface-code-header: #dfe8e3;
+  --xzm-surface-0: #f8f9fc;
+  --xzm-surface-1: #f1f3f8;
+  --xzm-surface-2: #e9edf5;
+  --xzm-surface-3: #dfe5ef;
+  --xzm-surface-elevated: #ffffff;
+  --xzm-surface-control: #f8f9fc;
+  --xzm-surface-inset: #f1f4f9;
+  --xzm-surface-code: #f6f7fb;
+  --xzm-surface-code-header: #edf0f6;
   --xzm-surface-overlay: rgba(15, 15, 16, 0.36);
 
   /* ========== Text ========== */
-  --xzm-text-primary: #132522;
-  --xzm-text-secondary: #425550;
-  --xzm-text-tertiary: #667873;
-  --xzm-text-muted: #879690;
+  --xzm-text-primary: #252d3d;
+  --xzm-text-secondary: #566176;
+  --xzm-text-tertiary: #707c90;
+  --xzm-text-muted: #8792a5;
   --xzm-text-inverse: #fafafa;
   --xzm-text-link: var(--xzm-brand);
   --xzm-text-on-brand: #ffffff;
 
   /* ========== 边框 ========== */
-  --xzm-border-color: #d7e0da;
-  --xzm-border-color-strong: #c3d0c8;
-  --xzm-border-color-hover: #92a79d;
+  --xzm-border-color: #e3e7ef;
+  --xzm-border-color-strong: #d0d8e6;
+  --xzm-border-color-hover: #a9b8d0;
 
   /* ========== 阴影（克制） ========== */
   --xzm-shadow-soft:
@@ -64,11 +64,11 @@
   --xzm-thinking-accent: var(--xzm-text-tertiary);
 
   /* ========== State ========== */
-  --xzm-hover-bg: rgba(11, 107, 100, 0.06);
-  --xzm-hover-bg-strong: rgba(11, 107, 100, 0.1);
-  --xzm-active-bg: rgba(11, 107, 100, 0.13);
-  --xzm-focus-ring: rgba(11, 107, 100, 0.48);
-  --xzm-focus-ring-soft: rgba(11, 107, 100, 0.14);
+  --xzm-hover-bg: rgba(82, 111, 166, 0.06);
+  --xzm-hover-bg-strong: rgba(82, 111, 166, 0.1);
+  --xzm-active-bg: rgba(82, 111, 166, 0.13);
+  --xzm-focus-ring: rgba(82, 111, 166, 0.48);
+  --xzm-focus-ring-soft: rgba(82, 111, 166, 0.14);
 
   /* ========== 滚动条 ========== */
   --xzm-scrollbar-track: transparent;
@@ -93,16 +93,16 @@
   --xzm-grad-soft: var(--xzm-brand-soft);
   --xzm-grad-violet: var(--xzm-brand);
 
-  --xzm-brand-50: #eff8f5;
-  --xzm-brand-100: #ddf1eb;
-  --xzm-brand-200: #b9e1d7;
-  --xzm-brand-300: #82c8ba;
-  --xzm-brand-400: #43a596;
+  --xzm-brand-50: #f5f7fc;
+  --xzm-brand-100: #eaf0fb;
+  --xzm-brand-200: #d5e0f5;
+  --xzm-brand-300: #b5c8e9;
+  --xzm-brand-400: #8ca7d1;
   --xzm-brand-500: var(--xzm-brand);
   --xzm-brand-600: var(--xzm-brand-hover);
   --xzm-brand-700: var(--xzm-brand-strong);
-  --xzm-brand-800: #074842;
-  --xzm-brand-900: #04342f;
+  --xzm-brand-800: #344e7c;
+  --xzm-brand-900: #283c61;
   --xzm-accent-violet: var(--xzm-brand);
   --xzm-accent-cyan: #38bdf8;
   --xzm-accent-pink: #ec4899;
@@ -170,9 +170,9 @@
 
   /* Element Plus 桥接 */
   --el-color-primary: var(--xzm-brand);
-  --el-color-primary-light-3: #43958a;
-  --el-color-primary-light-5: #78b5ac;
-  --el-color-primary-light-7: #b2d7d0;
+  --el-color-primary-light-3: #8199c3;
+  --el-color-primary-light-5: #a3b5d6;
+  --el-color-primary-light-7: #d1dcef;
   --el-color-primary-light-9: var(--xzm-brand-soft);
   --el-color-primary-dark-2: var(--xzm-brand-strong);
   --el-color-success: var(--xzm-success);
@@ -195,12 +195,12 @@
 }
 
 ::selection {
-  color: #132522;
+  color: #252d3d;
   background: var(--xzm-signal);
 }
 
 ::-moz-selection {
-  color: #132522;
+  color: #252d3d;
   background: var(--xzm-signal);
 }
 
@@ -209,29 +209,36 @@
    ============================================ */
 [data-theme='dark'] {
   color-scheme: dark;
+  --xzm-brand: #a8bee9;
+  --xzm-brand-hover: #bed0f0;
+  --xzm-brand-strong: #c7d6f1;
+  --xzm-brand-gradient: linear-gradient(135deg, #a8bee9, #93aedb);
+  --xzm-signal: #2c3e5d;
+  --xzm-signal-soft: #233249;
+  --xzm-signal-ink: #c7d6f1;
 
-  --xzm-surface-0: #09100f;
-  --xzm-surface-1: #101a18;
-  --xzm-surface-2: #182421;
-  --xzm-surface-3: #21302c;
-  --xzm-surface-elevated: #172320;
-  --xzm-surface-control: #14201d;
-  --xzm-surface-inset: #0d1715;
-  --xzm-surface-code: #0b1513;
-  --xzm-surface-code-header: #15231f;
+  --xzm-surface-0: #141820;
+  --xzm-surface-1: #1a202b;
+  --xzm-surface-2: #232c3a;
+  --xzm-surface-3: #2e394b;
+  --xzm-surface-elevated: #1f2734;
+  --xzm-surface-control: #202937;
+  --xzm-surface-inset: #171d27;
+  --xzm-surface-code: #151c26;
+  --xzm-surface-code-header: #202a39;
   --xzm-surface-overlay: rgba(0, 0, 0, 0.55);
 
-  --xzm-text-primary: #edf5f0;
-  --xzm-text-secondary: #cad8d1;
-  --xzm-text-tertiary: #98aba3;
-  --xzm-text-muted: #6f827b;
+  --xzm-text-primary: #e6eaf2;
+  --xzm-text-secondary: #bec8d9;
+  --xzm-text-tertiary: #95a3b9;
+  --xzm-text-muted: #78869c;
   --xzm-text-inverse: #0b0c0f;
-  --xzm-text-link: #818cf8;
-  --xzm-text-on-brand: #ffffff;
+  --xzm-text-link: #b3c9f0;
+  --xzm-text-on-brand: #172337;
 
-  --xzm-border-color: #283a35;
-  --xzm-border-color-strong: #385048;
-  --xzm-border-color-hover: #506b62;
+  --xzm-border-color: #303c4f;
+  --xzm-border-color-strong: #42526b;
+  --xzm-border-color-hover: #617694;
 
   --xzm-shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3);
   --xzm-shadow-medium: 0 2px 8px rgba(0, 0, 0, 0.4);
@@ -270,25 +277,25 @@
   --xzm-shadow-glow: var(--xzm-shadow-medium);
 
   --xzm-grad-primary: #818cf8;
-  --xzm-brand-soft: #12312d;
+  --xzm-brand-soft: #26364f;
 
   /* 桥接 */
   --gemini-bg-primary: var(--xzm-surface-0);
   --gemini-bg-secondary: var(--xzm-surface-1);
   --gemini-bg-tertiary: var(--xzm-surface-2);
 
-  --primary-color: #5fd0bf;
-  --primary-hover: #7adccc;
+  --primary-color: #a8bee9;
+  --primary-hover: #bed0f0;
   --bg-primary: var(--xzm-surface-0);
   --bg-secondary: var(--xzm-surface-1);
   --bg-tertiary: var(--xzm-surface-2);
 
-  --el-color-primary: #5fd0bf;
-  --el-color-primary-light-3: #4ab6a6;
-  --el-color-primary-light-5: #368f83;
-  --el-color-primary-light-7: #276b62;
+  --el-color-primary: #a8bee9;
+  --el-color-primary-light-3: #91a9d1;
+  --el-color-primary-light-5: #687fa6;
+  --el-color-primary-light-7: #3e5274;
   --el-color-primary-light-9: var(--xzm-surface-2);
-  --el-color-primary-dark-2: #8be5d7;
+  --el-color-primary-dark-2: #c7d6f1;
   --el-bg-color: var(--xzm-surface-1);
   --el-bg-color-page: var(--xzm-surface-0);
   --el-bg-color-overlay: var(--xzm-surface-elevated);

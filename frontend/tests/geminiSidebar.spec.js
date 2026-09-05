@@ -133,16 +133,15 @@ describe("GeminiSidebar workspaces", () => {
     expect(wrapper.find(".algorithm-context").exists()).toBe(false);
   });
 
-  it("shows only the active workspace until the list is expanded", async () => {
+  it("keeps every workspace reachable while descriptions are collapsed", async () => {
     const wrapper = mount(GeminiSidebar, {
       props: { mode: "algorithm" },
       global: { stubs: { "el-icon": true } },
     });
 
-    expect(wrapper.findAll(".mode-btn")).toHaveLength(1);
-    expect(wrapper.get(".mode-btn").attributes("aria-label")).toBe("算法训练");
-    expect(wrapper.findAll(".mode-copy small")).toHaveLength(1);
-    expect(wrapper.get(".mode-copy small").text()).toContain("题库");
+    expect(wrapper.findAll(".mode-btn")).toHaveLength(7);
+    expect(wrapper.get(".mode-btn.active").attributes("aria-label")).toBe("算法训练");
+    expect(wrapper.findAll(".mode-copy small")).toHaveLength(0);
 
     await wrapper.get(".workspace-density-toggle").trigger("click");
 

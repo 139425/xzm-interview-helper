@@ -6,6 +6,17 @@ import { describe, it, expect } from 'vitest'
 import { useStreamingMarkdown } from '../src/composables/useStreamingMarkdown'
 
 describe('useStreamingMarkdown', () => {
+  it('preserves block identity through commit, next paragraph and finalization', () => {
+    const stream = useStreamingMarkdown({ scheduler: 'sync' })
+    stream.appendChunk('first paragraph')
+    const firstId = stream.blocks.value[0].id
+    stream.appendChunk('\n\nsecond paragraph')
+    expect(stream.blocks.value[0].id).toBe(firstId)
+    const secondId = stream.blocks.value[1].id
+    expect(secondId).not.toBe(firstId)
+    stream.finalize()
+    expect(stream.blocks.value.map(block => block.id)).toEqual([firstId, secondId])
+  })
   it('appendChunk 后 blocks 包含 pending', async () => {
     const s = useStreamingMarkdown({ scheduler: 'sync' })
     s.appendChunk('Hello')

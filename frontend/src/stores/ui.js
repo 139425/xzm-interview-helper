@@ -209,6 +209,7 @@ export const useUIStore = defineStore('ui', () => {
         'schedule',
         'knowledge',
         'serverAgent',
+        'users',
       ].includes(mode)
     ) {
       currentMode.value = mode

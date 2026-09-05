@@ -1363,4 +1363,10 @@ onBeforeUnmount(() => {
   color: var(--xzm-text-on-brand);
   background: var(--xzm-brand-hover);
 }
+
+.jobs-main { max-width: 1440px; }
+.jobs-overview, .jobs-controls, .jobs-results { border-radius: 12px; box-shadow: none; }
+.jobs-overview h1 { font-size: clamp(18px, 2vw, 24px); font-weight: 550; letter-spacing: -.025em; }
+.jobs-stats dt { color: var(--xzm-brand); }
+
 </style>

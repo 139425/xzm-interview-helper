@@ -16,20 +16,18 @@
         :block-id="block.id"
       />
 
-      <!-- 表格：done 才渲染；pending 表格显示骨架 -->
+      <!-- As soon as the header is complete, table rows grow in their final layout. -->
       <StreamingTable
-        v-else-if="block.kind === 'table' && block.done"
+        v-else-if="block.kind === 'table'"
         :raw="block.raw"
         :block-id="block.id"
       />
+
       <div
-        v-else-if="block.kind === 'table' && !block.done"
-        class="xzm-stream-md__pending xzm-stream-md__table-pending"
-      >
-        <span class="xzm-stream-md__pending-label">表格构建中…</span>
-        <pre class="xzm-stream-md__pending-pre"><StreamingTextReveal :text="block.raw" mode="code" /></pre>
-        <StreamingCursor :variant="variant" />
-      </div>
+        v-else-if="!block.done && needsRichPreview(block)"
+        class="xzm-stream-md__rendered is-pending-rich"
+        v-html="renderDoneBlock(block)"
+      />
 
       <!-- 进行中段落：按短语柔和淡入，避免 SSE 单字帧形成打字机效果 -->
       <p
@@ -86,6 +84,10 @@ const blocks = computed(() => {
   return props.stream.blocks?.value || props.stream.blocks || []
 })
 
+function needsRichPreview(block) {
+  return block.kind !== 'paragraph' || /[*_`\[\]$]|^#{1,6}\s|^>/m.test(block.raw)
+}
+
 function renderDoneBlock(block) {
   try {
     return renderMarkdown(block.raw, block.kind)
@@ -118,8 +120,8 @@ function renderDoneBlock(block) {
 }
 .xzm-stream-md__blocks { display: contents; }
 .xzm-stream-md__block { min-width: 0; }
-.stream-block-enter-active { transition: opacity 190ms ease-out, filter 190ms ease-out, transform 190ms ease-out; }
-.stream-block-enter-from { opacity: 0; filter: blur(2px); transform: translateY(4px); }
+.stream-block-enter-active { transition: opacity 180ms ease-out; }
+.stream-block-enter-from { opacity: .45; }
 
 /* 进行中段落（极克制透明度，节奏柔和） */
 .xzm-stream-md__pending {
@@ -267,4 +269,9 @@ function renderDoneBlock(block) {
 @media (prefers-reduced-motion: reduce) {
   .stream-block-enter-active { transition: none; }
 }
+
+.xzm-stream-md--content { font-size: 15px; line-height: 1.85; }
+.xzm-stream-md__rendered :deep(h1), .xzm-stream-md__rendered :deep(h2), .xzm-stream-md__rendered :deep(h3) { letter-spacing: -.02em; font-weight: 600; }
+.is-pending-rich :deep(> :last-child)::after { content: ''; display: inline-block; vertical-align: middle; width: 5px; height: 5px; margin-left: 7px; border-radius: 50%; background: var(--xzm-brand); opacity: .65; }
+.xzm-stream-md__rendered :deep(img) { max-width: 100%; height: auto; border-radius: 10px; }
 </style>

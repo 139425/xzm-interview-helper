@@ -10,10 +10,10 @@
 /* ========== 主题变量 ========== */
 :root{
   --bg:#141519; --panel:#1d1f26; --panel2:#181a20; --border:#2c2f3a;
-  --fg:#e7e9f0; --dim:#8b91a3; --accent:#4f8cff; --accent2:#3a6fd8;
+  --fg:#e7e9f0; --dim:#8b91a3; --accent:#6c89bb; --accent2:#526fa6;
   --ok:#7ddc8f; --err:#ff7d7d; --warn:#ffd166; --codeFs:14px;
 }
-body.light{ --bg:#eef0f4; --panel:#ffffff; --panel2:#e9ebf1; --border:#d4d8e2; --fg:#23252c; --dim:#6b7180; }
+body.light{ --bg:#f8f9fc; --panel:#ffffff; --panel2:#f1f3f8; --border:#d4d8e2; --fg:#23252c; --dim:#6b7180; }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{background:var(--bg);color:var(--fg);display:flex;flex-direction:column;overflow:hidden;
@@ -294,7 +294,7 @@ const LANGS = {
 
 /* ---------------- 持久化状态 ---------------- */
 let settings = Object.assign(
-  { theme:'dark', fontSize:14, pyEngine:'auto', endpoint:'', pistonToken:'', timeout:30, autoClear:true },
+  { theme:localStorage.getItem('theme') || 'light', fontSize:14, pyEngine:'auto', endpoint:'', pistonToken:'', timeout:30, autoClear:true },
   LS.get('cr.settings', {}));
 let layout = Object.assign({ edw:58, edh:50, inh:32 }, LS.get('cr.layout', {}));
 let curLang = LANGS[LS.get('cr.lang','python')] ? LS.get('cr.lang','python') : 'python';

@@ -6,7 +6,7 @@
         <div class="brand-mark" aria-hidden="true">X/27</div>
         <div>
           <strong>XZM INTERVIEW HELPER</strong>
-          <span>CANDIDATE OPERATING SYSTEM</span>
+          <span>求职准备工作台</span>
         </div>
       </header>
       <div class="story-copy">
@@ -37,7 +37,7 @@
       <footer class="story-footer">
         <div class="trust-note">
           <span class="trust-dot"></span>
-          <span>登录凭证加密传输 · 验证结果一次有效</span>
+          <span>继续准备你的下一次机会</span>
         </div>
         <span>BUILD 2026.08</span>
       </footer>
@@ -1018,10 +1018,10 @@ onBeforeUnmount(() => clearInterval(countdownTimer))
 
 /* V4 art direction: candidate field notes, not a generic account card. */
 .auth-shell {
-  --ink: #132522;
+  --ink: var(--xzm-text-primary);
   --muted: #667873;
   --line: #d7e0da;
-  --blue: #0b6b64;
+  --blue: var(--xzm-brand);
   grid-template-columns: minmax(510px, 1.08fr) minmax(520px, 0.92fr);
   background: #f3f6f2;
 }
@@ -1107,7 +1107,7 @@ onBeforeUnmount(() => clearInterval(countdownTimer))
   border: 1px solid rgba(221, 252, 116, 0.55);
   border-radius: 4px;
   color: #334600;
-  background: #ddfc74;
+  background: var(--xzm-signal);
   box-shadow: 7px 7px 0 rgba(221, 252, 116, 0.11);
   font: 850 12px/1 var(--xzm-font-data);
 }
@@ -1130,7 +1130,7 @@ onBeforeUnmount(() => clearInterval(countdownTimer))
 .eyebrow > span {
   width: 34px;
   height: 2px;
-  background: #ddfc74;
+  background: var(--xzm-signal);
 }
 
 .story-copy h1 {
@@ -1143,7 +1143,7 @@ onBeforeUnmount(() => clearInterval(countdownTimer))
 }
 
 .story-copy h1 em {
-  color: #ddfc74;
+  color: var(--xzm-signal);
   font-style: normal;
   white-space: nowrap;
 }
@@ -1177,7 +1177,7 @@ onBeforeUnmount(() => clearInterval(countdownTimer))
 }
 
 .career-loop__head span:last-child {
-  color: #ddfc74;
+  color: var(--xzm-signal);
 }
 .career-loop__head i {
   display: inline-block;
@@ -1185,7 +1185,7 @@ onBeforeUnmount(() => clearInterval(countdownTimer))
   height: 6px;
   margin-right: 5px;
   border-radius: 50%;
-  background: #ddfc74;
+  background: var(--xzm-signal);
   box-shadow: 0 0 0 4px rgba(221, 252, 116, 0.1);
 }
 
@@ -1210,7 +1210,7 @@ onBeforeUnmount(() => clearInterval(countdownTimer))
   border-left: 1px solid rgba(221, 252, 116, 0.13);
 }
 .career-loop b {
-  color: #ddfc74;
+  color: var(--xzm-signal);
   font: 750 9px/1.4 var(--xzm-font-data);
 }
 .career-loop li > span {
@@ -1242,7 +1242,7 @@ onBeforeUnmount(() => clearInterval(countdownTimer))
   font-size: 11px;
 }
 .trust-dot {
-  background: #ddfc74;
+  background: var(--xzm-signal);
   box-shadow: 0 0 0 5px rgba(221, 252, 116, 0.1);
 }
 
@@ -1252,7 +1252,7 @@ onBeforeUnmount(() => clearInterval(countdownTimer))
   background:
     radial-gradient(
       circle at 100% 0%,
-      rgba(11, 107, 100, 0.12),
+      rgba(82, 111, 166, 0.12),
       transparent 28rem
     ),
     #f3f6f2;
@@ -1292,8 +1292,8 @@ onBeforeUnmount(() => clearInterval(countdownTimer))
 
 .auth-mode-tabs a[aria-current='page'] {
   color: #fff;
-  background: #0b6b64;
-  box-shadow: 0 4px 12px rgba(11, 107, 100, 0.16);
+  background: var(--xzm-brand);
+  box-shadow: 0 4px 12px rgba(82, 111, 166, 0.16);
 }
 
 .auth-header {
@@ -1301,7 +1301,7 @@ onBeforeUnmount(() => clearInterval(countdownTimer))
 }
 .section-kicker {
   margin-bottom: 11px;
-  color: #0b6b64;
+  color: var(--xzm-brand);
   font-family: var(--xzm-font-data);
   font-size: 9px;
 }
@@ -1324,15 +1324,15 @@ onBeforeUnmount(() => clearInterval(countdownTimer))
   background: #fffefa;
 }
 .field-control:focus-within {
-  border-color: #0b6b64;
-  box-shadow: 0 0 0 4px rgba(11, 107, 100, 0.1);
+  border-color: var(--xzm-brand);
+  box-shadow: 0 0 0 4px rgba(82, 111, 166, 0.1);
 }
 .field-control input {
   color: var(--ink);
   font-family: var(--xzm-font-sans);
 }
 .text-button {
-  color: #0b6b64;
+  color: var(--xzm-brand);
   font-weight: 750;
 }
 .slider-box {
@@ -1413,20 +1413,20 @@ onBeforeUnmount(() => clearInterval(countdownTimer))
   height: 56px;
   padding: 0 18px 0 21px;
   border-radius: 9px;
-  background: linear-gradient(135deg, #074842, #0b6b64);
-  box-shadow: 0 13px 28px rgba(7, 72, 66, 0.2);
+  background: linear-gradient(135deg, var(--xzm-brand-strong), var(--xzm-brand));
+  box-shadow: 0 13px 28px rgba(52, 78, 124, 0.2);
 }
 .primary-button svg {
   width: 19px;
   fill: none;
-  stroke: #ddfc74;
+  stroke: var(--xzm-signal);
   stroke-width: 1.8;
 }
 .primary-button:hover:not(:disabled) {
-  box-shadow: 0 17px 34px rgba(7, 72, 66, 0.26);
+  box-shadow: 0 17px 34px rgba(52, 78, 124, 0.26);
 }
 .switch-copy button {
-  color: #0b6b64;
+  color: var(--xzm-brand);
 }
 
 @media (max-width: 980px) {
@@ -1450,8 +1450,8 @@ onBeforeUnmount(() => clearInterval(countdownTimer))
     min-height: 100dvh;
     padding: 22px 18px 38px;
     background:
-      linear-gradient(rgba(11, 107, 100, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(11, 107, 100, 0.035) 1px, transparent 1px),
+      linear-gradient(rgba(82, 111, 166, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(82, 111, 166, 0.035) 1px, transparent 1px),
       #f3f6f2;
     background-size: 28px 28px;
   }
@@ -1464,7 +1464,7 @@ onBeforeUnmount(() => clearInterval(countdownTimer))
     width: 52px;
     height: 32px;
     color: #334600;
-    background: #ddfc74;
+    background: var(--xzm-signal);
     font-size: 10px;
   }
   .mobile-brand > span:last-child {
@@ -1500,4 +1500,32 @@ onBeforeUnmount(() => clearInterval(countdownTimer))
     font-size: 30px;
   }
 }
+
+.auth-shell { --ink: var(--xzm-text-primary); --muted: var(--xzm-text-secondary); --line: var(--xzm-border-color); background: var(--xzm-surface-0); grid-template-columns: minmax(0, 1fr) minmax(440px, 1fr); }
+.auth-story { color: var(--xzm-text-primary); background: var(--xzm-surface-1); padding: clamp(28px, 5vw, 72px); }
+.auth-story::before, .auth-story::after, .story-grid { display: none; }
+.story-brand strong { color: var(--xzm-text-primary); }
+.story-brand span, .story-lead, .eyebrow, .story-footer { color: var(--xzm-text-secondary); }
+.brand-mark { background: var(--xzm-signal); color: var(--xzm-signal-ink); border: 0; border-radius: 8px; box-shadow: none; }
+.story-copy h1 { font-size: clamp(30px, 3.5vw, 48px); line-height: 1.4; font-weight: 550; letter-spacing: -.04em; }
+.story-copy h1 em { color: var(--xzm-brand); }
+.story-lead { font-size: 14px; }
+.career-loop { border: 1px solid var(--xzm-border-color); border-radius: 12px; background: var(--xzm-surface-elevated); backdrop-filter: none; }
+.career-loop__head, .career-loop li { color: var(--xzm-text-primary); border-color: var(--xzm-border-color); }
+.career-loop li b { color: var(--xzm-brand); background: var(--xzm-brand-soft); }
+.career-loop li small { color: var(--xzm-text-tertiary); }
+.auth-panel { background: var(--xzm-surface-elevated); }
+.auth-card { border: 0; box-shadow: none; background: transparent; }
+.auth-header h2 { font-size: 28px; font-weight: 550; }
+.field-control { background: var(--xzm-surface-control); }
+.auth-mode-tabs a[aria-current='page'] { color: var(--xzm-signal-ink); background: var(--xzm-signal); box-shadow: none; }
+@media (max-width: 980px) { .auth-shell { grid-template-columns: 1fr; } .auth-story { display: none; } .auth-panel { min-height: 100dvh; } }
+
+
+.career-loop li > span { color: var(--xzm-text-primary); }
+.career-loop__head > span:last-child { color: var(--xzm-text-tertiary); }
+.career-loop li + li, .career-loop__head { border-color: var(--xzm-border-color); }
+.trust-note { color: var(--xzm-text-tertiary); }
+.trust-dot, .career-loop__head i { background: var(--xzm-brand); box-shadow: none; }
+.auth-mode-tabs { background: var(--xzm-surface-1); }
 </style>

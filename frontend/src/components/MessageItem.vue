@@ -13,7 +13,9 @@
     <!-- 助手消息：纯文本（无头像） + 思考框 + 流式 markdown -->
     <template v-else>
       <header class="xzm-msg__role">
-        <span class="xzm-msg__role-name">Assistant</span>
+        <span class="xzm-msg__avatar" aria-hidden="true">✦</span>
+        <span class="xzm-msg__role-name">面试助手</span>
+        <span v-if="isStreaming" class="xzm-msg__status" role="status">{{ isThinking ? '思考中' : '正在回答' }}</span>
       </header>
 
       <ChatProcessTimeline
@@ -323,4 +325,12 @@ function regenerate() {
   .xzm-msg__actions { opacity: 1; transform: none; }
   .xzm-msg__action { width: 44px; height: 44px; }
 }
+
+.xzm-msg { margin-bottom: 28px; animation: none; }
+.xzm-msg__role { gap: 8px; margin-bottom: 8px; letter-spacing: 0; text-transform: none; font-size: 12px; }
+.xzm-msg__avatar { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 8px; color: var(--xzm-brand); background: var(--xzm-brand-soft); font-size: 15px; }
+.xzm-msg__status { font-size: 10px; color: var(--xzm-text-tertiary); }
+.xzm-msg__user-bubble { border-radius: 16px 16px 5px 16px; background: var(--xzm-surface-2); }
+.xzm-msg__actions { opacity: .6; transform: none; margin-top: 8px; }
+.xzm-msg__action:active { transform: scale(.92); }
 </style>

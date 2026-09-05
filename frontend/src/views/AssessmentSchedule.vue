@@ -3571,4 +3571,18 @@ onBeforeUnmount(() => {
     animation-duration: 1.5s;
   }
 }
+
+.schedule-hero { padding-top: 24px; padding-bottom: 24px; }
+.schedule-hero h1 { font-family: var(--xzm-font-sans); font-size: clamp(25px, 2.7vw, 34px); font-weight: 550; letter-spacing: -.025em; }
+.entry-panel { border-radius: 14px; box-shadow: var(--xzm-shadow-soft); }
+.schedule-stats dt { font-variant-numeric: tabular-nums; }
+
+
+.schedule-hero { background: var(--xzm-surface-1); color: var(--xzm-text-primary); border-color: var(--xzm-border-color); box-shadow: none; }
+.schedule-hero::after { display: none; }
+.schedule-hero__copy p { color: var(--xzm-brand); }
+.schedule-hero__copy span, .schedule-stats dd { color: var(--xzm-text-secondary); }
+.schedule-stats, .schedule-stats div + div { border-color: var(--xzm-border-color); }
+.schedule-stats dt, .schedule-stats .has-attention { color: var(--xzm-brand); }
+.topbar-status i, .list-heading i { background: var(--xzm-brand); box-shadow: none; }
 </style>

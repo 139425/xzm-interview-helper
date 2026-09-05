@@ -454,7 +454,7 @@ body[data-theme='light'] .xzm-question-btn {
 
 html[data-theme='light'] .gemini-prompt-bar :is(.tool-btn, .model-trigger, .prompt-mode-btn, .think-toggle-btn),
 body[data-theme='light'] .gemini-prompt-bar :is(.tool-btn, .model-trigger, .prompt-mode-btn, .think-toggle-btn) {
-  background: var(--xzm-surface-2) !important;
+  background: transparent !important;
 }
 
 html[data-theme='light'] .gemini-prompt-bar :is(.model-option, .ocr-preview header button),
@@ -602,8 +602,8 @@ body[data-theme='light'] .interview-agent-page .source-tabs button.active {
 html[data-theme='light'] .interview-agent-page .begin-button,
 body[data-theme='light'] .interview-agent-page .begin-button {
   border-color: transparent !important;
-  background: linear-gradient(110deg, #a6edff, #77d9f3 55%, #8ae8cb) !important;
-  color: #06121d !important;
+  background: var(--xzm-brand-gradient) !important;
+  color: var(--xzm-text-on-brand) !important;
 }
 
 html[data-theme='light'] .jobs-tabs button,
@@ -649,4 +649,17 @@ body[data-theme='light'] :is(.knowledge-upload, .context-card footer button) {
   border-color: var(--xzm-brand) !important;
   background: var(--xzm-brand-gradient) !important;
   color: var(--xzm-text-on-brand) !important;
+}
+
+/* Shared interaction contract. */
+:where(button, a, input, textarea, select) { touch-action: manipulation; }
+:where(button:not(:disabled), [role='button']):active { transition-duration: 90ms; }
+:where(button, a):focus-visible { outline: 2px solid var(--xzm-brand); outline-offset: 3px; }
+.el-dialog { border: 1px solid var(--xzm-border-color); border-radius: 16px !important; background: var(--xzm-surface-elevated); box-shadow: var(--xzm-shadow-floating); }
+.el-popover.el-popper { border-radius: 12px; border-color: var(--xzm-border-color); background: var(--xzm-surface-elevated); box-shadow: var(--xzm-shadow-floating); }
+.el-dialog__header { padding-bottom: 18px; }
+.el-dialog__title { font-size: 16px; font-weight: 550; }
+@media (prefers-reduced-motion: no-preference) {
+  .dialog-fade-enter-active { animation: mist-dialog-in 180ms var(--xzm-ease-out); }
+  @keyframes mist-dialog-in { from { opacity: 0; transform: translateY(8px) scale(.99); } to { opacity: 1; transform: none; } }
 }

@@ -30,7 +30,7 @@
         type="textarea"
         :placeholder="placeholder"
         :autosize="{ minRows: 1, maxRows: 5 }"
-        :disabled="disabled"
+        :disabled="disabled && !isStreaming"
         @focus="handleFocus"
         @blur="handleBlur"
         @keydown="handleKeyDown"
@@ -150,7 +150,7 @@
           @click="toggleThinkingMode"
         >
           <el-icon :size="17"><Cpu /></el-icon>
-          <span class="think-label">{{ thinkingMode ? '思考中' : '思考' }}</span>
+          <span class="think-label">{{ thinkingMode ? '深度思考' : '思考' }}</span>
         </button>
         
         <!-- 停止生成按钮：流式进行中显示 -->
@@ -171,7 +171,6 @@
           @click="handleSend"
           :disabled="disabled || ocrPreview.loading || (!inputText.trim() && !ocrPreview.text.trim())"
           title="发送消息"
-          v-show="inputText.trim() || ocrPreview.text.trim()"
         >
           <el-icon :size="20"><Promotion /></el-icon>
         </button>
@@ -286,6 +285,7 @@ const handleBlur = () => {
 
 // 键盘事件
 const handleKeyDown = (event) => {
+  if (event.isComposing || event.keyCode === 229) return
   // Enter 发送，Shift+Enter 换行
   if (event.key === 'Enter' && !event.shiftKey) {
     event.preventDefault()
@@ -488,38 +488,14 @@ onUnmounted(() => {
 .ocr-preview small:first-of-type { color: var(--gemini-accent-red); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
 
-/* 居中位置 */
-.gemini-prompt-bar.position-center {
-  position: fixed;
-  top: 50%;
-  left: calc(var(--sidebar-width, 0px) / 2 + 50%);
-  transform: translate(-50%, calc(-50% + 15vh));
-  width: calc(90% - var(--sidebar-width, 0px));
-  max-width: var(--gemini-prompt-bar-max-width);
-  z-index: 100;
-  transition:
-    left 260ms cubic-bezier(0.4, 0.0, 0.2, 1),
-    width 260ms cubic-bezier(0.4, 0.0, 0.2, 1);
-}
-
-/* 底部位置 */
+/* The chat shell owns position and available width. */
+.gemini-prompt-bar.position-center,
 .gemini-prompt-bar.position-bottom {
-  position: fixed;
-  bottom: var(--gemini-spacing-lg);
-  left: calc(var(--sidebar-width, 0px) + var(--gemini-spacing-2xl));
-  right: var(--gemini-spacing-2xl);
-  width: auto;
-  max-width: var(--gemini-content-max-width);
-  margin-left: auto;
-  margin-right: auto;
-  z-index: 100;
-  background-color: var(--gemini-bg-secondary);
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08), 0 4px 20px rgba(0, 0, 0, 0.12);
-  transition:
-    left 260ms cubic-bezier(0.4, 0.0, 0.2, 1),
-    right 260ms cubic-bezier(0.4, 0.0, 0.2, 1);
+  position: relative; inset: auto; transform: none; width: 100%; max-width: none;
+  margin: 0; z-index: 20; background: var(--xzm-surface-elevated);
+  box-shadow: var(--xzm-shadow-soft);
+  transition: border-color 160ms, box-shadow 180ms;
 }
-
 /* 输入区域 */
 .input-wrapper {
   margin-bottom: var(--gemini-spacing-md);
@@ -1060,4 +1036,18 @@ onUnmounted(() => {
     display: none;
   }
 }
+
+.gemini-prompt-bar { border-radius: 18px; padding: 16px 18px 12px; transition: border-color 160ms, box-shadow 180ms; }
+.gemini-prompt-bar.focused { box-shadow: 0 0 0 3px var(--xzm-focus-ring-soft), var(--xzm-shadow-soft); }
+.prompt-input :deep(.el-textarea__inner) { font-size: 15px; line-height: 1.7; }
+.toolbar { gap: 8px; flex-wrap: wrap; }
+.toolbar-left, .toolbar-right { min-width: 0; gap: 5px; }
+.toolbar-right { margin-left: auto; }
+.send-btn:active, .tool-btn:active { transform: scale(.94); }
+@media (max-width: 768px) {
+ .gemini-prompt-bar.position-center, .gemini-prompt-bar.position-bottom { position: relative; inset: auto; transform: none; width: 100%; margin: 0; padding: 12px; }
+ .toolbar-left, .toolbar-right { flex-wrap: wrap; }
+ .ocr-preview textarea { max-height: 100px; }
+}
+
 </style>

@@ -1,28 +1,22 @@
 /**
- * tokens.css — XZM Design Tokens (V4 · Candidate field notes)
+ * tokens.css — XZM Design Tokens (V5 · Mist)
  * 单一来源的设计令牌，与具体主题无关。
  * 主题切换由 theme.css 通过 [data-theme] 选择器完成。
- * V4 以“求职战情室”为方向：深墨绿负责可信与专注，电光薄荷只标记
- * 关键进度和下一步行动，避免通用 SaaS 蓝紫模板感。
+ * 中性阅读画布、雾蓝操作色；色彩只表达层级、焦点和状态。
  */
 
 :root {
   /* ============================================
-     1) 品牌色（墨绿主轴 + 受控的进度信号色）
+     1) 品牌色（雾蓝 + 中性阅读表面）
      ============================================ */
-  --xzm-brand: #0b6b64;
-  --xzm-brand-hover: #095b56;
-  --xzm-brand-strong: #074842;
-  --xzm-brand-soft: #e3f2ee;
-  --xzm-brand-gradient: linear-gradient(
-    135deg,
-    #074842 0%,
-    #0b6b64 54%,
-    #0f7d75 100%
-  );
-  --xzm-signal: #ddfc74;
-  --xzm-signal-soft: #f2ffd0;
-  --xzm-signal-ink: #334600;
+  --xzm-brand: #526fa6;
+  --xzm-brand-hover: #435f94;
+  --xzm-brand-strong: #344e7c;
+  --xzm-brand-soft: #edf2fb;
+  --xzm-brand-gradient: linear-gradient(135deg, #5c79ad, #526fa6);
+  --xzm-signal: #dce7fa;
+  --xzm-signal-soft: #f0f4fc;
+  --xzm-signal-ink: #3e5d91;
 
   /* ============================================
      2) 功能色
@@ -67,9 +61,7 @@
   --xzm-font-sans:
     'Aptos', 'Segoe UI Variable', 'PingFang SC', 'Noto Sans SC',
     'Hiragino Sans GB', 'Microsoft YaHei', system-ui, sans-serif;
-  --xzm-font-display:
-    'Bodoni 72', 'STZhongsong', 'Source Han Serif SC', 'Songti SC', 'STSong',
-    serif;
+  --xzm-font-display: var(--xzm-font-sans);
   --xzm-font-data:
     'IBM Plex Mono', 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
   --xzm-font-mono:
@@ -135,8 +127,8 @@
      ============================================ */
   --xzm-sidebar-width: 224px;
   --xzm-sidebar-width-collapsed: 64px;
-  --xzm-content-max-width: 880px;
+  --xzm-content-max-width: 800px;
   --xzm-prompt-bar-height: 96px;
-  --xzm-top-bar-height: 52px;
+  --xzm-top-bar-height: 60px;
   --xzm-floating-inset: 12px;
 }

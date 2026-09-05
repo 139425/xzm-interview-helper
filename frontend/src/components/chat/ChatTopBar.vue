@@ -29,6 +29,7 @@
           <line x1="3" y1="18" x2="21" y2="18" />
         </svg>
       </button>
+      <span class="xzm-chat-topbar__brand">AI 对话</span>
     </div>
 
     <!-- 中：题目下拉 -->
@@ -101,7 +102,7 @@ const popoverVisible = ref(false)
 const hasQuestions = computed(() => props.questions.length > 0)
 
 const currentLabel = computed(() => {
-  if (!hasQuestions.value) return '暂无题目'
+  if (!hasQuestions.value) return '新对话'
   const idx = props.activeIndex >= 0 ? props.activeIndex : props.questions.length - 1
   const q = props.questions[idx]
   return q ? truncate(q.content, 60) : '暂无题目'
@@ -265,4 +266,12 @@ function handleSelect(id) {
   }
   .xzm-chat-topbar__brand { display: none; }
 }
+
+.xzm-chat-topbar { flex-shrink: 0; height: 60px; margin: 0; padding: 0 24px; border: 0; border-bottom: 1px solid var(--xzm-border-color); border-radius: 0; background: var(--xzm-surface-0); box-shadow: none; backdrop-filter: none; grid-template-columns: minmax(100px, 1fr) minmax(0, 2fr) minmax(136px, 1fr); }
+.xzm-chat-topbar__brand { font-size: 13px; font-weight: 550; }
+.xzm-question-btn { width: auto; max-width: 100%; border: 0; border-radius: 8px; background: transparent; }
+.xzm-question-btn.is-empty { opacity: .7; cursor: default; }
+.xzm-question-btn.is-empty svg { display: none; }
+@media (max-width: 768px) { .xzm-chat-topbar { padding: 0 12px; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; } .xzm-chat-topbar__brand { display: none; } }
+
 </style>

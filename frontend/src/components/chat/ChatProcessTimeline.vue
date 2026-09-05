@@ -256,4 +256,9 @@ function sourceLabel(source) {
 @media (prefers-reduced-motion: reduce) {
   .chat-process__pulse { animation: none; }
 }
+
+.chat-process { padding: 9px 12px; border-radius: 10px; background: var(--xzm-surface-1); border-color: transparent; }
+.chat-process__node { width: 18px; height: 18px; font-size: 9px; }
+.chat-process__copy strong { font-size: 11px; font-weight: 500; }
+.chat-process__step.is-done .chat-process__node { color: var(--xzm-brand); background: var(--xzm-brand-soft); border-color: var(--xzm-border-color); }
 </style>

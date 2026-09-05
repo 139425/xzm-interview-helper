@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HTML 在线展示 · 面试助手</title>
+<style>
+:root{color-scheme:light;--bg:#f8f9fc;--panel:#fff;--ink:#252d3d;--muted:#707c90;--line:#e3e7ef;--accent:#526fa6}*{box-sizing:border-box}body{margin:0;height:100dvh;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font:14px/1.6 system-ui,'PingFang SC',sans-serif}header{display:flex;align-items:center;gap:12px;min-height:60px;padding:12px 20px;border-bottom:1px solid var(--line)}header strong{font-weight:550}header span{color:var(--muted);font-size:12px;margin-right:auto}button,a{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);padding:6px 12px;border-radius:8px;cursor:pointer;text-decoration:none;transition:background .15s,transform .12s}button:active{transform:scale(.96)}button:focus-visible,a:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}.primary{color:#fff;background:var(--accent)}main{display:grid;grid-template-columns:1fr 1fr;flex:1;min-height:0}section{display:flex;flex-direction:column;min-width:0;min-height:0}section+section{border-left:1px solid var(--line)}.label{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;color:var(--muted);font-size:12px;border-bottom:1px solid var(--line)}textarea{border:0;outline:0;resize:none;flex:1;width:100%;padding:20px;color:var(--ink);background:var(--panel);font:13px/1.8 'SF Mono',Menlo,monospace;tab-size:2}iframe{width:100%;flex:1;border:0;background:white}footer{padding:7px 16px;color:var(--muted);font-size:11px;border-top:1px solid var(--line)}@media(max-width:768px){header{flex-wrap:wrap;gap:8px;padding:10px 12px}header span{display:none}main{grid-template-columns:1fr;grid-template-rows:1fr 1fr}section+section{border-left:0;border-top:1px solid var(--line)}textarea{padding:12px}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header><strong>HTML 在线展示</strong><span>代码与效果，并排查看</span><a href="/chat">返回对话</a><button id="download">下载 HTML</button><button class="primary" id="refresh">刷新预览</button></header>
+<main><section><div class="label"><span>HTML 源码</span><label><input type="checkbox" id="live" checked> 实时预览</label></div><textarea id="source" aria-label="HTML 源码" spellcheck="false"></textarea></section><section><div class="label"><span>预览</span><span id="status" role="status">准备就绪</span></div><iframe id="preview" title="HTML 预览" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe></section></main>
+<footer>草稿自动保存在当前浏览器</footer>
+<script>
+const source=document.getElementById('source'),preview=document.getElementById('preview'),status=document.getElementById('status'),live=document.getElementById('live');let timer;
+try{source.value=localStorage.getItem('xzm-html-preview')||''}catch{}
+if(!source.value)source.value='<!doctype html>\n<html lang="zh-CN">\n<meta charset="UTF-8">\n<style>body{margin:0;min-height:100vh;display:grid;place-content:center;font:16px/1.8 system-ui;background:#f8f9fc;color:#252d3d}h1{font-size:32px;font-weight:550;color:#526fa6}p{color:#707c90}</style>\n<h1>让想法呈现出来。</h1>\n<p>在左侧编辑 HTML，这里会实时更新。</p>\n</html>';
+function render(){clearTimeout(timer);preview.srcdoc=source.value;status.textContent='已更新'}
+source.addEventListener('input',()=>{try{localStorage.setItem('xzm-html-preview',source.value)}catch{}status.textContent='草稿已保存';clearTimeout(timer);if(live.checked)timer=setTimeout(render,250)});
+live.addEventListener('change',()=>{clearTimeout(timer);if(live.checked)render()});document.getElementById('refresh').onclick=render;
+document.getElementById('download').onclick=()=>{const url=URL.createObjectURL(new Blob([source.value],{type:'text/html;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='preview.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+render();
+</script>
+</body>
+</html>

@@ -466,4 +466,6 @@ function downloadCode() {
   .xzm-code-block__header { padding: 6px 10px; }
   .xzm-code-block__copy span { display: none; }
 }
+
+.xzm-code-block__pre .xzm-code-block__code { border: 0 !important; border-radius: 0 !important; padding: 0 !important; }
 </style>

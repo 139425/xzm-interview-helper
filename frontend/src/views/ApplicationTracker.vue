@@ -1183,7 +1183,7 @@ td.company-column {
   color: #eefaf5;
   background:
     linear-gradient(118deg, rgba(221, 252, 116, 0.08), transparent 45%), #0a3c38;
-  box-shadow: 0 15px 38px rgba(7, 72, 66, 0.1);
+  box-shadow: 0 15px 38px rgba(52, 78, 124, 0.1);
 }
 
 .pipeline-overview::after {
@@ -1782,4 +1782,9 @@ td.company-column {
     place-content: center;
   }
 }
+
+.sheet-card { border-radius: 12px; box-shadow: none; }
+.application-row { transition: background-color 140ms ease-out; }
+.status-control { border-radius: 7px; }
+
 </style>

@@ -16,7 +16,6 @@
 import { shallowRef, ref, computed } from 'vue'
 import { parseStream, finalizeBlocks } from '../utils/streamBuffer'
 
-const PENDING_ID = '__pending__'
 
 export function useStreamingMarkdown(options = {}) {
   const {
@@ -44,14 +43,14 @@ export function useStreamingMarkdown(options = {}) {
   }
 
   /**
-   * blocks: 已提交 + （进行中 → 末尾追加 pending block，带 id = __pending__）
+   * blocks: 已提交 + （进行中 → 末尾追加 pending block，沿用完成后的 block id，避免提交时卸载重建）
    */
   const blocks = computed(() => {
     const list = committedBlocks.value
     const p = pending.value
     if (!p || !p.kind || !p.raw) return list
     return list.concat({
-      id: PENDING_ID,
+      id: `b${list.length}`,
       kind: p.kind,
       raw: p.raw,
       lang: p.lang,
@@ -190,5 +189,3 @@ export function useStreamingMarkdown(options = {}) {
     getRaw,
   }
 }
-
-export const STREAM_PENDING_ID = PENDING_ID

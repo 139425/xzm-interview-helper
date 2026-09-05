@@ -15,12 +15,12 @@ defineProps({
 <style scoped>
 .xzm-cursor {
   display: inline-block;
-  width: 2px;
-  height: 1em;
-  margin-left: 2px;
-  vertical-align: text-bottom;
+  width: 5px;
+  height: 5px;
+  margin-left: 6px;
+  vertical-align: middle;
   background-color: currentColor;
-  border-radius: 1px;
+  border-radius: 50%;
   animation: xzm-cursor-blink 1.1s ease-in-out infinite;
   user-select: none;
 }

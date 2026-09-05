@@ -1,4 +1,5 @@
 <template>
+  <WorkspaceFrame mode="users" title="用户管理" mark="管">
   <div class="user-management-container">
     <!-- 页面头部 -->
     <div class="page-header">
@@ -132,9 +133,11 @@
       @confirm="handleResetPassword"
     />
   </div>
+  </WorkspaceFrame>
 </template>
 
 <script setup>
+import WorkspaceFrame from '../components/WorkspaceFrame.vue'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useUserStore } from '../stores/user'
 import { adminApi } from '../api/admin'
@@ -554,4 +557,13 @@ onUnmounted(() => {
     margin: 0;
   }
 }
+
+.user-management-container { background: var(--xzm-surface-0); color: var(--xzm-text-primary); min-height: calc(100dvh - 60px); padding: 24px; }
+.page-header, .search-section, .table-section { background: var(--xzm-surface-elevated); border: 1px solid var(--xzm-border-color); border-radius: 12px; box-shadow: none; }
+.page-title { font-size: 24px; color: var(--xzm-text-primary); }
+@media (max-width: 768px) { .user-management-container { padding: 12px; } }
+
+
+.pagination-section :deep(.el-pagination) { flex-wrap: wrap; justify-content: center; gap: 8px; white-space: normal; }
+.pagination-section { min-width: 0; padding: 12px 0; }
 </style>
