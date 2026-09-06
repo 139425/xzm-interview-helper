@@ -3,7 +3,7 @@
     <GeminiSidebar :mode="mode" />
 
     <section
-      class="workspace-frame__body"
+      ref="mainPanel" class="workspace-frame__body"
       :inert="uiStore.isMobile && uiStore.sidebarExpanded"
       :style="{ marginLeft: `${uiStore.sidebarWidth}px` }"
     >
@@ -47,7 +47,8 @@
 </template>
 
 <script setup>
-import { watch } from "vue";
+import { usePanelMotion } from "@/composables/usePanelMotion";
+import { ref, watch } from "vue";
 import { Expand, Fold } from "@element-plus/icons-vue";
 import GeminiSidebar from "@/components/GeminiSidebar.vue";
 import UserAvatar from "@/components/UserAvatar.vue";
@@ -73,6 +74,8 @@ const props = defineProps({
 });
 
 const uiStore = useUIStore();
+const mainPanel = ref(null);
+usePanelMotion(mainPanel, () => uiStore.sidebarWidth);
 
 watch(
   () => props.mode,
@@ -92,7 +95,7 @@ watch(
 .workspace-frame__body {
   min-width: 0;
   min-height: 100vh;
-  transition: margin-left 220ms cubic-bezier(0.2, 0, 0, 1);
+  transition: none;
 }
 
 .workspace-frame__topbar {

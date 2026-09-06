@@ -11,7 +11,7 @@
         />
       </template>
     </GeminiSidebar>
-    <main class="algorithm-main" :inert="uiStore.isMobile && uiStore.sidebarExpanded" :style="{ marginLeft: `${uiStore.sidebarWidth}px` }">
+    <main ref="mainPanel" class="algorithm-main" :inert="uiStore.isMobile && uiStore.sidebarExpanded" :style="{ marginLeft: `${uiStore.sidebarWidth}px` }">
       <header class="algorithm-topbar">
         <div class="problem-identity">
           <span class="identity-mark">ALG</span>
@@ -282,6 +282,7 @@
 </template>
 
 <script setup>
+import { usePanelMotion } from "@/composables/usePanelMotion";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
@@ -302,6 +303,8 @@ import { renderMarkdown } from "@/utils/markdownFormatter";
 const router = useRouter();
 const route = useRoute();
 const uiStore = useUIStore();
+const mainPanel = ref(null);
+usePanelMotion(mainPanel, () => uiStore.sidebarWidth);
 const workspaceOwnerId = resolveAlgorithmWorkspaceOwner();
 const problems = ref([]);
 const problemListLoading = ref(true);
@@ -1266,7 +1269,7 @@ function handleModeChange(mode) {
   --hover:var(--xzm-hover-bg); --danger:var(--xzm-danger);
   min-height:100dvh; background:var(--bg); color:var(--tx); font-family:var(--xzm-font-sans);
 }
-.algorithm-main{min-height:100vh;transition:margin-left 260ms cubic-bezier(.2,0,0,1)}
+.algorithm-main{min-height:100vh;transition:none}
 .algorithm-topbar{height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--bd);background:var(--topbar);backdrop-filter:blur(18px);box-shadow:0 1px 12px rgba(25,35,48,.05)}
 .problem-identity,.topbar-actions,.problem-meta,.editor-toolbar,.editor-actions,.result-metrics{display:flex;align-items:center}.problem-identity{gap:12px;min-width:0}.problem-identity>div{display:grid;gap:3px;min-width:0}.problem-identity strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .identity-mark{display:grid;place-items:center;width:38px;height:38px;border:1px solid var(--a-border);border-radius:10px;background:var(--a-soft);color:var(--a);font:700 10px/1 "JetBrains Mono",monospace;letter-spacing:.12em}.eyebrow{color:var(--mut);font:650 10px/1.2 "JetBrains Mono",monospace;letter-spacing:.14em}

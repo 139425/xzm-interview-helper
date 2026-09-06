@@ -1,7 +1,7 @@
 <template>
   <div class="xzm-stream-md" :class="`xzm-stream-md--${variant}`">
     <TransitionGroup name="stream-block" tag="div" class="xzm-stream-md__blocks">
-    <div v-for="block in blocks" :key="block.id" class="xzm-stream-md__block">
+    <div v-for="block in blocks" :key="block.id" v-memo="[block.raw, block.kind, block.done, block.lang]" class="xzm-stream-md__block">
       <MermaidDiagram
         v-if="block.kind === 'code' && block.done && String(block.lang).toLowerCase() === 'mermaid'"
         :code="block.raw"
@@ -39,7 +39,6 @@
       <div
         v-else-if="block.done"
         class="xzm-stream-md__rendered"
-        v-memo="[block.raw, block.kind]"
         v-html="renderDoneBlock(block)"
       />
     </div>

@@ -31,8 +31,8 @@
   /* ========== Text ========== */
   --xzm-text-primary: #252d3d;
   --xzm-text-secondary: #566176;
-  --xzm-text-tertiary: #707c90;
-  --xzm-text-muted: #8792a5;
+  --xzm-text-tertiary: #5e6b80;
+  --xzm-text-muted: #5e6b80;
   --xzm-text-inverse: #fafafa;
   --xzm-text-link: var(--xzm-brand);
   --xzm-text-on-brand: #ffffff;
@@ -168,30 +168,7 @@
   --shadow-lg: var(--xzm-shadow-lifted);
   --transition-speed: var(--xzm-duration-normal);
 
-  /* Element Plus 桥接 */
-  --el-color-primary: var(--xzm-brand);
-  --el-color-primary-light-3: #8199c3;
-  --el-color-primary-light-5: #a3b5d6;
-  --el-color-primary-light-7: #d1dcef;
-  --el-color-primary-light-9: var(--xzm-brand-soft);
-  --el-color-primary-dark-2: var(--xzm-brand-strong);
-  --el-color-success: var(--xzm-success);
-  --el-color-warning: var(--xzm-warning);
-  --el-color-danger: var(--xzm-danger);
-  --el-color-error: var(--xzm-danger);
-  --el-color-info: var(--xzm-info);
-  --el-bg-color: var(--xzm-surface-1);
-  --el-bg-color-page: var(--xzm-surface-0);
-  --el-bg-color-overlay: var(--xzm-surface-elevated);
-  --el-text-color-primary: var(--xzm-text-primary);
-  --el-text-color-regular: var(--xzm-text-secondary);
-  --el-text-color-secondary: var(--xzm-text-tertiary);
-  --el-text-color-placeholder: var(--xzm-text-muted);
-  --el-border-color: var(--xzm-border-color);
-  --el-border-color-light: var(--xzm-border-color);
-  --el-border-color-lighter: var(--xzm-border-color);
-  --el-fill-color-light: var(--xzm-hover-bg);
-  --el-fill-color-blank: var(--xzm-surface-control);
+
 }
 
 ::selection {
@@ -213,6 +190,10 @@
   --xzm-brand-hover: #bed0f0;
   --xzm-brand-strong: #c7d6f1;
   --xzm-brand-gradient: linear-gradient(135deg, #a8bee9, #93aedb);
+  --xzm-success: #83cfaa;
+  --xzm-warning: #e5b567;
+  --xzm-danger: #f59a98;
+  --xzm-info: #a8bee9;
   --xzm-signal: #2c3e5d;
   --xzm-signal-soft: #233249;
   --xzm-signal-ink: #c7d6f1;
@@ -230,8 +211,8 @@
 
   --xzm-text-primary: #e6eaf2;
   --xzm-text-secondary: #bec8d9;
-  --xzm-text-tertiary: #95a3b9;
-  --xzm-text-muted: #78869c;
+  --xzm-text-tertiary: #aab7cb;
+  --xzm-text-muted: #a0aec2;
   --xzm-text-inverse: #0b0c0f;
   --xzm-text-link: #b3c9f0;
   --xzm-text-on-brand: #172337;
@@ -290,15 +271,7 @@
   --bg-secondary: var(--xzm-surface-1);
   --bg-tertiary: var(--xzm-surface-2);
 
-  --el-color-primary: #a8bee9;
-  --el-color-primary-light-3: #91a9d1;
-  --el-color-primary-light-5: #687fa6;
-  --el-color-primary-light-7: #3e5274;
-  --el-color-primary-light-9: var(--xzm-surface-2);
-  --el-color-primary-dark-2: #c7d6f1;
-  --el-bg-color: var(--xzm-surface-1);
-  --el-bg-color-page: var(--xzm-surface-0);
-  --el-bg-color-overlay: var(--xzm-surface-elevated);
+
 }
 
 /* ============================================
@@ -313,4 +286,36 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Keep lazy-loaded Element Plus defaults from replacing the shared palette. */
+html[data-theme], body[data-theme] {
+  /* Element Plus 桥接 */
+  --el-color-primary: var(--xzm-brand);
+  --el-color-primary-light-3: color-mix(in srgb, var(--xzm-brand) 75%, var(--xzm-surface-elevated));
+  --el-color-primary-light-5: color-mix(in srgb, var(--xzm-brand) 50%, var(--xzm-surface-elevated));
+  --el-color-primary-light-7: color-mix(in srgb, var(--xzm-brand) 25%, var(--xzm-surface-elevated));
+  --el-color-primary-light-9: var(--xzm-brand-soft);
+  --el-color-primary-dark-2: var(--xzm-brand-strong);
+  --el-color-success: var(--xzm-success);
+  --el-color-warning: var(--xzm-warning);
+  --el-color-danger: var(--xzm-danger);
+  --el-color-error: var(--xzm-danger);
+  --el-color-info: var(--xzm-info);
+  --el-bg-color: var(--xzm-surface-elevated);
+  --el-bg-color-page: var(--xzm-surface-0);
+  --el-bg-color-overlay: var(--xzm-surface-elevated);
+  --el-text-color-primary: var(--xzm-text-primary);
+  --el-text-color-regular: var(--xzm-text-secondary);
+  --el-text-color-secondary: var(--xzm-text-tertiary);
+  --el-text-color-placeholder: var(--xzm-text-muted);
+  --el-border-color: var(--xzm-border-color);
+  --el-border-color-light: var(--xzm-border-color);
+  --el-border-color-lighter: var(--xzm-border-color);
+  --el-fill-color-light: var(--xzm-hover-bg);
+  --el-fill-color-blank: var(--xzm-surface-control);
+  --el-fill-color: var(--xzm-surface-2);
+  --el-fill-color-lighter: var(--xzm-surface-1);
+  --el-disabled-bg-color: var(--xzm-surface-2);
+  --el-disabled-text-color: var(--xzm-text-muted);
 }

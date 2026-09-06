@@ -2,6 +2,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { reactive } from "vue";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ElMessageBox } from "element-plus";
+import WorkspacePicker from "@/components/WorkspacePicker.vue";
 import GeminiSidebar from "@/components/GeminiSidebar.vue";
 
 const mocks = vi.hoisted(() => ({
@@ -129,25 +130,20 @@ describe("GeminiSidebar workspaces", () => {
     expect(wrapper.find(".logo-section").exists()).toBe(false);
     expect(wrapper.find(".workspace-label").exists()).toBe(false);
     expect(wrapper.find(".mode-copy").exists()).toBe(false);
-    expect(wrapper.findAll(".mode-btn")).toHaveLength(7);
-    expect(wrapper.find(".algorithm-context").exists()).toBe(false);
+    expect(wrapper.findAll(".mode-btn")).toHaveLength(3);
+    expect(wrapper.find(".algorithm-context").isVisible()).toBe(false);
   });
 
-  it("keeps every workspace reachable while descriptions are collapsed", async () => {
-    const wrapper = mount(GeminiSidebar, {
-      props: { mode: "algorithm" },
-      global: { stubs: { "el-icon": true } },
-    });
-
-    expect(wrapper.findAll(".mode-btn")).toHaveLength(7);
-    expect(wrapper.get(".mode-btn.active").attributes("aria-label")).toBe("算法训练");
-    expect(wrapper.findAll(".mode-copy small")).toHaveLength(0);
-
-    await wrapper.get(".workspace-density-toggle").trigger("click");
-
-    expect(mocks.uiStore.toggleWorkspaceList).toHaveBeenCalledOnce();
-    expect(wrapper.findAll(".mode-btn")).toHaveLength(7);
-    expect(wrapper.findAll(".mode-copy small")).toHaveLength(7);
+  it("keeps all workspaces reachable without consuming history space", async () => {
+    const wrapper = mount(GeminiSidebar, { props: { mode: "algorithm" }, global: { stubs: { "el-icon": true } } });
+    expect(wrapper.findAll(".mode-btn")).toHaveLength(3);
+    const picker = wrapper.findComponent(WorkspacePicker);
+    expect(picker.props("items")).toHaveLength(7);
+    const knowledge = picker.props("items").find(item => item.id === "knowledge");
+    picker.vm.$emit("select", knowledge);
+    await flushPromises();
+    expect(mocks.routerPush).toHaveBeenCalledWith("/knowledge");
+    expect(mocks.createNewChat).not.toHaveBeenCalled();
   });
 
   it("shows the server Agent workspace only to administrators", async () => {
@@ -158,12 +154,12 @@ describe("GeminiSidebar workspaces", () => {
       global: { stubs: { "el-icon": true } },
     });
 
-    const labels = wrapper.findAll(".mode-btn").map((button) => button.attributes("aria-label"));
+    const labels = wrapper.findComponent(WorkspacePicker).props("items").map(item => item.label);
     expect(labels).toContain("服务器 Agent");
 
     mocks.userStore.isAdmin = false;
     await wrapper.vm.$nextTick();
-    expect(wrapper.findAll(".mode-btn").map((button) => button.attributes("aria-label"))).not.toContain("服务器 Agent");
+    expect(wrapper.findComponent(WorkspacePicker).props("items").map(item => item.label)).not.toContain("服务器 Agent");
   });
 
   it("deletes an owned interview session from its history list", async () => {

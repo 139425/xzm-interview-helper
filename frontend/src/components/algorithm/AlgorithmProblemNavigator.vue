@@ -489,7 +489,7 @@ function resetFilters() {
 .problem-rank {
   width: 30px;
   flex: 0 0 30px;
-  color: var(--gemini-text-tertiary);
+  color: var(--xzm-text-secondary);
   font: 650 0.66rem/1 ui-monospace, SFMono-Regular, Consolas, monospace;
   letter-spacing: -0.02em;
 }
@@ -542,17 +542,17 @@ function resetFilters() {
 }
 
 .difficulty-easy {
-  color: #168569;
+  color: var(--xzm-success);
   background: rgba(22, 133, 105, 0.1);
 }
 
 .difficulty-medium {
-  color: #b06b0d;
+  color: var(--xzm-warning);
   background: rgba(176, 107, 13, 0.1);
 }
 
 .difficulty-hard {
-  color: #c34b58;
+  color: var(--xzm-danger);
   background: rgba(195, 75, 88, 0.1);
 }
 

@@ -9,11 +9,11 @@
   /* ============================================
      1) 品牌色（雾蓝 + 中性阅读表面）
      ============================================ */
-  --xzm-brand: #526fa6;
+  --xzm-brand: #486494;
   --xzm-brand-hover: #435f94;
   --xzm-brand-strong: #344e7c;
   --xzm-brand-soft: #edf2fb;
-  --xzm-brand-gradient: linear-gradient(135deg, #5c79ad, #526fa6);
+  --xzm-brand-gradient: linear-gradient(135deg, #486494, #435f94);
   --xzm-signal: #dce7fa;
   --xzm-signal-soft: #f0f4fc;
   --xzm-signal-ink: #3e5d91;
@@ -21,9 +21,9 @@
   /* ============================================
      2) 功能色
      ============================================ */
-  --xzm-success: #15805c;
-  --xzm-warning: #c87a10;
-  --xzm-danger: #d64a44;
+  --xzm-success: #096747;
+  --xzm-warning: #93610c;
+  --xzm-danger: #be3836;
   --xzm-info: #2f6fed;
 
   /* ============================================

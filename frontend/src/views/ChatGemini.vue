@@ -21,7 +21,7 @@
     />
 
     <main
-      class="xzm-chat-page__main"
+      ref="mainPanel" class="xzm-chat-page__main"
       :inert="
         (uiStore.isMobile && uiStore.sidebarExpanded) ||
         (showQuestionNav && outlineOverlay)
@@ -105,6 +105,7 @@
             aria-relevant="additions text"
             aria-label="对话消息"
             @scroll="handleScroll"
+            @wheel.passive="handleReadingIntent"
           >
             <div class="xzm-chat-page__messages-inner">
               <div
@@ -206,6 +207,7 @@
 </template>
 
 <script setup>
+import { usePanelMotion } from "@/composables/usePanelMotion";
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useRoute, useRouter } from "vue-router";
@@ -233,6 +235,8 @@ import QuestionNav from "../components/chat/QuestionNav.vue";
 const router = useRouter();
 const route = useRoute();
 const uiStore = useUIStore();
+const mainPanel = ref(null);
+usePanelMotion(mainPanel, () => uiStore.sidebarWidth);
 const chatStore = useChatStore();
 const userStore = useUserStore();
 const { promptMode } = storeToRefs(uiStore);
@@ -302,6 +306,8 @@ const lastScrollTop = ref(0);
 let contentObserver;
 let observedContent;
 let scrollFrame = 0;
+let followFrame = 0;
+let autoScrollTop = -1;
 let disposed = false;
 let scrollScheduled = false;
 
@@ -311,16 +317,21 @@ function isNearBottom() {
   return c.scrollHeight - c.scrollTop - c.clientHeight < 100;
 }
 
+function handleReadingIntent(event) {
+  if (event.deltaY < 0) {
+    userHasScrolledUp.value = true;
+    cancelAnimationFrame(followFrame);
+    followFrame = 0;
+  }
+}
+
 function handleScroll() {
   const c = messagesContainer.value;
   if (!c) return;
   const top = c.scrollTop;
-  if (top < lastScrollTop.value && !isNearBottom()) {
-    userHasScrolledUp.value = true;
-  }
-  if (isNearBottom()) {
-    userHasScrolledUp.value = false;
-  }
+  const isAutomatic = Math.abs(top - autoScrollTop) < 1;
+  if (!isAutomatic && top < lastScrollTop.value) userHasScrolledUp.value = true;
+  if (!isAutomatic && top > lastScrollTop.value && isNearBottom()) userHasScrolledUp.value = false;
   lastScrollTop.value = top;
   scheduleQuestionUpdate();
 }
@@ -329,17 +340,30 @@ function scrollToBottom(force = false) {
   if (userHasScrolledUp.value && !force) return;
   nextTick(() => {
     const c = messagesContainer.value;
-    if (!c) return;
-    const reduce = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    const behavior = chatStream.isStreaming.value || reduce ? "auto" : "smooth";
-    try {
-      c.scrollTo({ top: c.scrollHeight, behavior });
-    } catch {
-      c.scrollTop = c.scrollHeight;
+    if (!c || disposed || (userHasScrolledUp.value && !force)) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!chatStream.isStreaming.value || reduce || force) {
+      cancelAnimationFrame(followFrame); followFrame = 0;
+      const target = Math.max(0, c.scrollHeight - c.clientHeight);
+      autoScrollTop = target;
+      c.scrollTo({ top: target, behavior: reduce || chatStream.isStreaming.value ? 'auto' : 'smooth' });
+      return;
     }
-    scheduleQuestionUpdate();
+    if (followFrame) return;
+    let previous = performance.now();
+    const follow = (now) => {
+      followFrame = 0;
+      if (disposed || userHasScrolledUp.value || c !== messagesContainer.value) return;
+      const target = Math.max(0, c.scrollHeight - c.clientHeight);
+      const distance = target - c.scrollTop;
+      const dt = Math.min(50, Math.max(1, now - previous)); previous = now;
+      const next = Math.abs(distance) <= 2 || Math.abs(distance) > c.clientHeight
+        ? target : c.scrollTop + distance * (1 - Math.exp(-dt / 38));
+      c.scrollTop = next;
+      autoScrollTop = c.scrollTop;
+      if (Math.abs(target - c.scrollTop) >= 1) followFrame = requestAnimationFrame(follow);
+    };
+    followFrame = requestAnimationFrame(follow);
   });
 }
 
@@ -725,6 +749,7 @@ onUnmounted(() => {
   disposed = true;
   contentObserver?.disconnect();
   cancelAnimationFrame(scrollFrame);
+  cancelAnimationFrame(followFrame);
   runGeneration += 1;
   chatStream.cancel();
 });
@@ -756,9 +781,7 @@ onUnmounted(() => {
   min-width: 0;
   max-width: 100%;
   overflow-x: hidden;
-  transition:
-    margin-left var(--xzm-duration-normal) var(--xzm-ease-standard),
-    margin-right var(--xzm-duration-normal) var(--xzm-ease-standard);
+  transition: none;
 }
 
 .xzm-chat-page__content {

@@ -679,7 +679,7 @@ onBeforeUnmount(() => toolbarResizeObserver?.disconnect())
   padding: 0 14px;
   border: 1px solid var(--xzm-brand);
   border-radius: 8px;
-  color: #fff;
+  color: var(--xzm-text-on-brand);
   background: var(--xzm-brand);
   font: inherit;
   font-size: 0.73rem;
@@ -843,7 +843,7 @@ td.company-column {
 }
 
 .status-control option {
-  color: #263244;
+  color: var(--xzm-text-primary);
   background: var(--xzm-surface-elevated);
 }
 
@@ -1180,14 +1180,13 @@ td.company-column {
   border: 1px solid
     color-mix(in srgb, var(--xzm-brand) 26%, var(--xzm-border-color));
   border-radius: 14px;
-  color: #eefaf5;
-  background:
-    linear-gradient(118deg, rgba(221, 252, 116, 0.08), transparent 45%), #0a3c38;
+  color: var(--xzm-text-primary);
+  background: var(--xzm-surface-elevated);
   box-shadow: 0 15px 38px rgba(52, 78, 124, 0.1);
 }
 
 .pipeline-overview::after {
-  content: '';
+  content: none;
   position: absolute;
   right: 35%;
   bottom: -95px;
@@ -1206,7 +1205,7 @@ td.company-column {
 
 .pipeline-overview__copy p {
   margin: 0 0 6px;
-  color: var(--xzm-signal);
+  color: var(--xzm-brand);
   font: 800 0.57rem/1 var(--xzm-font-data);
   letter-spacing: 0.15em;
 }
@@ -1222,7 +1221,7 @@ td.company-column {
 .pipeline-overview__copy > span {
   display: block;
   margin-top: 7px;
-  color: #a9c0b8;
+  color: var(--xzm-text-secondary);
   font-size: 0.67rem;
 }
 
@@ -1232,7 +1231,7 @@ td.company-column {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   margin: 0;
-  border-left: 1px solid rgba(221, 252, 116, 0.14);
+  border-left: 1px solid var(--xzm-border-color);
 }
 
 .pipeline-stats div {
@@ -1244,21 +1243,21 @@ td.company-column {
 }
 
 .pipeline-stats div + div {
-  border-left: 1px solid rgba(221, 252, 116, 0.12);
+  border-left: 1px solid var(--xzm-border-color);
 }
 .pipeline-stats dt {
   font: 750 1.5rem/1 var(--xzm-font-data);
 }
 .pipeline-stats dd {
-  color: #8eaaa1;
+  color: var(--xzm-text-secondary);
   font-size: 0.63rem;
 }
 .pipeline-stats .is-offer {
-  color: var(--xzm-signal);
-  background: rgba(221, 252, 116, 0.06);
+  color: var(--xzm-brand);
+  background: var(--xzm-brand-soft);
 }
 .pipeline-stats .is-offer dd {
-  color: #c8dc85;
+  color: var(--xzm-brand);
 }
 
 .sheet-card {
@@ -1602,7 +1601,7 @@ td.company-column {
   }
   .pipeline-stats {
     min-height: 68px;
-    border-top: 1px solid rgba(221, 252, 116, 0.14);
+    border-top: 1px solid var(--xzm-border-color);
     border-left: 0;
   }
   .pipeline-stats dt {

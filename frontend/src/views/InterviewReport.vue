@@ -453,7 +453,6 @@ onUnmounted(() => {
 
 <style scoped>
 /* 字体导入 - 使用思源宋体和思源黑体，高质量且易读 */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
 
 /* 页面容器 */
 .report-page {
@@ -506,7 +505,7 @@ onUnmounted(() => {
 .download-btn {
   background: var(--gemini-accent-blue);
   border-color: var(--gemini-accent-blue);
-  color: #fff;
+  color: var(--xzm-text-on-brand);
 }
 
 .download-btn:hover {
@@ -564,7 +563,7 @@ onUnmounted(() => {
   padding: 6px 16px;
   margin-bottom: 20px;
   background: var(--gemini-accent-blue);
-  color: #fff;
+  color: var(--xzm-text-on-brand);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 1px;
@@ -664,7 +663,7 @@ onUnmounted(() => {
   font-family: 'Noto Serif SC', serif;
   font-size: 18px;
   font-weight: 600;
-  color: var(--gemini-text-primary);
+  color: var(--xzm-text-secondary);
 }
 
 .score-info .score-detail {
@@ -883,7 +882,7 @@ onUnmounted(() => {
   font-family: 'Noto Serif SC', serif;
   font-size: 18px;
   font-weight: 700;
-  color: #fff;
+  color: var(--xzm-text-on-brand);
 }
 
 .round-info {
@@ -927,7 +926,7 @@ onUnmounted(() => {
 
 .round-score .score-label {
   font-size: 12px;
-  color: var(--gemini-text-tertiary);
+  color: var(--xzm-text-secondary);
 }
 
 /* 展开/收起图标 */
@@ -990,12 +989,12 @@ onUnmounted(() => {
 
 .question-block .label-icon {
   background: rgba(99, 102, 241, 0.15);
-  color: #6366f1;
+  color: var(--xzm-brand);
 }
 
 .answer-block .label-icon {
   background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
+  color: var(--xzm-success);
 }
 
 .label-text {
@@ -1049,7 +1048,7 @@ onUnmounted(() => {
 }
 
 .eval-section.strength {
-  border-left-color: #22c55e;
+  border-left-color: var(--xzm-success);
 }
 
 .eval-section.weakness {
@@ -1077,7 +1076,7 @@ onUnmounted(() => {
 }
 
 .eval-section-header.strength .eval-section-icon {
-  color: #22c55e;
+  color: var(--xzm-success);
 }
 
 .eval-section-header.weakness .eval-section-icon {
@@ -1183,7 +1182,7 @@ onUnmounted(() => {
 .action-btn.primary {
   background: var(--gemini-accent-blue);
   border: 1px solid var(--gemini-accent-blue);
-  color: #fff;
+  color: var(--xzm-text-on-brand);
 }
 
 .action-btn.primary:hover {
@@ -1585,7 +1584,7 @@ onUnmounted(() => {
 .report-header { background: var(--xzm-surface-0); border-color: var(--xzm-border-color); backdrop-filter: none; }
 .report-cover { border-radius: 16px; box-shadow: none; }
 .cover-decoration { display: none; }
-.cover-title { font-family: var(--xzm-font-sans); font-size: clamp(26px, 3vw, 38px); letter-spacing: -.03em; }
+.cover-title { background: none; -webkit-text-fill-color: currentColor; color: var(--xzm-text-primary); font-family: var(--xzm-font-sans); font-size: clamp(26px, 3vw, 38px); letter-spacing: -.03em; }
 .summary-card, .round-card { border-radius: 12px; box-shadow: none; }
 
 </style>

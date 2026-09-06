@@ -16,7 +16,7 @@ const history = Array.from({ length: 18 }, (_, i) => ({
     "模拟一轮 Java 后端面试",
     "项目经历如何讲得更有说服力",
   ][i % 3],
-  updateTime: "2026-09-05T12:00:00",
+  lastChatTime: "2026-09-05T12:00:00",
   messageCount: 6,
 }));
 function api(url, method) {
@@ -258,7 +258,7 @@ async function seedMessages(page) {
   await page.locator(".xzm-msg--assistant").first().waitFor();
   await page.waitForTimeout(350);
 }
-(async () => {
+async function runAudit() {
   const executablePath =
     process.env.PLAYWRIGHT_BROWSER_EXECUTABLE ||
     (fs.existsSync(
@@ -305,7 +305,7 @@ async function seedMessages(page) {
       }
       await page.goto(base + "/chat", { waitUntil: "networkidle" });
       if (viewport.width > 768) {
-        assert.equal(await page.locator(".mode-btn").count(), 9);
+        assert.equal(await page.locator(".mode-btn").count(), 3);
         await page.getByTitle("收起侧边栏").click();
         await page.waitForTimeout(300);
         assert.equal(
@@ -499,6 +499,7 @@ async function seedMessages(page) {
           0,
           "new conversation kept the old reading position",
         );
+        await page.getByRole("button", { name: "全部工作区", exact: true }).click();
         await page
           .getByRole("button", { name: "个人资料", exact: true })
           .click();
@@ -576,7 +577,10 @@ async function seedMessages(page) {
   } finally {
     await browser.close();
   }
-})().catch((err) => {
+}
+if (require.main === module) runAudit().catch((err) => {
   console.error(err);
   process.exitCode = 1;
 });
+
+module.exports = { seed, geometry, seedMessages };
