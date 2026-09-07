@@ -565,7 +565,7 @@ function syncToolbarHeight() {
   if (!applicationMain.value || !sheetToolbar.value) return
   applicationMain.value.style.setProperty(
     '--sheet-toolbar-height',
-    `${sheetToolbar.value.offsetHeight}px`,
+    `${sheetToolbar.value.getBoundingClientRect().height}px`,
   )
 }
 
@@ -585,7 +585,7 @@ onBeforeUnmount(() => toolbarResizeObserver?.disconnect())
 
 <style scoped>
 .application-main {
-  --sheet-sticky-inset: -12px;
+  --sheet-sticky-inset: 0px;
   --sheet-toolbar-height: 64px;
 
   box-sizing: border-box;
@@ -1787,8 +1787,10 @@ td.company-column {
 .status-control { border-radius: 7px; }
 
 
-.application-main { max-width: 1440px; margin: 0 auto; padding: 30px 28px 48px; gap: 24px; }
-.pipeline-overview { grid-template-columns: minmax(220px,1fr) minmax(380px,.9fr); min-height: 100px; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+/* Keep the scrollport flush with the topbar; initial spacing belongs to the
+   overview so sticky offsets never depend on the page's decorative padding. */
+.application-main { max-width: 1440px; margin: 0 auto; padding: 0 28px 48px; gap: 24px; }
+.pipeline-overview { margin-top: 30px; grid-template-columns: minmax(220px,1fr) minmax(380px,.9fr); min-height: 100px; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 .pipeline-overview__copy { padding: 0 24px 0 0; }
 .pipeline-overview__copy h1 { font-size: 30px; font-weight: 650; line-height: 1.25; letter-spacing: -.035em; }
 .pipeline-overview__copy > span { margin-top: 10px; font-size: 13px; }
@@ -1803,6 +1805,6 @@ td.company-column {
 .company-column strong { font-size: 13px; }.text-cell, .updated-cell { font-size: 12px; }
 .sheet-filters :is(input,select,button), .status-filter summary { min-height: 36px; border-radius: 9px; font-size: 12px; }
 @media(max-width:1050px) { .pipeline-overview { grid-template-columns: 1fr; gap: 20px; } .pipeline-stats { width: 100%; } }
-@media(max-width:768px) { .application-main { padding: 22px 14px 28px; gap: 20px; } .pipeline-overview__copy h1 { font-size: 27px; } .pipeline-stats { padding: 14px 0; } .sheet-toolbar { padding: 16px; } }
+@media(max-width:768px) { .application-main { padding: 0 14px 28px; gap: 20px; } .pipeline-overview { margin-top: 22px; } .pipeline-overview__copy h1 { font-size: 27px; } .pipeline-stats { padding: 14px 0; } .sheet-toolbar { padding: 16px; } }
 
 </style>
