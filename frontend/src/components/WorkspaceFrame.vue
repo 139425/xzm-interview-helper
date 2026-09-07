@@ -278,4 +278,11 @@ watch(
     gap: 6px;
   }
 }
+
+.workspace-frame__topbar { min-height: 60px; padding: 8px 28px; gap: 16px; background: var(--xzm-nav-material); border-bottom: 1px solid var(--xzm-border-color); box-shadow: none; backdrop-filter: blur(12px); }
+.workspace-frame__mark { display: none; }
+.workspace-frame__identity strong { font-size: 14px; font-weight: 600; letter-spacing: -.01em; }
+.workspace-frame__menu { background: transparent; border-radius: 9px; }
+@media (max-width:768px) { .workspace-frame__topbar { padding: 8px 12px; gap: 8px; } .workspace-frame__identity strong { font-size: 13px; } }
+
 </style>

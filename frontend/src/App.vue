@@ -1,11 +1,46 @@
 <template>
-  <div id="app">
+  <div id="app" :class="{ 'has-workspace-nav': showNavigation, 'keyboard-open': keyboardOpen }">
     <a class="skip-link" href="#app-content">跳到主要内容</a>
     <div id="app-content" tabindex="-1">
       <router-view />
     </div>
+    <MobileWorkspaceNav v-if="showNavigation && !keyboardOpen" />
   </div>
 </template>
+
+<script setup>
+import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import MobileWorkspaceNav from './components/MobileWorkspaceNav.vue'
+import { prefetchWorkspace } from './utils/workspaceNavigation'
+const route = useRoute()
+const showNavigation = computed(() => ['Chat', 'AiInterview', 'AlgorithmPractice', 'RecruitmentDirectory', 'ApplicationTracker', 'AssessmentSchedule', 'KnowledgeBase', 'UserManagement', 'ServerAgent'].includes(route.name))
+const keyboardOpen = ref(false)
+let viewportFrame = 0, idleHandle, warmTimer
+function updateViewport() {
+  cancelAnimationFrame(viewportFrame)
+  viewportFrame = requestAnimationFrame(() => {
+    const viewport = window.visualViewport
+    const mobile = window.innerWidth <= 768
+    const editing = document.activeElement?.matches('input, textarea, [contenteditable="true"]')
+    // Use this window's layout viewport, not the physical screen (split view and
+    // landscape can be much smaller). Pinch zoom is not an on-screen keyboard.
+    const layoutHeight = Math.max(window.innerHeight, document.documentElement.clientHeight)
+    keyboardOpen.value = Boolean(mobile && editing && viewport && viewport.scale === 1 && layoutHeight - viewport.height > 160)
+    document.documentElement.style.setProperty('--xzm-available-height', mobile && viewport ? `${viewport.height}px` : '100dvh')
+  })
+}
+function warmNavigation() {
+  window.cancelIdleCallback?.(idleHandle)
+  clearTimeout(warmTimer)
+  if (!showNavigation.value) return
+  if ('requestIdleCallback' in window) idleHandle = window.requestIdleCallback(() => ['schedule', 'applications', 'recruitment'].forEach(prefetchWorkspace), { timeout: 3000 })
+  else warmTimer = setTimeout(() => ['schedule', 'applications', 'recruitment'].forEach(prefetchWorkspace), 1500)
+}
+onMounted(() => { updateViewport(); window.visualViewport?.addEventListener('resize', updateViewport); window.addEventListener('resize', updateViewport); document.addEventListener('focusin', updateViewport); document.addEventListener('focusout', updateViewport); warmNavigation() })
+watch(showNavigation, value => { if (value) warmNavigation() })
+onBeforeUnmount(() => { cancelAnimationFrame(viewportFrame); window.cancelIdleCallback?.(idleHandle); clearTimeout(warmTimer); window.visualViewport?.removeEventListener('resize', updateViewport); window.removeEventListener('resize', updateViewport); document.removeEventListener('focusin', updateViewport); document.removeEventListener('focusout', updateViewport) })
+</script>
 
 <style>
 *,
@@ -244,6 +279,8 @@ select:focus-visible,
 }
 
 @media (max-width: 768px) {
+  /* iOS zooms focused controls below 16px, which shifts the fixed navigation. */
+  #app input:not([type='checkbox']):not([type='radio']):not([type='range']), #app textarea, #app select { font-size: 16px; }
   pre {
     max-width: 100% !important;
     overflow-x: auto !important;
@@ -268,5 +305,17 @@ select:focus-visible,
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
   }
+}
+</style>
+
+<style>
+#app { --xzm-bottom-nav: 0px; }
+@media (max-width: 768px) {
+  #app.has-workspace-nav { --xzm-bottom-nav: calc(78px + env(safe-area-inset-bottom)); padding-bottom: var(--xzm-bottom-nav); }
+  #app.has-workspace-nav.keyboard-open { --xzm-bottom-nav: 0px; }
+  #app.has-workspace-nav #app-content { min-height: calc(var(--xzm-available-height, 100dvh) - var(--xzm-bottom-nav)); }
+  #app.has-workspace-nav .xzm-chat-page, #app.has-workspace-nav .xzm-chat-page__main { height: calc(var(--xzm-available-height, 100dvh) - var(--xzm-bottom-nav)); min-height: 0; }
+  #app.has-workspace-nav .agent-main { padding-bottom: var(--xzm-bottom-nav); }
+  #app.has-workspace-nav .gemini-sidebar { height: var(--xzm-available-height, 100dvh); }
 }
 </style>

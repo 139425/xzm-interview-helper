@@ -1,7 +1,7 @@
 <template>
   <WorkspaceFrame
     mode="applications"
-    title="投递推进"
+    title="投递追踪"
     eyebrow="CAREER PIPELINE"
     mark="投"
   >
@@ -21,9 +21,9 @@
     <main ref="applicationMain" class="application-main">
       <section class="pipeline-overview" aria-labelledby="pipeline-title">
         <div class="pipeline-overview__copy">
-          <p>PROGRESS FIRST</p>
-          <h1 id="pipeline-title">先看离 Offer 最近的机会</h1>
-          <span>默认按进度倒序，同阶段再看最近更新。</span>
+
+          <h1 id="pipeline-title">投递追踪</h1>
+          <span>每一次投递，都有清晰的下一步。</span>
         </div>
         <dl class="pipeline-stats">
           <div class="is-offer">
@@ -1785,5 +1785,24 @@ td.company-column {
 .sheet-card { border-radius: 12px; box-shadow: none; }
 .application-row { transition: background-color 140ms ease-out; }
 .status-control { border-radius: 7px; }
+
+
+.application-main { max-width: 1440px; margin: 0 auto; padding: 30px 28px 48px; gap: 24px; }
+.pipeline-overview { grid-template-columns: minmax(220px,1fr) minmax(380px,.9fr); min-height: 100px; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.pipeline-overview__copy { padding: 0 24px 0 0; }
+.pipeline-overview__copy h1 { font-size: 30px; font-weight: 650; line-height: 1.25; letter-spacing: -.035em; }
+.pipeline-overview__copy > span { margin-top: 10px; font-size: 13px; }
+.pipeline-stats, .pipeline-stats div + div { border: 0; }
+.pipeline-stats { align-self: center; padding: 16px 0; border-radius: 16px; background: var(--xzm-surface-elevated); box-shadow: var(--xzm-shadow-soft); }
+.pipeline-stats dt { font: 600 24px/1.2 var(--xzm-font-sans); font-variant-numeric: tabular-nums; color: var(--xzm-text-primary); }
+.pipeline-stats dd { font-size: 11px; }
+.pipeline-stats .is-offer { background: transparent; }.pipeline-stats .is-offer dt { color: var(--xzm-brand); }
+.sheet-card { min-height: 440px; border: 1px solid var(--xzm-border-color); border-radius: 16px; background: var(--xzm-surface-elevated); box-shadow: var(--xzm-shadow-soft); }
+.sheet-toolbar { padding: 18px 20px; background: var(--xzm-surface-elevated); border-radius: 16px 16px 0 0; }
+.record-heading strong { font-size: 15px; font-weight: 600; }
+.company-column strong { font-size: 13px; }.text-cell, .updated-cell { font-size: 12px; }
+.sheet-filters :is(input,select,button), .status-filter summary { min-height: 36px; border-radius: 9px; font-size: 12px; }
+@media(max-width:1050px) { .pipeline-overview { grid-template-columns: 1fr; gap: 20px; } .pipeline-stats { width: 100%; } }
+@media(max-width:768px) { .application-main { padding: 22px 14px 28px; gap: 20px; } .pipeline-overview__copy h1 { font-size: 27px; } .pipeline-stats { padding: 14px 0; } .sheet-toolbar { padding: 16px; } }
 
 </style>

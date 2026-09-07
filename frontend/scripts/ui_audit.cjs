@@ -56,9 +56,9 @@ function api(url, method) {
   if (url.includes("/api/applications"))
     return wrap({
       items: fixture.APPLICATIONS,
-      summary: { upcomingReminders: 2 },
+      summary: { upcomingReminders: 2, APPLIED: 1, INTERVIEW_1: 1 },
     });
-  if (url.includes("/api/assessments")) return wrap({ items: [], summary: {} });
+  if (url.includes("/api/schedules")) return wrap({ items: [], summary: {}, trash: [] });
   if (url.includes("/api/knowledge")) return wrap(fixture.DOCUMENTS);
   if (url.includes("/interview-agent/sessions")) return [];
   if (url.includes("/admin/server-agent/status"))
@@ -305,7 +305,7 @@ async function runAudit() {
       }
       await page.goto(base + "/chat", { waitUntil: "networkidle" });
       if (viewport.width > 768) {
-        assert.equal(await page.locator(".mode-btn").count(), 3);
+        assert.equal(await page.locator(".mode-btn").count(), 6);
         await page.getByTitle("收起侧边栏").click();
         await page.waitForTimeout(300);
         assert.equal(

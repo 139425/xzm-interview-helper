@@ -130,13 +130,13 @@ describe("GeminiSidebar workspaces", () => {
     expect(wrapper.find(".logo-section").exists()).toBe(false);
     expect(wrapper.find(".workspace-label").exists()).toBe(false);
     expect(wrapper.find(".mode-copy").exists()).toBe(false);
-    expect(wrapper.findAll(".mode-btn")).toHaveLength(3);
+    expect(wrapper.findAll(".mode-btn")).toHaveLength(6);
     expect(wrapper.find(".algorithm-context").isVisible()).toBe(false);
   });
 
   it("keeps all workspaces reachable without consuming history space", async () => {
     const wrapper = mount(GeminiSidebar, { props: { mode: "algorithm" }, global: { stubs: { "el-icon": true } } });
-    expect(wrapper.findAll(".mode-btn")).toHaveLength(3);
+    expect(wrapper.findAll(".mode-btn")).toHaveLength(6);
     const picker = wrapper.findComponent(WorkspacePicker);
     expect(picker.props("items")).toHaveLength(7);
     const knowledge = picker.props("items").find(item => item.id === "knowledge");

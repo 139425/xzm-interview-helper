@@ -163,7 +163,7 @@ body {
   border: 1px solid var(--border-color) !important;
   border-radius: 0.5rem !important;
   color: var(--text-primary) !important;
-  transition: all var(--transition-speed) !important;
+  transition: color var(--transition-speed), background-color var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed), opacity var(--transition-speed), transform var(--transition-speed) !important;
   resize: none !important;
   min-height: 44px;
   max-height: 120px;
@@ -237,7 +237,7 @@ body {
 .el-button {
   border-radius: 0.5rem;
   font-weight: 500;
-  transition: all var(--transition-speed);
+  transition: color var(--transition-speed), background-color var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed), opacity var(--transition-speed), transform var(--transition-speed);
 }
 
 .el-button--primary {
@@ -336,7 +336,7 @@ body {
 .el-button {
   border-radius: 8px !important;
   font-weight: 500 !important;
-  transition: all var(--transition-speed) !important;
+  transition: color var(--transition-speed), background-color var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed), opacity var(--transition-speed), transform var(--transition-speed) !important;
 }
 
 .el-button--primary {

@@ -65,28 +65,25 @@
     <nav class="workspace-switcher" aria-label="工作区切换">
       <WorkspacePicker :items="availableModeItems" :active-mode="activeMode"
         :collapsed="!showExpandedContent" @select="switchWorkspace" @open-change="workspacePickerOpen = $event" />
-      <div class="mode-switcher">
-        <button
-          v-for="item in visibleModeItems"
-          :key="item.id"
-          type="button"
-          class="mode-btn"
-          :class="{ active: activeMode === item.id }"
-          :aria-current="activeMode === item.id ? 'page' : undefined"
-          :aria-label="item.label"
-          :title="
-            uiStore.sidebarExpanded ? '' : `${item.label}：${item.description}`
-          "
-          @click="switchWorkspace(item)"
-        >
-          <span class="mode-icon" aria-hidden="true">
-            <el-icon :size="19"><component :is="item.icon" /></el-icon>
-          </span>
-          <span v-if="showExpandedContent" class="mode-copy">
-            <strong>{{ item.label }}</strong>
-
-          </span>
-        </button>
+      <div class="practice-switcher" aria-label="面试准备">
+        <a v-for="item in practiceItems" :key="item.id" :href="item.route"
+          class="mode-btn practice-link" :class="{ active: activeMode === item.id }"
+          :aria-current="activeMode === item.id ? 'page' : undefined" :aria-label="item.label"
+          :title="item.label" @click="navigateWorkspace($event, item)">
+          <span class="mode-icon" aria-hidden="true"><el-icon><component :is="item.icon" /></el-icon></span>
+          <span v-if="showExpandedContent" class="mode-copy"><strong>{{ item.shortLabel }}</strong></span>
+        </a>
+      </div>
+      <div class="career-switcher">
+        <span v-if="showExpandedContent" class="nav-section-label">求职进程</span>
+        <a v-for="item in [...careerItems, ...extraItems]" :key="item.id" :href="item.route"
+          class="mode-btn career-link" :class="{ active: activeMode === item.id }"
+          :aria-current="activeMode === item.id ? 'page' : undefined" :aria-label="item.label"
+          :title="item.label" @click="navigateWorkspace($event, item)"
+          @pointerenter="prefetchWorkspace(item.id)" @focus="prefetchWorkspace(item.id)">
+          <span class="mode-icon" aria-hidden="true"><el-icon><component :is="item.icon" /></el-icon></span>
+          <span v-if="showExpandedContent" class="mode-copy"><strong>{{ item.label }}</strong></span>
+        </a>
       </div>
     </nav>
 
@@ -259,6 +256,7 @@
 <script setup>
 import { ref, computed, onBeforeUnmount, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import { workspaces, prefetchWorkspace } from '../utils/workspaceNavigation'
 import WorkspacePicker from './WorkspacePicker.vue'
 import { useUIStore } from '../stores/ui'
 import { useChatStore } from '../stores/chat'
@@ -270,15 +268,8 @@ import {
   Fold,
   EditPen,
   ChatDotRound,
-  Document,
   Loading,
   Delete,
-  Cpu,
-  Briefcase,
-  TrendCharts,
-  Calendar,
-  Collection,
-  Monitor,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -360,70 +351,13 @@ const activeMode = computed(() => props.mode || uiStore.currentMode)
 const hasConversationHistory = computed(() =>
   ['chat', 'interview'].includes(activeMode.value),
 )
-const modeItems = [
-  {
-    id: 'chat',
-    label: 'AI 对话',
-    description: '检索 · 推演 · 作答',
-    icon: ChatDotRound,
-    route: '/chat',
-  },
-  {
-    id: 'interview',
-    label: '模拟面试',
-    description: '简历驱动的实战演练',
-    icon: Document,
-    route: '/aiInterview',
-  },
-  {
-    id: 'algorithm',
-    label: '算法训练',
-    description: '题库 · 编码 · 评测',
-    icon: Cpu,
-    route: '/algorithms',
-  },
-  {
-    id: 'recruitment',
-    label: '秋招信息',
-    description: '每日更新 · 官网优先',
-    icon: Briefcase,
-    route: '/recruitment',
-  },
-  {
-    id: 'applications',
-    label: '投递追踪',
-    description: '流程 · 截止 · 提醒',
-    icon: TrendCharts,
-    route: '/applications',
-  },
-  {
-    id: 'schedule',
-    label: '笔面测待办',
-    description: '笔试 · 面试 · 测评',
-    icon: Calendar,
-    route: '/applications/schedule',
-  },
-  {
-    id: 'knowledge',
-    label: '个人资料',
-    description: '隔离知识库 · 来源',
-    icon: Collection,
-    route: '/knowledge',
-  },
-  {
-    id: 'serverAgent',
-    label: '服务器 Agent',
-    description: '运维 · 文件 · 建站 · 审计',
-    icon: Monitor,
-    route: '/admin/server',
-    adminOnly: true,
-  },
-]
-modeItems.push({ id: 'users', label: '用户管理', description: '账号与权限', icon: Collection, route: '/admin/users', adminOnly: true })
+const modeItems = workspaces
 const availableModeItems = computed(() =>
   modeItems.filter((item) => !item.adminOnly || userStore.isAdmin),
 )
-const visibleModeItems = computed(() => availableModeItems.value.filter(item => ['chat', 'interview', 'algorithm'].includes(item.id) || item.id === activeMode.value))
+const practiceItems = computed(() => availableModeItems.value.filter(item => item.group === 'practice'))
+const careerItems = computed(() => availableModeItems.value.filter(item => item.group === 'career'))
+const extraItems = computed(() => availableModeItems.value.filter(item => !item.group && item.id === activeMode.value))
 
 // 分页状态
 const currentPage = ref(1)
@@ -462,6 +396,12 @@ const switchWorkspace = (item) => {
   if (router.currentRoute.value.path !== item.route) {
     router.push(item.route)
   }
+}
+
+function navigateWorkspace(event, item) {
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return
+  event.preventDefault()
+  switchWorkspace(item)
 }
 
 // ========== 历史记录操作 ==========

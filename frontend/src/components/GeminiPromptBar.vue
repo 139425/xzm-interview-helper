@@ -452,7 +452,7 @@ onUnmounted(() => {
   border: 1px solid var(--gemini-border-color);
   border-radius: var(--gemini-prompt-bar-border-radius);
   padding: var(--gemini-prompt-bar-padding);
-  transition: all var(--gemini-transition-slow) var(--gemini-ease-in-out);
+  transition: color var(--gemini-transition-slow) var(--gemini-ease-in-out), background-color var(--gemini-transition-slow) var(--gemini-ease-in-out), border-color var(--gemini-transition-slow) var(--gemini-ease-in-out), box-shadow var(--gemini-transition-slow) var(--gemini-ease-in-out), opacity var(--gemini-transition-slow) var(--gemini-ease-in-out), transform var(--gemini-transition-slow) var(--gemini-ease-in-out);
   box-shadow: var(--gemini-shadow-sm);
 }
 
@@ -548,7 +548,7 @@ onUnmounted(() => {
   color: var(--gemini-text-secondary);
   font-size: 0.9rem;
   cursor: pointer;
-  transition: all var(--gemini-transition-fast);
+  transition: color var(--gemini-transition-fast), background-color var(--gemini-transition-fast), border-color var(--gemini-transition-fast), box-shadow var(--gemini-transition-fast), opacity var(--gemini-transition-fast), transform var(--gemini-transition-fast);
   white-space: nowrap;
 }
 
@@ -579,7 +579,7 @@ onUnmounted(() => {
   color: var(--gemini-text-secondary);
   font-size: 0.9rem;
   cursor: pointer;
-  transition: all var(--gemini-transition-fast);
+  transition: color var(--gemini-transition-fast), background-color var(--gemini-transition-fast), border-color var(--gemini-transition-fast), box-shadow var(--gemini-transition-fast), opacity var(--gemini-transition-fast), transform var(--gemini-transition-fast);
   user-select: none;
 }
 
@@ -683,7 +683,7 @@ onUnmounted(() => {
   color: var(--gemini-text-primary);
   font-size: 0.875rem;
   cursor: pointer;
-  transition: all var(--gemini-transition-fast);
+  transition: color var(--gemini-transition-fast), background-color var(--gemini-transition-fast), border-color var(--gemini-transition-fast), box-shadow var(--gemini-transition-fast), opacity var(--gemini-transition-fast), transform var(--gemini-transition-fast);
 }
 
 .model-option-copy {
@@ -756,7 +756,7 @@ onUnmounted(() => {
   color: var(--gemini-text-primary);
   font-size: 0.85rem;
   cursor: pointer;
-  transition: all var(--gemini-transition-fast);
+  transition: color var(--gemini-transition-fast), background-color var(--gemini-transition-fast), border-color var(--gemini-transition-fast), box-shadow var(--gemini-transition-fast), opacity var(--gemini-transition-fast), transform var(--gemini-transition-fast);
   white-space: nowrap;
 }
 
@@ -893,16 +893,16 @@ onUnmounted(() => {
   height: 40px;
   border: none;
   border-radius: var(--gemini-radius-full);
-  background: linear-gradient(135deg, var(--gemini-accent-blue) 0%, #6b9ff8 100%);
+  background: var(--xzm-brand-gradient);
   color: white;
   cursor: pointer;
-  transition: all var(--gemini-transition-fast);
+  transition: color var(--gemini-transition-fast), background-color var(--gemini-transition-fast), border-color var(--gemini-transition-fast), box-shadow var(--gemini-transition-fast), opacity var(--gemini-transition-fast), transform var(--gemini-transition-fast);
   flex-shrink: 0;
 }
 
 .send-btn:hover:not(:disabled) {
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(138, 180, 248, 0.4);
+  box-shadow: 0 4px 12px var(--xzm-focus-ring-soft);
 }
 
 .send-btn:active:not(:disabled) {
@@ -926,7 +926,7 @@ onUnmounted(() => {
   background: var(--gemini-bg-tertiary);
   color: var(--gemini-text-primary);
   cursor: pointer;
-  transition: all var(--gemini-transition-fast);
+  transition: color var(--gemini-transition-fast), background-color var(--gemini-transition-fast), border-color var(--gemini-transition-fast), box-shadow var(--gemini-transition-fast), opacity var(--gemini-transition-fast), transform var(--gemini-transition-fast);
   flex-shrink: 0;
 }
 

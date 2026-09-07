@@ -93,9 +93,7 @@ describe('ApplicationTracker table view', () => {
     expect(wrapper.findAll('.application-row')).toHaveLength(2)
     expect(wrapper.get('.application-row').text()).toContain('开源智造')
     expect(wrapper.get('.status-control').classes()).toContain('status--amber')
-    expect(wrapper.get('.pipeline-overview__copy').text()).toContain(
-      '默认按进度倒序',
-    )
+    expect(wrapper.get('.sort-field select').element.value).toBe('progress')
   })
 
   it('requires only company and apply URL in the primary form', async () => {

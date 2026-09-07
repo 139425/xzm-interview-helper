@@ -20,8 +20,8 @@
     <main class="jobs-main">
       <section class="jobs-overview" aria-label="招聘信息概览">
         <div class="jobs-overview__title">
-          <h1>2027 届秋招信息汇总</h1>
-          <span>多来源去重 · 每日自动更新</span>
+          <h1>发现下一份机会</h1>
+          <span>2027 届秋招 · 每日更新</span>
         </div>
         <dl class="jobs-stats">
           <div>
@@ -89,7 +89,7 @@
               </option>
             </select>
           </label>
-          <label>
+          <label v-show="showAdvancedFilters">
             <span class="sr-only">招聘批次</span>
             <select v-model="filters.recruitmentType">
               <option value="">全部秋招批次</option>
@@ -102,7 +102,7 @@
               </option>
             </select>
           </label>
-          <label>
+          <label v-show="showAdvancedFilters">
             <span class="sr-only">企业性质</span>
             <select v-model="filters.companyType">
               <option value="">企业性质</option>
@@ -128,7 +128,7 @@
               </option>
             </select>
           </label>
-          <label>
+          <label v-show="showAdvancedFilters">
             <span class="sr-only">截止时间</span>
             <select v-model="filters.deadlineWithinDays">
               <option value="">全部截止时间</option>
@@ -137,7 +137,7 @@
               <option value="30">30 天内截止</option>
             </select>
           </label>
-          <label>
+          <label v-show="showAdvancedFilters">
             <span class="sr-only">信息来源</span>
             <select v-model="filters.sourceKind">
               <option value="">全部来源</option>
@@ -150,6 +150,7 @@
               </option>
             </select>
           </label>
+          <button type="button" class="jobs-more-filters" :aria-expanded="showAdvancedFilters" @click="showAdvancedFilters = !showAdvancedFilters">{{ showAdvancedFilters ? '收起筛选' : '更多筛选' }}<small v-if="advancedFilterCount">{{ advancedFilterCount }}</small><span aria-hidden="true">{{ showAdvancedFilters ? '−' : '+' }}</span></button>
           <label class="jobs-check">
             <input v-model="filters.freshOnly" type="checkbox" />
             <span aria-hidden="true"></span>
@@ -340,6 +341,9 @@ import { recruitmentApi } from "@/api/recruitment";
 import { applicationApi } from "@/api/career";
 import WorkspaceFrame from "@/components/WorkspaceFrame.vue";
 import { ElMessage } from "element-plus";
+
+const showAdvancedFilters = ref(false)
+const advancedFilterCount = computed(() => [filters.recruitmentType, filters.companyType, filters.deadlineWithinDays, filters.sourceKind].filter(Boolean).length)
 
 const route = useRoute();
 const router = useRouter();
@@ -1369,4 +1373,39 @@ onBeforeUnmount(() => {
 .jobs-overview h1 { font-size: clamp(18px, 2vw, 24px); font-weight: 550; letter-spacing: -.025em; }
 .jobs-stats dt { color: var(--xzm-brand); }
 
+
+.jobs-main { width: calc(100% - 56px); margin: 30px auto 48px; }
+.jobs-overview { padding: 0; min-height: 100px; border: 0; background: transparent; gap: 24px; }
+.jobs-overview__title { display: block; }.jobs-overview h1 { font-size: 30px; font-weight: 650; line-height: 1.25; letter-spacing: -.035em; }
+.jobs-overview__title > span { display: block; margin-top: 10px; font-size: 13px; }
+.jobs-stats { grid-template-columns: repeat(4,minmax(76px,1fr)); min-width: 380px; padding: 16px 8px; background: var(--xzm-surface-elevated); border-radius: 16px; box-shadow: var(--xzm-shadow-soft); }
+.jobs-stats div { border: 0; }.jobs-stats dt { color: var(--xzm-text-primary); font: 600 24px/1.2 var(--xzm-font-sans); font-variant-numeric: tabular-nums; }.jobs-stats div:first-child dt { color: var(--xzm-brand); }
+.jobs-controls { margin-top: 24px; border-radius: 16px; }.jobs-tabs { padding: 8px 12px 0; border-bottom-color: var(--xzm-border-color); }
+.jobs-tabs button { min-height: 40px; font-weight: 500; font-size: 12px; }.jobs-filterbar { padding: 16px; gap: 10px; }
+.jobs-filterbar select, .jobs-search, .jobs-submit, .jobs-reset, .jobs-more-filters { min-height: 38px; border-radius: 9px; font-size: 12px; }
+.jobs-more-filters { display: inline-flex; align-items: center; gap: 12px; padding: 0 12px; border: 1px solid var(--xzm-border-color); background: var(--xzm-surface-elevated); color: var(--xzm-text-secondary); cursor: pointer; }
+.jobs-more-filters:hover, .jobs-more-filters[aria-expanded='true'] { color: var(--xzm-brand); border-color: var(--xzm-brand); }
+.jobs-results { margin-top: 20px; border-radius: 16px; overflow: hidden; }.jobs-results__head { padding: 18px 20px; }.jobs-results__head h2 { font-size: 15px; font-weight: 600; }
+.jobs-row { padding-block: 20px; }.jobs-company__mark { border: 0; width: 36px; height: 36px; background: var(--xzm-surface-1); color: var(--xzm-text-secondary); font-weight: 600; }
+.jobs-company strong, .jobs-position strong { font-size: 13px; font-weight: 600; }.jobs-position span { font-size: 11px; }
+.jobs-actions a, .jobs-actions button { min-height: 32px; border-radius: 8px; }
+@media(max-width:1050px) { .jobs-overview { align-items: stretch; flex-direction: column; gap: 20px; } .jobs-stats { min-width: 0; } }
+@media(max-width:768px) { .jobs-main { width: calc(100% - 28px); margin-top: 22px; } .jobs-overview h1 { font-size: 27px; } .jobs-filterbar { padding: 12px; } .jobs-row { padding: 18px 14px; } .jobs-controls { margin-top: 20px; } }
+
+
+@media(min-width:1251px) {
+  .jobs-table { min-width: 0; }
+  .jobs-table__header, .jobs-row { grid-template-columns: 48px 108px minmax(170px,1fr) 72px 90px 94px 80px 76px 136px; column-gap: 10px; padding-inline: 16px; }
+  .jobs-company { grid-template-columns: 28px minmax(0,1fr); gap: 8px; }.jobs-company__mark { width: 28px; height: 32px; }
+  .jobs-row > div { min-width:0; }.jobs-position strong, .jobs-position span { white-space: normal; overflow-wrap: anywhere; }
+}
+@media(min-width:761px) and (max-width:1250px) {
+  .jobs-table { min-width:0; }.jobs-table__header { display:none; }
+  .jobs-row { grid-template-columns: repeat(4,minmax(0,1fr)); grid-template-areas: 'company position position position' 'date industry location batch' 'deadline source actions actions'; gap: 18px 14px; padding: 20px; }
+  .jobs-date { grid-area:date; }.jobs-company { grid-area:company; }.jobs-position { grid-area:position; }.jobs-industry { grid-area:industry; }.jobs-location { grid-area:location; }.jobs-batch { grid-area:batch; }.jobs-deadline { grid-area:deadline; }.jobs-source { grid-area:source; }.jobs-actions { grid-area:actions; justify-content:flex-end; }
+  .jobs-row > div { min-width:0; }.jobs-row > div:not(.jobs-company):not(.jobs-position):not(.jobs-actions)::before { content:attr(data-label); display:block; font-size:10px; color:var(--xzm-text-tertiary); margin-bottom:5px; }
+  .jobs-position strong, .jobs-position span, .jobs-location { white-space: normal; }
+}
+
+@media(max-width:768px) { .jobs-stats { grid-template-columns: repeat(4,minmax(0,1fr)); padding-inline:4px; }.jobs-stats dt { font-size:22px; } }
 </style>

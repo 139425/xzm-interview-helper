@@ -1,22 +1,22 @@
 /**
- * tokens.css — XZM Design Tokens (V5 · Mist)
+ * tokens.css — XZM Design Tokens (V6 · Porcelain / Iris)
  * 单一来源的设计令牌，与具体主题无关。
  * 主题切换由 theme.css 通过 [data-theme] 选择器完成。
- * 中性阅读画布、雾蓝操作色；色彩只表达层级、焦点和状态。
+ * 中性阅读画布、淡鸢尾蓝操作色；色彩只表达层级、焦点和状态。
  */
 
 :root {
   /* ============================================
-     1) 品牌色（雾蓝 + 中性阅读表面）
+     1) 品牌色（淡鸢尾蓝 + 中性阅读表面）
      ============================================ */
-  --xzm-brand: #486494;
-  --xzm-brand-hover: #435f94;
-  --xzm-brand-strong: #344e7c;
-  --xzm-brand-soft: #edf2fb;
-  --xzm-brand-gradient: linear-gradient(135deg, #486494, #435f94);
-  --xzm-signal: #dce7fa;
-  --xzm-signal-soft: #f0f4fc;
-  --xzm-signal-ink: #3e5d91;
+  --xzm-brand: #515e9f;
+  --xzm-brand-hover: #414e8a;
+  --xzm-brand-strong: #354174;
+  --xzm-brand-soft: #eeeff8;
+  --xzm-brand-gradient: linear-gradient(135deg, #515e9f, #414e8a);
+  --xzm-signal: #e4e7f5;
+  --xzm-signal-soft: #f3f3fa;
+  --xzm-signal-ink: #414f8b;
 
   /* ============================================
      2) 功能色
@@ -59,7 +59,7 @@
      5) 字体
      ============================================ */
   --xzm-font-sans:
-    'Aptos', 'Segoe UI Variable', 'PingFang SC', 'Noto Sans SC',
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', 'PingFang SC',
     'Hiragino Sans GB', 'Microsoft YaHei', system-ui, sans-serif;
   --xzm-font-display: var(--xzm-font-sans);
   --xzm-font-data:

@@ -56,8 +56,8 @@
         aria-labelledby="setup-title"
       >
         <div class="setup-copy">
-          <div class="setup-kicker"><span></span> 以简历为起点</div>
-          <h1 id="setup-title">准备好，<br /><em>开始模拟面试。</em></h1>
+
+          <h1 id="setup-title">模拟面试</h1>
           <p>
             围绕你的简历和目标岗位展开提问，在追问和算法练习中找到需要补强的地方。
           </p>
@@ -87,7 +87,7 @@
               <el-icon><Document /></el-icon>
             </div>
             <div>
-              <p class="eyebrow">面试准备</p>
+
               <h2 id="intake-title">准备你的面试材料</h2>
             </div>
           </div>
@@ -2876,7 +2876,7 @@ onBeforeUnmount(() => {
 .brand-mark { width: 28px; height: 28px; border: 0; border-radius: 8px; background: var(--xzm-brand-soft); color: var(--xzm-brand); box-shadow: none; font-size: 10px; }
 .setup-shell { max-width: 1160px; min-height: auto; margin: 0 auto; padding: 28px 28px; grid-template-columns: minmax(220px, .55fr) minmax(380px, 1fr); gap: 32px; align-items: start; }
 .setup-copy { position: sticky; top: 100px; padding-top: 18px; }
-.setup-copy h1 { font-family: var(--xzm-font-sans); font-size: clamp(26px, 2.5vw, 32px); font-weight: 550; letter-spacing: -.035em; line-height: 1.4; }
+.setup-copy h1 { font-family: var(--xzm-font-sans); font-size: clamp(28px, 2.5vw, 34px); font-weight: 550; letter-spacing: -.035em; line-height: 1.4; }
 .setup-copy h1 em { font-style: normal; color: var(--xzm-brand); font-weight: inherit; }
 .setup-kicker { color: var(--xzm-brand); font-size: 11px; font-weight: 500; }
 .setup-copy > p { font-size: 13px; margin: 20px 0 28px; line-height: 1.85; }

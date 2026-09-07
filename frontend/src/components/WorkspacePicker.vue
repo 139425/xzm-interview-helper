@@ -6,7 +6,7 @@
       <button ref="trigger" type="button" class="workspace-picker-trigger" :class="{ 'is-collapsed': collapsed }"
         aria-label="全部工作区" :aria-expanded="open" aria-haspopup="dialog">
         <el-icon v-if="collapsed" :size="18"><Grid /></el-icon>
-        <template v-else><span>工作区</span><span class="workspace-picker-more">全部 <el-icon :size="13"><ArrowDown /></el-icon></span></template>
+        <template v-else><span>快速切换</span><span class="workspace-picker-more"><kbd>{{ shortcutLabel }}</kbd> <el-icon :size="13"><ArrowDown /></el-icon></span></template>
       </button>
     </template>
     <div ref="panel" class="workspace-picker" role="dialog" aria-label="选择工作区" @keydown="handleKey">
@@ -28,14 +28,20 @@
 </template>
 
 <script setup>
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, ref, onMounted, onBeforeUnmount } from 'vue'
 import { ElPopover } from 'element-plus'
 import { ArrowDown, Grid, Search } from '@element-plus/icons-vue'
 const props = defineProps({ items: { type: Array, required: true }, activeMode: String, collapsed: Boolean })
 const emit = defineEmits(['select', 'open-change'])
+const shortcutLabel = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘ K' : 'Ctrl K'
 const open = ref(false), query = ref(''), trigger = ref(null), search = ref(null), panel = ref(null)
 const filtered = computed(() => props.items.filter(item => `${item.label} ${item.description}`.toLowerCase().includes(query.value.trim().toLowerCase())))
-async function focusSearch() { emit('open-change', true); await nextTick(); search.value?.focus({ preventScroll: true }) }
+async function focusSearch() {
+  emit('open-change', true)
+  await nextTick()
+  // A fast keyboard user may already be navigating options when entry ends.
+  if (open.value && window.matchMedia('(pointer: fine)').matches && !panel.value?.contains(document.activeElement)) search.value?.focus({ preventScroll: true })
+}
 function restoreFocus() { emit('open-change', false); query.value = ''; if (document.activeElement === document.body || panel.value?.contains(document.activeElement)) trigger.value?.focus({ preventScroll: true }) }
 function select(item) { open.value = false; emit('select', item) }
 function handleKey(event) {
@@ -52,11 +58,21 @@ function handleKey(event) {
   if (event.shiftKey && document.activeElement === search.value) { event.preventDefault(); (buttons.at(-1) || search.value)?.focus() }
   else if (!event.shiftKey && document.activeElement === (buttons.at(-1) || search.value)) { event.preventDefault(); search.value?.focus() }
 }
+function shortcut(event) {
+  if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'k' || event.isComposing) return
+  if (event.target.closest?.('.monaco-editor, [role="dialog"], textarea, [contenteditable="true"]')) return
+  event.preventDefault()
+  if (!trigger.value?.closest('[inert]')) { open.value = !open.value }
+}
+onMounted(() => document.addEventListener('keydown', shortcut))
+onBeforeUnmount(() => document.removeEventListener('keydown', shortcut))
+
 </script>
 
 <style scoped>
 .workspace-picker-trigger { display: flex; width: 100%; min-height: 28px; align-items: center; justify-content: space-between; gap: 8px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; color: var(--xzm-text-secondary); font-size: 11px; cursor: pointer; transition: background 120ms; }
 .workspace-picker-trigger:hover, .workspace-picker-trigger[aria-expanded='true'] { background: var(--xzm-hover-bg); color: var(--xzm-text-primary); }
+.workspace-picker-more kbd { font: 10px var(--xzm-font-sans); letter-spacing: .02em; }
 .workspace-picker-more { display: flex; gap: 4px; align-items: center; color: var(--xzm-text-secondary); }
 .workspace-picker-trigger.is-collapsed { width: 40px; height: 34px; justify-content: center; padding: 0; }
 .workspace-picker { color: var(--xzm-text-primary); }

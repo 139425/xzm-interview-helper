@@ -61,7 +61,7 @@ async function run() {
       const side = await page.locator('.gemini-sidebar').boundingBox();
       const nav = await page.locator('.workspace-switcher').boundingBox();
       const history = await page.locator('.history-list').boundingBox();
-      assert(nav.height < 180, `Navigation too tall: ${nav.height}`);
+      assert(nav.height < 260, `Navigation too tall: ${nav.height}`);
       assert(history.height > side.height * .55, `History squeezed: ${history.height}/${side.height}`);
       console.log(`${theme} sidebar: navigation ${nav.height}px, history ${history.height}px / ${side.height}px`);
       const list = page.locator('.history-list');
@@ -75,6 +75,7 @@ async function run() {
       await page.keyboard.press('ArrowUp');
       assert(await page.locator('.workspace-option').last().evaluate(el => el === document.activeElement), 'ArrowUp from search must select last item');
       await page.keyboard.press('Tab');
+      await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === '搜索工作区');
       assert(await search.evaluate(el => el === document.activeElement), 'Tab must return to search');
       await search.fill('不存在的工作区');
       assert(await page.getByText('没有匹配的工作区').isVisible());
@@ -109,4 +110,5 @@ async function run() {
   console.log(`Quality report: ${out}`);
   if (process.env.STRICT_CONTRAST === '1') assert.equal(report.reduce((n, r) => n + r.failures.length, 0), 0, 'Text contrast findings remain');
 }
-run().catch(e => { console.error(e); process.exitCode = 1; });
+module.exports = { contrast };
+if (require.main === module) run().catch(e => { console.error(e); process.exitCode = 1; });

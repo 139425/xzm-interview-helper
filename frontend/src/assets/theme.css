@@ -1,7 +1,7 @@
 /**
- * theme.css — XZM 主题语义层 (V5 · Mist)
+ * theme.css — XZM 主题语义层 (V6 · Porcelain / Iris)
  *
- * V5 默认主题：light（中性画布与雾蓝）。
+ * V6 默认主题：light（中性画布与淡鸢尾蓝）。
  * 通过 [data-theme="dark"] 切换到深色。
  * 桥接旧 --gemini-* / --primary-* / --bg-* / --el-* 变量，使存量组件零侵入获得新主题。
  *
@@ -15,32 +15,33 @@
 :root,
 [data-theme='light'] {
   color-scheme: light;
+  --xzm-nav-material: rgba(252,252,254,.94);
 
   /* ========== Surface ========== */
-  --xzm-surface-0: #f8f9fc;
-  --xzm-surface-1: #f1f3f8;
-  --xzm-surface-2: #e9edf5;
-  --xzm-surface-3: #dfe5ef;
+  --xzm-surface-0: #f8f8fa;
+  --xzm-surface-1: #f0f0f3;
+  --xzm-surface-2: #e9e9ef;
+  --xzm-surface-3: #dedee7;
   --xzm-surface-elevated: #ffffff;
-  --xzm-surface-control: #f8f9fc;
-  --xzm-surface-inset: #f1f4f9;
-  --xzm-surface-code: #f6f7fb;
-  --xzm-surface-code-header: #edf0f6;
+  --xzm-surface-control: #f8f8fa;
+  --xzm-surface-inset: #f1f1f5;
+  --xzm-surface-code: #f5f5f8;
+  --xzm-surface-code-header: #ececf2;
   --xzm-surface-overlay: rgba(15, 15, 16, 0.36);
 
   /* ========== Text ========== */
-  --xzm-text-primary: #252d3d;
-  --xzm-text-secondary: #566176;
-  --xzm-text-tertiary: #5e6b80;
-  --xzm-text-muted: #5e6b80;
+  --xzm-text-primary: #25262c;
+  --xzm-text-secondary: #5b5d6a;
+  --xzm-text-tertiary: #656775;
+  --xzm-text-muted: #656775;
   --xzm-text-inverse: #fafafa;
   --xzm-text-link: var(--xzm-brand);
   --xzm-text-on-brand: #ffffff;
 
   /* ========== 边框 ========== */
-  --xzm-border-color: #e3e7ef;
-  --xzm-border-color-strong: #d0d8e6;
-  --xzm-border-color-hover: #a9b8d0;
+  --xzm-border-color: #e3e3e9;
+  --xzm-border-color-strong: #d3d4de;
+  --xzm-border-color-hover: #b0b3c6;
 
   /* ========== 阴影（克制） ========== */
   --xzm-shadow-soft:
@@ -172,12 +173,12 @@
 }
 
 ::selection {
-  color: #252d3d;
+  color: #25262c;
   background: var(--xzm-signal);
 }
 
 ::-moz-selection {
-  color: #252d3d;
+  color: #25262c;
   background: var(--xzm-signal);
 }
 
@@ -186,27 +187,28 @@
    ============================================ */
 [data-theme='dark'] {
   color-scheme: dark;
-  --xzm-brand: #a8bee9;
-  --xzm-brand-hover: #bed0f0;
-  --xzm-brand-strong: #c7d6f1;
-  --xzm-brand-gradient: linear-gradient(135deg, #a8bee9, #93aedb);
+  --xzm-nav-material: rgba(38,39,48,.95);
+  --xzm-brand: #b9c1ef;
+  --xzm-brand-hover: #cbd1f5;
+  --xzm-brand-strong: #d3d8f5;
+  --xzm-brand-gradient: linear-gradient(135deg, #b9c1ef, #93aedb);
   --xzm-success: #83cfaa;
   --xzm-warning: #e5b567;
   --xzm-danger: #f59a98;
-  --xzm-info: #a8bee9;
-  --xzm-signal: #2c3e5d;
-  --xzm-signal-soft: #233249;
-  --xzm-signal-ink: #c7d6f1;
+  --xzm-info: #b9c1ef;
+  --xzm-signal: #363d5e;
+  --xzm-signal-soft: #2b3048;
+  --xzm-signal-ink: #d3d8f5;
 
-  --xzm-surface-0: #141820;
-  --xzm-surface-1: #1a202b;
-  --xzm-surface-2: #232c3a;
-  --xzm-surface-3: #2e394b;
-  --xzm-surface-elevated: #1f2734;
-  --xzm-surface-control: #202937;
-  --xzm-surface-inset: #171d27;
-  --xzm-surface-code: #151c26;
-  --xzm-surface-code-header: #202a39;
+  --xzm-surface-0: #18191e;
+  --xzm-surface-1: #202127;
+  --xzm-surface-2: #2a2b34;
+  --xzm-surface-3: #363743;
+  --xzm-surface-elevated: #25262e;
+  --xzm-surface-control: #2b2c35;
+  --xzm-surface-inset: #1e1f26;
+  --xzm-surface-code: #1c1d23;
+  --xzm-surface-code-header: #292a33;
   --xzm-surface-overlay: rgba(0, 0, 0, 0.55);
 
   --xzm-text-primary: #e6eaf2;
@@ -217,8 +219,8 @@
   --xzm-text-link: #b3c9f0;
   --xzm-text-on-brand: #172337;
 
-  --xzm-border-color: #303c4f;
-  --xzm-border-color-strong: #42526b;
+  --xzm-border-color: #3a3c47;
+  --xzm-border-color-strong: #525565;
   --xzm-border-color-hover: #617694;
 
   --xzm-shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -258,15 +260,15 @@
   --xzm-shadow-glow: var(--xzm-shadow-medium);
 
   --xzm-grad-primary: #818cf8;
-  --xzm-brand-soft: #26364f;
+  --xzm-brand-soft: #33374f;
 
   /* 桥接 */
   --gemini-bg-primary: var(--xzm-surface-0);
   --gemini-bg-secondary: var(--xzm-surface-1);
   --gemini-bg-tertiary: var(--xzm-surface-2);
 
-  --primary-color: #a8bee9;
-  --primary-hover: #bed0f0;
+  --primary-color: #b9c1ef;
+  --primary-hover: #cbd1f5;
   --bg-primary: var(--xzm-surface-0);
   --bg-secondary: var(--xzm-surface-1);
   --bg-tertiary: var(--xzm-surface-2);

@@ -307,7 +307,7 @@ onUnmounted(() => {
   background-color: var(--gemini-bg-tertiary);
   color: var(--gemini-text-primary);
   cursor: pointer;
-  transition: all var(--gemini-transition-fast);
+  transition: color var(--gemini-transition-fast), background-color var(--gemini-transition-fast), border-color var(--gemini-transition-fast), box-shadow var(--gemini-transition-fast), opacity var(--gemini-transition-fast), transform var(--gemini-transition-fast);
 }
 
 .theme-toggle-btn:hover {
@@ -334,7 +334,7 @@ onUnmounted(() => {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--gemini-transition-fast);
+  transition: color var(--gemini-transition-fast), background-color var(--gemini-transition-fast), border-color var(--gemini-transition-fast), box-shadow var(--gemini-transition-fast), opacity var(--gemini-transition-fast), transform var(--gemini-transition-fast);
   overflow: hidden;
 }
 
@@ -370,7 +370,7 @@ onUnmounted(() => {
 /* 菜单淡入淡出动画 */
 .menu-fade-enter-active,
 .menu-fade-leave-active {
-  transition: all var(--gemini-transition-fast);
+  transition: color var(--gemini-transition-fast), background-color var(--gemini-transition-fast), border-color var(--gemini-transition-fast), box-shadow var(--gemini-transition-fast), opacity var(--gemini-transition-fast), transform var(--gemini-transition-fast);
 }
 
 .menu-fade-enter-from,
@@ -434,7 +434,7 @@ onUnmounted(() => {
   font-size: 0.875rem;
   text-align: left;
   cursor: pointer;
-  transition: all var(--gemini-transition-fast);
+  transition: color var(--gemini-transition-fast), background-color var(--gemini-transition-fast), border-color var(--gemini-transition-fast), box-shadow var(--gemini-transition-fast), opacity var(--gemini-transition-fast), transform var(--gemini-transition-fast);
 }
 
 .menu-item:hover {

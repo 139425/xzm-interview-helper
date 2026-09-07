@@ -12,14 +12,15 @@
       </span>
     </template>
     <template #actions>
+      <button type="button" class="new-schedule-button" @click="focusEntry">＋ 新增安排</button>
       <router-link class="back-link" to="/applications">查看投递</router-link>
     </template>
 
     <main class="schedule-main">
       <section class="schedule-hero" aria-labelledby="schedule-title">
         <div class="schedule-hero__copy">
-          <p>NEXT UP</p>
-          <h1 id="schedule-title">下一场，别错过。</h1>
+
+          <h1 id="schedule-title">笔面测待办</h1>
           <span>笔试、面试、测评集中记录，临近安排自动排在最前。</span>
         </div>
         <dl class="schedule-stats" aria-label="日程概览">
@@ -43,10 +44,180 @@
       </section>
 
       <div class="schedule-layout">
-        <aside class="entry-panel" aria-labelledby="entry-title">
+
+
+        <section class="timeline-panel" aria-labelledby="timeline-title">
+          <header class="panel-heading timeline-heading">
+            <div>
+
+              <h2 id="timeline-title">接下来</h2>
+            </div>
+            <div class="timeline-tools">
+              <span class="sort-note"><i aria-hidden="true"></i> 最近优先</span>
+              <button
+                type="button"
+                class="trash-button"
+                @click="trashOpen = true"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 7h14M9 7V4h6v3m2 0-1 13H8L7 7" />
+                </svg>
+                回收站
+                <b v-if="trashItems.length">{{ trashItems.length }}</b>
+              </button>
+            </div>
+          </header>
+
+          <div v-if="loading" class="schedule-state" aria-live="polite">
+            <span class="loading-ring" aria-hidden="true"></span>
+            <strong>正在整理日程</strong>
+            <p>稍等一下，很快就好。</p>
+          </div>
+
+          <div
+            v-else-if="!pendingItems.length"
+            class="schedule-state empty-state"
+          >
+            <span class="empty-calendar" aria-hidden="true">
+              <i></i><b>✓</b>
+            </span>
+            <strong>接下来暂时没有安排</strong>
+            <p>录入下一场笔试、面试或测评，安排会按时间自动排序。</p>
+          </div>
+
+          <ol v-else class="schedule-list">
+            <li
+              v-for="item in pendingItems"
+              :key="item.id"
+              :class="{ overdue: isOverdue(item), urgent: isUrgent(item) }"
+            >
+              <div class="date-block" aria-hidden="true">
+                <span>{{ monthLabel(item.startAt) }}</span>
+                <strong>{{ dayLabel(item.startAt) }}</strong>
+                <small>{{ weekdayLabel(item.startAt) }}</small>
+              </div>
+
+              <article class="schedule-card">
+                <div class="schedule-card__content">
+                  <div class="schedule-tags">
+                    <span
+                      :class="`event-tag tone-${eventMeta(item.eventType).tone}`"
+                    >
+                      {{ eventMeta(item.eventType).label }}
+                    </span>
+                    <span :class="['proximity-tag', proximityMeta(item).tone]">
+                      {{ proximityMeta(item).label }}
+                    </span>
+                  </div>
+                  <h3>{{ item.company }}</h3>
+                  <p v-if="item.roleName" class="role-name">
+                    {{ item.roleName }}
+                  </p>
+                  <p class="schedule-time">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <circle cx="12" cy="12" r="8.5" />
+                      <path d="M12 7v5l3.5 2" />
+                    </svg>
+                    {{ formatScheduleTime(item) }}
+                  </p>
+                  <a
+                    v-if="item.eventUrl"
+                    class="schedule-link"
+                    :href="item.eventUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <span>{{ item.eventUrl }}</span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        d="M9 15 15 9m-4-1h5v5M14 6h-6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-6"
+                      />
+                    </svg>
+                  </a>
+                  <p v-if="item.notes" class="schedule-notes">
+                    {{ item.notes }}
+                  </p>
+                </div>
+
+                <div class="schedule-card__actions">
+                  <button
+                    type="button"
+                    class="complete-button"
+                    :disabled="busyId === item.id"
+                    :aria-label="`完成 ${item.company} 的${eventMeta(item.eventType).label}`"
+                    @click="setCompleted(item, true)"
+                  >
+                    <span aria-hidden="true">✓</span>
+                    完成
+                  </button>
+                  <div class="secondary-actions">
+                    <button
+                      type="button"
+                      class="edit-button"
+                      :disabled="busyId === item.id"
+                      :aria-label="`编辑 ${item.company} 的${eventMeta(item.eventType).label}`"
+                      @click="openEditDialog(item)"
+                    >
+                      编辑
+                    </button>
+                    <button
+                      type="button"
+                      class="delete-button"
+                      :disabled="busyId === item.id"
+                      :aria-label="`将 ${item.company} 的日程移到回收站`"
+                      @click="removeSchedule(item)"
+                    >
+                      删除
+                    </button>
+                  </div>
+                </div>
+              </article>
+            </li>
+          </ol>
+
+          <details v-if="completedItems.length" class="completed-section">
+            <summary>
+              <span>已完成</span>
+              <b>{{ completedItems.length }}</b>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m7 10 5 5 5-5" />
+              </svg>
+            </summary>
+            <ul>
+              <li v-for="item in completedItems" :key="item.id">
+                <span class="completed-check" aria-hidden="true">✓</span>
+                <div>
+                  <strong>{{ item.company }}</strong>
+                  <small>
+                    {{ eventMeta(item.eventType).label }} ·
+                    {{ shortTime(item.startAt) }}
+                  </small>
+                </div>
+                <div class="completed-actions">
+                  <button
+                    type="button"
+                    class="completed-edit-button"
+                    :disabled="busyId === item.id"
+                    @click="openEditDialog(item)"
+                  >
+                    编辑
+                  </button>
+                  <button
+                    type="button"
+                    :disabled="busyId === item.id"
+                    @click="setCompleted(item, false)"
+                  >
+                    恢复
+                  </button>
+                </div>
+              </li>
+            </ul>
+          </details>
+        </section>
+        <aside ref="entryPanel" class="entry-panel" aria-labelledby="entry-title">
           <header class="panel-heading">
             <div>
-              <small>QUICK ENTRY</small>
+
               <h2 id="entry-title">录入新安排</h2>
             </div>
             <div ref="importControl" class="entry-heading-actions">
@@ -225,175 +396,6 @@
             <p class="form-hint">添加后会自动按临近程度排序。</p>
           </form>
         </aside>
-
-        <section class="timeline-panel" aria-labelledby="timeline-title">
-          <header class="panel-heading timeline-heading">
-            <div>
-              <small>UPCOMING</small>
-              <h2 id="timeline-title">接下来</h2>
-            </div>
-            <div class="timeline-tools">
-              <span class="sort-note"><i aria-hidden="true"></i> 最近优先</span>
-              <button
-                type="button"
-                class="trash-button"
-                @click="trashOpen = true"
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M5 7h14M9 7V4h6v3m2 0-1 13H8L7 7" />
-                </svg>
-                回收站
-                <b v-if="trashItems.length">{{ trashItems.length }}</b>
-              </button>
-            </div>
-          </header>
-
-          <div v-if="loading" class="schedule-state" aria-live="polite">
-            <span class="loading-ring" aria-hidden="true"></span>
-            <strong>正在整理日程</strong>
-            <p>稍等一下，很快就好。</p>
-          </div>
-
-          <div
-            v-else-if="!pendingItems.length"
-            class="schedule-state empty-state"
-          >
-            <span class="empty-calendar" aria-hidden="true">
-              <i></i><b>✓</b>
-            </span>
-            <strong>接下来暂时没有安排</strong>
-            <p>从左侧录入一场笔试、面试或测评吧。</p>
-          </div>
-
-          <ol v-else class="schedule-list">
-            <li
-              v-for="item in pendingItems"
-              :key="item.id"
-              :class="{ overdue: isOverdue(item), urgent: isUrgent(item) }"
-            >
-              <div class="date-block" aria-hidden="true">
-                <span>{{ monthLabel(item.startAt) }}</span>
-                <strong>{{ dayLabel(item.startAt) }}</strong>
-                <small>{{ weekdayLabel(item.startAt) }}</small>
-              </div>
-
-              <article class="schedule-card">
-                <div class="schedule-card__content">
-                  <div class="schedule-tags">
-                    <span
-                      :class="`event-tag tone-${eventMeta(item.eventType).tone}`"
-                    >
-                      {{ eventMeta(item.eventType).label }}
-                    </span>
-                    <span :class="['proximity-tag', proximityMeta(item).tone]">
-                      {{ proximityMeta(item).label }}
-                    </span>
-                  </div>
-                  <h3>{{ item.company }}</h3>
-                  <p v-if="item.roleName" class="role-name">
-                    {{ item.roleName }}
-                  </p>
-                  <p class="schedule-time">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <circle cx="12" cy="12" r="8.5" />
-                      <path d="M12 7v5l3.5 2" />
-                    </svg>
-                    {{ formatScheduleTime(item) }}
-                  </p>
-                  <a
-                    v-if="item.eventUrl"
-                    class="schedule-link"
-                    :href="item.eventUrl"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <span>{{ item.eventUrl }}</span>
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path
-                        d="M9 15 15 9m-4-1h5v5M14 6h-6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-6"
-                      />
-                    </svg>
-                  </a>
-                  <p v-if="item.notes" class="schedule-notes">
-                    {{ item.notes }}
-                  </p>
-                </div>
-
-                <div class="schedule-card__actions">
-                  <button
-                    type="button"
-                    class="complete-button"
-                    :disabled="busyId === item.id"
-                    :aria-label="`完成 ${item.company} 的${eventMeta(item.eventType).label}`"
-                    @click="setCompleted(item, true)"
-                  >
-                    <span aria-hidden="true">✓</span>
-                    完成
-                  </button>
-                  <div class="secondary-actions">
-                    <button
-                      type="button"
-                      class="edit-button"
-                      :disabled="busyId === item.id"
-                      :aria-label="`编辑 ${item.company} 的${eventMeta(item.eventType).label}`"
-                      @click="openEditDialog(item)"
-                    >
-                      编辑
-                    </button>
-                    <button
-                      type="button"
-                      class="delete-button"
-                      :disabled="busyId === item.id"
-                      :aria-label="`将 ${item.company} 的日程移到回收站`"
-                      @click="removeSchedule(item)"
-                    >
-                      删除
-                    </button>
-                  </div>
-                </div>
-              </article>
-            </li>
-          </ol>
-
-          <details v-if="completedItems.length" class="completed-section">
-            <summary>
-              <span>已完成</span>
-              <b>{{ completedItems.length }}</b>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m7 10 5 5 5-5" />
-              </svg>
-            </summary>
-            <ul>
-              <li v-for="item in completedItems" :key="item.id">
-                <span class="completed-check" aria-hidden="true">✓</span>
-                <div>
-                  <strong>{{ item.company }}</strong>
-                  <small>
-                    {{ eventMeta(item.eventType).label }} ·
-                    {{ shortTime(item.startAt) }}
-                  </small>
-                </div>
-                <div class="completed-actions">
-                  <button
-                    type="button"
-                    class="completed-edit-button"
-                    :disabled="busyId === item.id"
-                    @click="openEditDialog(item)"
-                  >
-                    编辑
-                  </button>
-                  <button
-                    type="button"
-                    :disabled="busyId === item.id"
-                    @click="setCompleted(item, false)"
-                  >
-                    恢复
-                  </button>
-                </div>
-              </li>
-            </ul>
-          </details>
-        </section>
       </div>
     </main>
 
@@ -411,7 +413,7 @@
       >
         <header>
           <div>
-            <small>EDIT SCHEDULE</small>
+
             <h2 id="edit-title">编辑日程</h2>
           </div>
           <button
@@ -803,6 +805,13 @@ const eventTypes = [
   { value: "INTERVIEW", label: "面试", mark: "面", tone: "teal" },
   { value: "ASSESSMENT", label: "测评", mark: "测", tone: "purple" },
 ];
+
+const entryPanel = ref(null);
+function focusEntry() {
+  const input = entryPanel.value?.querySelector('input:not([type="file"]):not([type="radio"]):not([type="checkbox"])');
+  entryPanel.value?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  input?.focus({ preventScroll: true });
+}
 
 const items = ref([]);
 const trashItems = ref([]);
@@ -1395,8 +1404,8 @@ onBeforeUnmount(() => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #7c9b10;
-  box-shadow: 0 0 0 4px rgba(124, 155, 16, 0.1);
+  background: var(--xzm-brand);
+  box-shadow: 0 0 0 4px var(--xzm-brand-soft);
 }
 
 .back-link {
@@ -1680,7 +1689,7 @@ onBeforeUnmount(() => {
 }
 
 .import-menu-icon.paste-icon {
-  color: #627b00;
+  color: var(--xzm-signal-ink);
   background: var(--xzm-signal-soft);
 }
 
@@ -1861,8 +1870,8 @@ onBeforeUnmount(() => {
 }
 
 .tone-teal {
-  --type-color: #116e66 !important;
-  --type-bg: #e5f5f1 !important;
+  --type-color: var(--xzm-brand) !important;
+  --type-bg: var(--xzm-brand-soft) !important;
 }
 
 .tone-purple {
@@ -2129,8 +2138,8 @@ onBeforeUnmount(() => {
 }
 
 .urgent .date-block {
-  border-color: color-mix(in srgb, #d8f673 44%, var(--xzm-border-color));
-  color: #587000;
+  border-color: color-mix(in srgb, var(--xzm-brand) 32%, var(--xzm-border-color));
+  color: var(--xzm-signal-ink);
   background: color-mix(
     in srgb,
     var(--xzm-signal-soft) 72%,
@@ -2214,7 +2223,7 @@ onBeforeUnmount(() => {
 
 .proximity-tag.is-today,
 .proximity-tag.is-tomorrow {
-  color: #587000;
+  color: var(--xzm-signal-ink);
   background: var(--xzm-signal-soft);
 }
 
@@ -2478,7 +2487,7 @@ onBeforeUnmount(() => {
   height: 24px;
   place-items: center;
   border-radius: 50%;
-  color: #587000;
+  color: var(--xzm-signal-ink);
   background: var(--xzm-signal-soft);
   font-size: 0.66rem;
 }
@@ -2916,7 +2925,7 @@ onBeforeUnmount(() => {
 }
 
 .ai-meta b {
-  color: #587000;
+  color: var(--xzm-signal-ink);
   background: var(--xzm-signal-soft);
 }
 
@@ -3160,7 +3169,7 @@ onBeforeUnmount(() => {
   height: 44px;
   place-items: center;
   border-radius: 50%;
-  color: #587000;
+  color: var(--xzm-signal-ink);
   background: var(--xzm-signal-soft);
 }
 
@@ -3585,4 +3594,28 @@ onBeforeUnmount(() => {
 .schedule-stats, .schedule-stats div + div { border-color: var(--xzm-border-color); }
 .schedule-stats dt, .schedule-stats .has-attention { color: var(--xzm-brand); }
 .topbar-status i, .list-heading i { background: var(--xzm-brand); box-shadow: none; }
+
+.schedule-main { max-width: 1440px; padding: 30px 28px 48px; }
+.schedule-hero { grid-template-columns: minmax(220px,1fr) minmax(380px,.9fr); min-height: 100px; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: var(--xzm-text-primary); }
+.schedule-hero::after { display: none; }.schedule-hero__copy { padding: 0 24px 0 0; }
+.schedule-hero__copy h1 { font-size: 30px; font-weight: 650; line-height: 1.25; letter-spacing: -.035em; }.schedule-hero__copy span { margin-top: 10px; font-size: 13px; color: var(--xzm-text-secondary); }
+.schedule-stats { align-self: center; padding: 16px 0; background: var(--xzm-surface-elevated); border: 0; border-radius: 16px; box-shadow: var(--xzm-shadow-soft); }
+.schedule-stats div + div { border: 0; }.schedule-stats dt { color: var(--xzm-text-primary); font: 600 24px/1.2 var(--xzm-font-sans); font-variant-numeric: tabular-nums; }.schedule-stats dd { font-size: 11px; color: var(--xzm-text-secondary); }.schedule-stats .has-attention { background: transparent; }.schedule-stats .has-attention dt, .schedule-stats .has-attention dd { color: var(--xzm-brand); }
+.schedule-layout { grid-template-columns: minmax(0,1fr) minmax(310px,350px); gap: 20px; margin-top: 24px; }
+.entry-panel, .timeline-panel { background: var(--xzm-surface-elevated); border-radius: 16px; box-shadow: var(--xzm-shadow-soft); }
+.entry-panel { top: 80px; scroll-margin-top: 80px; }.timeline-panel { min-height: 440px; }
+.panel-heading { min-height: 64px; padding: 16px 20px; }.panel-heading h2 { font-size: 15px; font-weight: 600; }
+.schedule-card { border-radius: 12px; }.schedule-card h3 { font-size: 16px; font-weight: 600; }
+.schedule-form { gap: 15px; }.schedule-form :is(input,textarea,select) { border-radius: 9px; font-size: 13px; }.schedule-form label, .schedule-form legend { font-size: 12px; }
+.new-schedule-button { height: 36px; padding: 0 14px; border: 0; border-radius: 9px; color: var(--xzm-text-on-brand); background: var(--xzm-brand); font: 500 12px var(--xzm-font-sans); cursor: pointer; }.new-schedule-button:hover { background: var(--xzm-brand-hover); }
+@media(max-width:1050px) { .schedule-hero { grid-template-columns: 1fr; gap: 20px; } .schedule-layout { grid-template-columns: minmax(0,1fr) 310px; } }
+@media(max-width:900px) { .schedule-layout { grid-template-columns: 1fr; }.entry-panel { position: static; }.schedule-stats { width:100%; } }
+@media(max-width:768px) { .schedule-main { padding: 22px 14px 28px; }.schedule-hero__copy h1 { font-size: 27px; }.schedule-layout { margin-top:20px; }.back-link { display: none; }.new-schedule-button { padding: 0 10px; height: 34px; }.timeline-panel { min-height: 300px; } }
+
+
+.type-picker label.active { --type-color: var(--xzm-brand) !important; --type-bg: var(--xzm-brand-soft) !important; background: var(--xzm-brand-soft); border-color: var(--xzm-brand); color: var(--xzm-brand); }
+.type-picker label.active .type-mark, .type-picker label.active strong { color: var(--xzm-brand); }
+.secondary-actions > button { flex-shrink: 0; white-space: nowrap; min-height: 32px; font-size: 11px; }
+@media(min-width:769px) { .schedule-card__actions { width:104px; flex-basis:104px; padding:10px; } }
+@media(max-width:768px) { .secondary-actions > button { min-width:44px; min-height:44px; }.schedule-card__actions { width:100%; }.complete-button { min-height:44px; } }
 </style>

@@ -126,13 +126,13 @@ onBeforeUnmount(() => {
 }
 
 .xzm-stream-reveal__phrase {
-  animation: xzm-stream-phrase-reveal 220ms cubic-bezier(0.22, 0.72, 0.2, 1)
+  animation: xzm-stream-phrase-reveal 160ms cubic-bezier(0.22, 0.72, 0.2, 1)
     both;
 }
 
 @keyframes xzm-stream-phrase-reveal {
   from {
-    opacity: 0.38;
+    opacity: 0.6;
   }
   to {
     opacity: 1;

@@ -943,12 +943,12 @@ onUnmounted(() => {
 .latest-message-leave-active {
   transition:
     opacity 160ms,
-    bottom 160ms;
+    transform 160ms;
 }
 .latest-message-enter-from,
 .latest-message-leave-to {
   opacity: 0;
-  bottom: 6px;
+  transform: translate(-50%, 8px);
 }
 @media (max-width: 768px) {
   .chat-composer {
