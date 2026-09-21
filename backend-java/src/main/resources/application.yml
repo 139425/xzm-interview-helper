@@ -141,6 +141,17 @@ management:
     readinessstate:
       enabled: true
 
+experience:
+  owner-id: ${EXPERIENCE_OWNER_ID:0}
+  book: ${YUQUE_BOOK:}
+  autumn-doc-id: ${YUQUE_AUTUMN_DOC_ID:0}
+  cookie-file: ${YUQUE_COOKIE_FILE:}
+  seed-file: ${EXPERIENCE_SEED_FILE:}
+  sync-interval-ms: ${YUQUE_SYNC_INTERVAL_MS:1800000}
+  initial-delay-ms: ${YUQUE_INITIAL_DELAY_MS:90000}
+  ai-provider: ${EXPERIENCE_AI_PROVIDER:deepseek}
+  ai-model: ${EXPERIENCE_AI_MODEL:deepseek-v4-flash}
+
 longcat:
   api-key: ${LONGCAT_API_KEY:}
   base-url: https://api.longcat.chat

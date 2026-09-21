@@ -70,6 +70,18 @@ const routes = [
     meta: { title: '个人资料' }
   },
   {
+    path: '/experience',
+    name: 'ExperienceResearch',
+    component: () => import('@/views/ExperienceWorkbench.vue'),
+    meta: { title: '面经研究' }
+  },
+  {
+    path: '/preparation',
+    name: 'PreparationWorkbench',
+    component: () => import('@/views/ExperienceWorkbench.vue'),
+    meta: { title: '备战工作台' }
+  },
+  {
     path: '/login',
     name: 'Login',
     component: Auth,

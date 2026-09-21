@@ -8,6 +8,8 @@ export const workspaces = [
   { id: 'applications', label: '投递追踪', shortLabel: '投递', description: '记录进度，推进下一步', icon: TrendCharts, route: '/applications', group: 'career' },
   { id: 'recruitment', label: '秋招信息', shortLabel: '秋招', description: '发现岗位与招聘机会', icon: Briefcase, route: '/recruitment', group: 'career' },
   { id: 'knowledge', label: '个人资料', description: '简历、项目与岗位资料', icon: Collection, route: '/knowledge' },
+  { id: 'experience', label: '面经研究', shortLabel: '面经', description: '真实问法、分类频次与追问专题', icon: Collection, route: '/experience' },
+  { id: 'preparation', label: '备战工作台', shortLabel: '备战', description: '个人答案、专题训练与到期复测', icon: TrendCharts, route: '/preparation' },
   { id: 'serverAgent', label: '服务器 Agent', description: '服务器工具与运行记录', icon: Monitor, route: '/admin/server', adminOnly: true },
   { id: 'users', label: '用户管理', description: '账号与权限', icon: User, route: '/admin/users', adminOnly: true },
 ]

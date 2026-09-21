@@ -138,7 +138,7 @@ describe("GeminiSidebar workspaces", () => {
     const wrapper = mount(GeminiSidebar, { props: { mode: "algorithm" }, global: { stubs: { "el-icon": true } } });
     expect(wrapper.findAll(".mode-btn")).toHaveLength(6);
     const picker = wrapper.findComponent(WorkspacePicker);
-    expect(picker.props("items")).toHaveLength(7);
+    expect(picker.props("items").map(item => item.id)).toEqual(expect.arrayContaining(["knowledge", "experience", "preparation"]));
     const knowledge = picker.props("items").find(item => item.id === "knowledge");
     picker.vm.$emit("select", knowledge);
     await flushPromises();

@@ -287,6 +287,8 @@ const props = defineProps({
         'applications',
         'schedule',
         'knowledge',
+        'experience',
+        'preparation',
         'serverAgent',
         'users',
       ].includes(value),
