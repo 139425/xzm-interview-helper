@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+const curriculum = JSON.parse(readFileSync(new URL('../lib/curriculum.json', import.meta.url), 'utf8')).lessons;
+const equity = curriculum.find(lesson => lesson.id === 'equity');
 const origin = process.env.TEST_ORIGIN || 'http://127.0.0.1:5174';
 const base = origin + '/tools/market-atlas';
 assert.ok(['127.0.0.1', 'localhost'].includes(new URL(origin).hostname), 'Integration tests only run against a local preview');
@@ -9,7 +12,8 @@ async function get(path) { const response = await fetch(base + path, { headers }
 async function act(action, payload = {}, version = current.version) { const response = await fetch(base + '/api/action', { method: 'POST', headers, body: JSON.stringify({ action, payload, version }) }); const data = await response.json(); if (response.ok) current = data; return { response, data }; }
 await test('durable workspace API and market source contracts', async t => {
   await t.test('fresh isolated workspace', async () => { const result = await get('/api/state'); assert.equal(result.response.status, 200); current = result.data; assert.equal(current.state.simulator.cash, 100000); assert.equal(current.state.simulator.trades.length, 0); });
-  await t.test('lesson and quiz records persist', async () => { assert.equal((await act('quiz', { id: 'equity', answers: [2, 0] })).response.status, 200); assert.equal(current.state.learning.quizResults.equity.correct, 2); assert.equal((await get('/api/state')).data.state.learning.quizResults.equity.correct, 2); });
+  await t.test('lesson and expanded quiz records persist', async () => { const answers = equity.quizzes.map(question => question.answerIndex); assert.equal((await act('quiz', { id: 'equity', answers })).response.status, 200); assert.equal(current.state.learning.quizResults.equity.correct, answers.length); assert.deepEqual((await get('/api/state')).data.state.learning.quizResults.equity.answers, answers); });
+  await t.test('incomplete expanded quiz fails without overwriting a saved result', async () => { const before = JSON.stringify(current); assert.ok(equity.quizzes.length > 2); assert.equal((await act('quiz', { id: 'equity', answers: [2, 0] })).response.status, 400); assert.equal(JSON.stringify(current), before); });
   const input = { id: crypto.randomUUID(), symbol: 'HF1001', side: 'buy', qty: 100, type: 'market', reason: 'Integration verification', mood: '平静' };
   let originalVersion;
   await t.test('trade costs and T+1 are stored', async () => { originalVersion = current.version; assert.equal((await act('trade', input)).response.status, 200); assert.equal(current.state.simulator.trades.length, 1); assert.ok(current.state.simulator.cash < 100000 - 100 * 28.61); assert.equal(current.state.simulator.lots.HF1001[0].boughtDay, 0); });
@@ -25,4 +29,41 @@ await test('durable workspace API and market source contracts', async t => {
   await t.test('official news carries sourced facts and separate explanation', async () => { const result = await get('/api/market?type=news'); assert.equal(result.response.status, 200); assert.ok(result.data.items.length >= 7); assert.ok(result.data.items.every(n => n.url.startsWith('https://') && n.date && n.fact && n.explanation && n.question)); });
   await t.test('real history units are explicit or a genuine fetch failure is reported', async () => { const result = await get('/api/market?type=history&symbol=sh600519'); if (result.response.status === 200) { assert.ok(result.data.candles.length >= 2); assert.match(result.data.volumeUnit, /手/); assert.ok(result.data.candles.every(c => c.high >= c.close && c.low <= c.close)); } else { assert.equal(result.response.status, 503); assert.match(result.data.error, /暂时无法获取/); } });
   await t.test('invalid source symbol cannot become fabricated history', async () => { const result = await get('/api/market?type=history&symbol=invalid'); assert.equal(result.response.status, 503); assert.equal(result.data.candles, undefined); });
+  await t.test('partial IOC and shared daily depth survive persistence and retries', async () => {
+    assert.equal((await act('reset-simulation', { capital: 1000000, seed: 49, scenario: 'illiquid' })).response.status, 200);
+    assert.equal((await act('advance', { days: 1 })).response.status, 200);
+    const quote = current.state.simulator.candles.HF1001.at(-1);
+    const dailyBudget = Math.floor(quote.volume * .01 / 100) * 100;
+    assert.ok(dailyBudget > 0 && dailyBudget < 10000);
+    const large = { ...input, id: crypto.randomUUID(), qty: 10000 };
+    assert.equal((await act('trade', large)).response.status, 200);
+    const filled = current.state.simulator.trades.reduce((sum, trade) => sum + trade.qty, 0);
+    assert.ok(filled > 0 && filled <= dailyBudget);
+    assert.ok(filled < large.qty);
+    assert.equal(current.state.simulator.orders.at(-1).state, 'cancelled');
+    assert.ok(!current.state.simulator.orders.some(order => order.state === 'open'));
+    assert.deepEqual((await get('/api/state')).data.state.simulator, current.state.simulator);
+    const version = current.version, cash = current.state.simulator.cash;
+    assert.equal((await act('trade', large, version - 1)).response.status, 200);
+    assert.equal(current.version, version);
+    assert.equal(current.state.simulator.cash, cash);
+    assert.equal(current.state.simulator.trades.reduce((sum, trade) => sum + trade.qty, 0), filled);
+    assert.equal((await act('trade', { ...large, id: crypto.randomUUID() })).response.status, 200);
+    assert.ok(current.state.simulator.trades.reduce((sum, trade) => sum + trade.qty, 0) <= dailyBudget);
+  });
+  await t.test('DAY expires while an explicit cross-day condition remains stored', async () => {
+    const candles = current.state.simulator.candles.HF1001;
+    const limit = Math.max(.01, Math.round(candles.at(-2).close * .9 * 100) / 100);
+    const dayOrder = { ...input, id: crypto.randomUUID(), qty: 100, type: 'limit', limit, timeInForce: 'DAY' };
+    const condition = { ...dayOrder, id: crypto.randomUUID(), timeInForce: 'CONDITIONAL' };
+    assert.equal((await act('trade', dayOrder)).response.status, 200);
+    assert.equal((await act('trade', condition)).response.status, 200);
+    assert.equal(current.state.simulator.orders.find(order => order.id === dayOrder.id).state, 'open');
+    assert.equal((await act('advance', { days: 1 })).response.status, 200);
+    assert.equal(current.state.simulator.orders.find(order => order.id === dayOrder.id).state, 'expired');
+    assert.equal(current.state.simulator.orders.find(order => order.id === condition.id).state, 'open');
+    assert.deepEqual((await get('/api/state')).data.state.simulator, current.state.simulator);
+    assert.equal((await act('cancel-order', { id: condition.id })).response.status, 200);
+    assert.equal(current.state.simulator.orders.find(order => order.id === condition.id).state, 'cancelled');
+  });
 });

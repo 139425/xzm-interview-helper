@@ -4,7 +4,7 @@ export type ExperimentResult = {
   series?: { name: string; values: number[]; color: string; dashed?: boolean }[];
   labels?: string[]; chartUnit?: string; message: string;
 };
-const green = '#2f7263', purple = '#8b80b5', red = '#c96053', gray = '#9fa89e';
+const green = '#427db4', purple = '#8b80b5', red = '#c96053', gray = '#8aa6c3';
 export function experimentResult(kind: string, v: Record<string, number>): ExperimentResult {
   const metric = (label: string, value: number, unit = '元', digits = 2) => ({ label, value, unit, digits });
   const bar = (label: string, value: number, color = green) => ({ label, value, color });

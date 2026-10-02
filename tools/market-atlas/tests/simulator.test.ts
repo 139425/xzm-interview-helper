@@ -6,7 +6,7 @@ import type { OrderInput, SimState } from '../lib/simulator';
 const {
   ASSETS, SIMULATOR_ASSUMPTIONS, account, advanceSimulation, calendarStatus, cancelOrder,
   cents, compound, createSimulation, currentCandle, drawdownSeries, feesFor, holdings,
-  nextSession, orderPreview, placeOrder,
+  nextSession, orderPreview, placeOrder, orderBook, orderValidity,
 } = await import(new URL('../lib/simulator.ts', import.meta.url).href) as typeof import('../lib/simulator');
 
 const SYMBOL = 'HF1001';
@@ -36,7 +36,7 @@ function assertLedger(sim: SimState) {
 test('conditional orders explicitly retry on each session rather than masquerading as exchange GTC orders', () => {
   const sim = createSimulation();
   const limit = orderPreview(sim, market('condition-preview', 'buy', 100)).lower;
-  const queued = placeOrder(sim, { id: 'condition-persistent', symbol: SYMBOL, side: 'buy', qty: 100, type: 'limit', limit });
+  const queued = placeOrder(sim, { id: 'condition-persistent', symbol: SYMBOL, side: 'buy', qty: 100, type: 'limit', timeInForce: 'CONDITIONAL', limit });
   const advanced = advanceSimulation(queued, 5);
   assert.match(SIMULATOR_ASSUMPTIONS.conditionalOrders, /交易所普通申报仅当日有效/);
   assert.equal(advanced.orders[0].kind, 'conditional');
@@ -52,14 +52,14 @@ test('conditional orders explicitly retry on each session rather than masqueradi
 test('zero-slippage conditional fills use the execution reference, not the future closing price', () => {
   let sim = createSimulation();
   sim.config.slippageBps = 0;
-  sim = placeOrder(sim, { id: 'zero-slippage-condition', symbol: SYMBOL, side: 'buy', qty: 100, type: 'limit', limit: 28.60 });
+  sim = placeOrder(sim, { id: 'zero-slippage-condition', symbol: SYMBOL, side: 'buy', qty: 100, type: 'limit', timeInForce: 'CONDITIONAL', limit: 28.60 });
   sim = advanceSimulation(sim);
   const trade = sim.trades[0];
   assert.equal(currentCandle(sim, SYMBOL).close, 28.84);
   assert.equal(trade.price, 28.60);
   assert.equal(trade.referencePrice, 28.60);
   assert.equal(trade.slippage, 0);
-  assert.equal(trade.mood, '条件委托');
+  assert.equal(trade.mood, '平静');
   assert.equal(trade.date, '2026-10-08');
   assert.equal(account(sim).frozenCash, 0);
   assertLedger(sim);
@@ -67,7 +67,7 @@ test('zero-slippage conditional fills use the execution reference, not the futur
 
 test('buy and sell conditional fills stay inside OHLC and record only actual adverse execution friction', () => {
   let buy = createSimulation(2000000, 2);
-  buy = placeOrder(buy, { id: 'buy-high-boundary', symbol: 'XH1002', side: 'buy', qty: 100, type: 'limit', limit: 62.83 });
+  buy = placeOrder(buy, { id: 'buy-high-boundary', symbol: 'XH1002', side: 'buy', qty: 100, type: 'limit', timeInForce: 'CONDITIONAL', limit: 62.83 });
   buy = advanceSimulation(buy);
   const buyTrade = buy.trades[0], buyCandle = currentCandle(buy, 'XH1002');
   assert.equal(buyCandle.high, 62.09);
@@ -82,7 +82,7 @@ test('buy and sell conditional fills stay inside OHLC and record only actual adv
   const ownedPrice = currentCandle(sell, SYMBOL).close;
   sell.cash -= 100 * ownedPrice;
   sell.lots[SYMBOL] = [{ qty: 100, cost: 100 * ownedPrice, price: ownedPrice, boughtDay: -1 }];
-  sell = placeOrder(sell, { id: 'sell-low-boundary', symbol: SYMBOL, side: 'sell', qty: 100, type: 'limit', limit: 35.87 });
+  sell = placeOrder(sell, { id: 'sell-low-boundary', symbol: SYMBOL, side: 'sell', qty: 100, type: 'limit', timeInForce: 'CONDITIONAL', limit: 35.87 });
   sell = advanceSimulation(sell);
   const sellTrade = sell.trades[0], sellCandle = currentCandle(sell, SYMBOL);
   assert.equal(sellCandle.low, 35.89);
@@ -105,20 +105,25 @@ test('market fills also respect the candle range when requested slippage would e
   assert.equal(sold.trades[0].slippage, 20);
 });
 
-test('execution-day liquidity cap keeps an oversized conditional order entirely open and frozen', () => {
+test('conditional orders partially fill, retain only remaining cash and release that remainder on cancellation', () => {
   const sim = createSimulation(2000000); sim.config.slippageBps = 0;
-  const queued = placeOrder(sim, { id: 'liquidity-regression', symbol: SYMBOL, side: 'buy', qty: 42400, type: 'limit', limit: 28.60 });
+  const queued = placeOrder(sim, { id: 'liquidity-regression', symbol: SYMBOL, side: 'buy', qty: 42400, type: 'limit', timeInForce: 'CONDITIONAL', limit: 28.60 });
   const advanced = advanceSimulation(queued);
   assert.equal(currentCandle(advanced, SYMBOL).volume, 3140879);
-  assert.equal(advanced.trades.length, 0);
+  assert.equal(advanced.trades[0].qty, 9400);
+  assert.equal(advanced.orders[0].remaining, 33000);
+  assert.equal(advanced.orders[0].filledQty, 9400);
   assert.equal(advanced.orders[0].state, 'open');
-  assert.match(advanced.orders[0].error!, /31400 股.*整笔不成交/);
-  assert.equal(advanced.orders[0].reserved, queued.orders[0].reserved);
-  assert.equal(advanced.cash, queued.cash);
-  assert.equal(holdings(advanced, SYMBOL).total, 0);
-  assert.match(SIMULATOR_ASSUMPTIONS.liquidity, /暂不模拟部分成交/);
+  assert.equal(holdings(advanced, SYMBOL).total, 9400);
+  assert.ok(advanced.orders[0].reserved < queued.orders[0].reserved);
+  assert.match(advanced.orders[0].error!, /部分成交.*33000 股/);
+  assert.match(SIMULATOR_ASSUMPTIONS.liquidity, /可以部分成交/);
   assertLedger(advanced);
-  assert.equal(account(cancelOrder(advanced, queued.orders[0].id)).availableCash, 2000000);
+  const cancelled = cancelOrder(advanced, queued.orders[0].id);
+  assert.equal(account(cancelled).frozenCash, 0);
+  assert.equal(cancelled.cash, advanced.cash);
+  assert.equal(holdings(cancelled, SYMBOL).total, 9400);
+  assertLedger(cancelled);
 });
 
 test('2026 sessions skip all verified holiday ranges and never treat make-up weekends as sessions', () => {
@@ -146,22 +151,22 @@ test('future calendars skip fixed holidays and explicitly identify other dates a
 
 test('cash, FIFO cost and realized/unrealized profit reconcile through partial and complete sales', () => {
   let sim = placeOrder(fixture(), market('fifo-buy-first', 'buy', 300));
-  assert.equal(sim.lots[SYMBOL][0].cost, 3005.03);
+  assert.equal(sim.lots[SYMBOL][0].cost, 3008.03);
   sim = advanceSimulation(sim); setQuote(sim, 10.5);
   sim = placeOrder(sim, market('fifo-buy-second', 'buy', 100));
-  assert.equal(sim.lots[SYMBOL][1].cost, 1055.01);
+  assert.equal(sim.lots[SYMBOL][1].cost, 1056.01);
   sim = advanceSimulation(sim); setQuote(sim, 11);
   sim = placeOrder(sim, market('fifo-sell-partial', 'sell', 200));
-  assert.deepEqual(sim.lots[SYMBOL].map(lot => [lot.qty, lot.cost]), [[100, 1001.68], [100, 1055.01]]);
-  assert.equal(sim.cash, 98133.84);
-  assert.equal(sim.trades.at(-1)!.realized, 190.53);
-  assert.equal(account(sim).unrealized, 143.31);
-  assert.equal(account(sim).profit, 333.84);
+  assert.deepEqual(sim.lots[SYMBOL].map(lot => [lot.qty, lot.cost]), [[100, 1002.68], [100, 1056.01]]);
+  assert.equal(sim.cash, 98127.84);
+  assert.equal(sim.trades.at(-1)!.realized, 186.53);
+  assert.equal(account(sim).unrealized, 141.31);
+  assert.equal(account(sim).profit, 327.84);
   assertLedger(sim);
   sim = placeOrder(sim, market('fifo-sell-remaining', 'sell', 200));
   assert.equal(sim.lots[SYMBOL].length, 0);
   assert.equal(account(sim).unrealized, 0);
-  assert.equal(account(sim).realized, 327.72);
+  assert.equal(account(sim).realized, 319.72);
   assertLedger(sim);
 });
 
@@ -247,7 +252,7 @@ test('insufficient cash and changed fees fail atomically, retaining the unfilled
   const small = fixture(1000), snapshot = structuredClone(small);
   assert.throws(() => placeOrder(small, market('cash-not-enough', 'buy', 100)), /现金不足/);
   assert.deepEqual(small, snapshot);
-  let queued = placeOrder(fixture(1100), { id: 'fee-change-condition', symbol: SYMBOL, side: 'buy', qty: 100, type: 'limit', limit: 9.99 });
+  const queued = placeOrder(fixture(1100), { id: 'fee-change-condition', symbol: SYMBOL, side: 'buy', qty: 100, type: 'limit', timeInForce: 'CONDITIONAL', limit: 9.99 });
   queued.config.minCommission = 500;
   const failed = advanceSimulation(queued);
   assert.equal(failed.trades.length, 0);
@@ -273,7 +278,7 @@ test('fees apply buy/sell directions and bounded monetary values reject NaN or n
 test('price-limit rounding retains the minimum tick at penny prices and rejects out-of-band limit orders', () => {
   const sim = fixture();
   assert.throws(() => placeOrder(sim, { id: 'price-outside-band', symbol: SYMBOL, side: 'buy', qty: 100, type: 'limit', limit: 11.01 }), /限价/);
-  assert.throws(() => placeOrder(sim, { id: 'price-invalid-tick', symbol: SYMBOL, side: 'buy', qty: 100, type: 'limit', limit: 9.991 }), /0.01/);
+  assert.throws(() => placeOrder(sim, { id: 'price-invalid-tick', symbol: SYMBOL, side: 'buy', qty: 100, type: 'limit', timeInForce: 'CONDITIONAL', limit: 9.991 }), /0.01/);
   setQuote(sim, .01, SYMBOL, .01);
   sim.candles[SYMBOL].at(-2)!.close = .01;
   const preview = orderPreview(sim, market('penny-price-preview', 'buy', 100));
@@ -281,12 +286,25 @@ test('price-limit rounding retains the minimum tick at penny prices and rejects 
   assert.equal(preview.upper, .02);
 });
 
-test('directional limit locks remain an explicit conservative counterparty assumption', () => {
+test('涨停卖和跌停买仍可成交；反方向没有对手量则 IOC 撤销且不收费', () => {
   const upper = fixture(); setQuote(upper, 11, SYMBOL, 0);
-  assert.throws(() => placeOrder(upper, market('upper-lock-buy', 'buy', 100)), /教学场景保守假设/);
+  upper.lots[SYMBOL] = [{ qty: 100, cost: 1000, price: 10, boughtDay: -1 }];
+  const blockedBuy = placeOrder(upper, market('upper-lock-buy', 'buy', 100));
+  assert.equal(blockedBuy.trades.length, 0);
+  assert.equal(blockedBuy.orders[0].state, 'cancelled');
+  assert.equal(blockedBuy.cash, upper.cash);
+  const validSell = placeOrder(upper, market('upper-valid-sell', 'sell', 100));
+  assert.equal(validSell.trades[0].price, 11);
   const lower = fixture(); setQuote(lower, 9, SYMBOL, 0);
   lower.lots[SYMBOL] = [{ qty: 100, cost: 1000, price: 10, boughtDay: -1 }];
-  assert.throws(() => placeOrder(lower, market('lower-lock-sell', 'sell', 100)), /教学场景保守假设/);
+  const blockedSell = placeOrder(lower, market('lower-lock-sell', 'sell', 100));
+  assert.equal(blockedSell.trades.length, 0);
+  assert.equal(blockedSell.orders[0].state, 'cancelled');
+  assert.equal(blockedSell.cash, lower.cash);
+  const validBuy = placeOrder(lower, market('lower-valid-buy', 'buy', 100));
+  assert.equal(validBuy.trades[0].price, 9);
+  assert.equal(orderBook(upper, SYMBOL).asks.length, 0);
+  assert.equal(orderBook(lower, SYMBOL).bids.length, 0);
 });
 
 test('seeded bulk and single-session advances agree and every generated OHLC remains bounded', () => {
@@ -314,4 +332,292 @@ test('compound and drawdown boundaries return finite educational calculations', 
   assert.throws(() => compound(1000, 0, -101, 1), /参数无效/);
   assert.throws(() => compound(1000, 0, 5, 1, 100), /参数无效/);
   assert.throws(() => compound(1, 0, 10000, 1000), /超出数值范围/);
+});
+
+
+test('DAY is the default, expires before the next session and never fills retrospectively from the old low', () => {
+  const source = fixture(), pending = placeOrder(source, { id: 'day-default-order', symbol: SYMBOL, side: 'buy', qty: 100, type: 'limit', limit: 9.8 });
+  // The day's low touched 9.8 before this snapshot. It must not be used to invent an earlier fill.
+  assert.equal(pending.trades.length, 0);
+  assert.equal(orderValidity(pending.orders[0]), 'DAY');
+  assert.equal(account(pending).frozenCash, 985.01);
+  const advanced = advanceSimulation(pending);
+  assert.equal(advanced.orders[0].state, 'expired');
+  assert.equal(advanced.trades.length, 0);
+  assert.equal(advanced.cash, 100000);
+  assert.equal(account(advanced).frozenCash, 0);
+  assert.equal(advanced.orders[0].lastAttemptDay, 0);
+  assertLedger(advanced);
+});
+
+function thinFixture() { const sim = fixture(); currentCandle(sim, SYMBOL).volume = 30000; return sim; }
+test('large DAY limit consumes three levels, charges one minimum commission and freezes only 700 remaining shares', () => {
+  const sim = placeOrder(thinFixture(), { id: 'thin-partial-day', symbol: SYMBOL, side: 'buy', qty: 1000, type: 'limit', limit: 10.1 });
+  assert.deepEqual(sim.trades[0].executionLevels, [{ qty: 100, price: 10.01 }, { qty: 100, price: 10.02 }, { qty: 100, price: 10.03 }]);
+  assert.equal(sim.trades[0].price, 10.02);
+  assert.equal(sim.trades[0].commission, 5);
+  assert.equal(sim.trades[0].fees, 5.03);
+  assert.equal(sim.orders[0].filledQty, 300);
+  assert.equal(sim.orders[0].remaining, 700);
+  assert.equal(sim.orders[0].reserved, 7070.07);
+  assert.equal(sim.cash, 96988.97);
+  assert.equal(holdings(sim, SYMBOL).todayBought, 300);
+  assert.equal(holdings(sim, SYMBOL).sellable, 0);
+  assertLedger(sim);
+  const cancelled = cancelOrder(sim, sim.orders[0].id);
+  assert.equal(cancelled.cash, sim.cash);
+  assert.equal(account(cancelled).frozenCash, 0);
+  assert.equal(cancelled.orders[0].filledQty, 300);
+  assertLedger(cancelled);
+  const expired = advanceSimulation(sim);
+  assert.equal(expired.orders[0].state, 'expired');
+  assert.equal(expired.cash, sim.cash);
+  assert.equal(holdings(expired, SYMBOL).sellable, 300);
+  assertLedger(expired);
+});
+
+test('IOC remainder is cancelled, and repeated orders cannot refresh the same daily liquidity budget', () => {
+  let sim = placeOrder(thinFixture(), market('shared-liquidity-one', 'buy', 200));
+  assert.equal(sim.trades[0].qty, 200);
+  assert.equal(orderBook(sim, SYMBOL).availableToBuy, 100);
+  sim = placeOrder(sim, market('shared-liquidity-two', 'buy', 200));
+  assert.equal(sim.trades[1].qty, 100);
+  assert.equal(sim.orders[1].state, 'cancelled');
+  assert.equal(sim.orders[1].remaining, 100);
+  assert.equal(sim.orders[1].reserved, 0);
+  const cash = sim.cash;
+  sim = placeOrder(sim, market('shared-liquidity-three', 'buy', 100));
+  assert.equal(sim.trades.length, 2);
+  assert.equal(sim.cash, cash);
+  assert.equal(sim.orders[2].filledQty, 0);
+  assert.equal(orderBook(sim, SYMBOL).availableToBuy, 0);
+  assert.equal(sim.sessionLiquidity![SYMBOL].buy, 300);
+  assertLedger(sim);
+});
+
+test('a conditional partial buy completes on the next day with a new minimum fee and correct T+1 lots', () => {
+  let sim = placeOrder(thinFixture(), { id: 'conditional-two-days', symbol: SYMBOL, side: 'buy', qty: 1000, type: 'limit', timeInForce: 'CONDITIONAL', limit: 10.1 });
+  const firstCash = sim.cash;
+  sim = advanceSimulation(sim);
+  assert.equal(sim.orders[0].state, 'filled');
+  assert.equal(sim.orders[0].remaining, 0);
+  assert.equal(sim.trades.length, 2);
+  assert.deepEqual(sim.trades.map(trade => [trade.day, trade.qty, trade.commission]), [[0, 300, 5], [1, 700, 5]]);
+  assert.equal(account(sim).frozenCash, 0);
+  assert.equal(holdings(sim, SYMBOL).sellable, 300);
+  assert.equal(holdings(sim, SYMBOL).todayBought, 700);
+  assert.ok(sim.cash < firstCash);
+  assertLedger(sim);
+});
+
+test('partially filled sell freezes only remaining eligible shares and cancellation cannot restore sold inventory', () => {
+  const source = thinFixture();
+  source.lots[SYMBOL] = [{ qty: 1000, cost: 10000, price: 10, boughtDay: -1 }];
+  const sim = placeOrder(source, { id: 'partial-sell-freeze', symbol: SYMBOL, side: 'sell', qty: 1000, type: 'limit', limit: 9.9 });
+  assert.equal(sim.orders[0].filledQty, 300);
+  assert.equal(sim.orders[0].remaining, 700);
+  assert.equal(holdings(sim, SYMBOL).total, 700);
+  assert.equal(holdings(sim, SYMBOL).frozen, 700);
+  assert.equal(holdings(sim, SYMBOL).sellable, 0);
+  assert.throws(() => placeOrder(sim, market('cannot-sell-frozen', 'sell', 100)), /可卖 0 股/);
+  const cancelled = cancelOrder(sim, sim.orders[0].id);
+  assert.equal(holdings(cancelled, SYMBOL).total, 700);
+  assert.equal(holdings(cancelled, SYMBOL).sellable, 700);
+  assert.equal(cancelled.cash, sim.cash);
+});
+
+test('new-day conditional priority uses price first and submission order for ties', () => {
+  const make = () => { const sim = fixture(2000000); sim.scenario = 'illiquid'; sim.seed = 1; return sim; };
+  const input = { symbol: SYMBOL, side: 'buy' as const, qty: 1000, type: 'limit' as const, timeInForce: 'CONDITIONAL' as const };
+  let sim = placeOrder(make(), { ...input, id: 'priority-low-first', limit: 9.98 });
+  sim = placeOrder(sim, { ...input, id: 'priority-high-second', limit: 9.99 });
+  sim = advanceSimulation(sim);
+  assert.equal(sim.orders[0].filledQty, 0);
+  assert.equal(sim.orders[1].filledQty, 100);
+  assert.equal(sim.trades[0].orderId, 'priority-high-second');
+  assertLedger(sim);
+  let tied = placeOrder(make(), { ...input, id: 'priority-tie-first', limit: 9.99 });
+  tied = placeOrder(tied, { ...input, id: 'priority-tie-second', limit: 9.99 });
+  tied = advanceSimulation(tied);
+  assert.equal(tied.orders[0].filledQty, 100);
+  assert.equal(tied.orders[1].filledQty, 0);
+  assertLedger(tied);
+});
+
+test('old open conditional records migrate without resetting cash, lots, fills or their original reservations', () => {
+  const legacy = fixture(); delete legacy.modelVersion; delete legacy.sessionLiquidity;
+  legacy.orders = [{ id: 'legacy-open-limit', symbol: SYMBOL, side: 'buy', qty: 100, limit: 9.7, day: 0, reserved: 975.01, reason: '旧条件', state: 'open', kind: 'conditional', attempts: 1 }];
+  const original = structuredClone(legacy);
+  assert.equal(account(legacy).frozenCash, 975.01);
+  assert.equal(orderValidity(legacy.orders[0]), 'CONDITIONAL');
+  const migrated = advanceSimulation(legacy);
+  assert.deepEqual(legacy, original);
+  assert.equal(migrated.cash, legacy.cash);
+  assert.deepEqual(migrated.lots, legacy.lots);
+  assert.equal(migrated.orders[0].timeInForce, 'CONDITIONAL');
+  assert.equal(migrated.orders[0].remaining, 100);
+  assert.equal(migrated.orders[0].reserved, 975.01);
+  assert.equal(migrated.orders[0].state, 'open');
+  assert.equal(migrated.modelVersion, 2);
+  assertLedger(migrated);
+});
+
+test('legacy seven-field payload fingerprints remain retryable but new DAY/conditional conflicts are rejected', () => {
+  const input = market('fingerprint-legacy', 'buy', 100), first = placeOrder(fixture(), input);
+  first.processedInputs![input.id] = JSON.stringify([input.symbol, input.side, input.qty, input.type, null, '', '平静']);
+  assert.deepEqual(placeOrder(first, input), first);
+  const limit: OrderInput = { id: 'fingerprint-validity', symbol: SYMBOL, side: 'buy', qty: 100, type: 'limit', limit: 9.8, timeInForce: 'DAY' };
+  const day = placeOrder(fixture(), limit);
+  assert.throws(() => placeOrder(day, { ...limit, timeInForce: 'CONDITIONAL' }), /同一订单标识/);
+});
+
+test('suspended stocks have no trades or fees; conditions survive and DAY instructions expire', () => {
+  let sim = advanceSimulation(createSimulation(100000, 42, 'suspension'), 5);
+  const symbol = 'QH1003', quote = currentCandle(sim, symbol);
+  assert.equal(quote.suspended, true);
+  assert.equal(quote.volume, 0);
+  assert.equal(orderBook(sim, symbol).availableToBuy, 0);
+  const stopped = placeOrder(sim, { id: 'suspended-ioc', symbol, side: 'buy', qty: 100, type: 'market' });
+  assert.equal(stopped.cash, sim.cash);
+  assert.equal(stopped.trades.length, 0);
+  assert.equal(stopped.orders[0].state, 'cancelled');
+  sim = placeOrder(sim, { id: 'suspended-day', symbol, side: 'buy', qty: 100, type: 'limit', limit: quote.close });
+  sim = placeOrder(sim, { id: 'suspended-condition', symbol, side: 'buy', qty: 100, type: 'limit', timeInForce: 'CONDITIONAL', limit: quote.close });
+  sim = advanceSimulation(sim);
+  assert.equal(sim.orders[0].state, 'expired');
+  assert.equal(sim.orders[1].state, 'open');
+  assert.equal(sim.trades.length, 0);
+  sim = advanceSimulation(sim);
+  assert.equal(currentCandle(sim, symbol).suspended, undefined);
+  assert.equal(sim.events.at(-1)!.title, '虚构事件：青禾医疗复牌');
+  assertLedger(sim);
+});
+
+test('gap and low-liquidity scenes preserve bounded OHLC and expose their intended event and depth differences', () => {
+  const normal = advanceSimulation(createSimulation(100000, 2), 5);
+  const thin = advanceSimulation(createSimulation(100000, 2, 'illiquid'), 5);
+  assert.ok(orderBook(thin, SYMBOL).dayCapacity < orderBook(normal, SYMBOL).dayCapacity / 10);
+  const gap = advanceSimulation(createSimulation(100000, 2, 'gap'), 5);
+  const day4 = gap.candles[SYMBOL].find(quote => quote.day === 4)!, day3 = gap.candles[SYMBOL].find(quote => quote.day === 3)!;
+  assert.ok(Math.abs(day4.open / day3.close - 1) > .04);
+  assert.ok(gap.events.some(event => event.day === 4 && event.title.includes('跳空')));
+  assert.match(SIMULATOR_ASSUMPTIONS.scope, /价格笼子/);
+  assert.match(SIMULATOR_ASSUMPTIONS.scope, /腾讯真实行情.*不参与/);
+});
+
+
+test('new-day minimum commission cannot create negative available cash when a partial condition has no free cash', () => {
+  const source = thinFixture(); source.initialCash = source.cash = 10015.1;
+  const queued = placeOrder(source, { id: 'fee-rebase-zero-cash', symbol: SYMBOL, side: 'buy', qty: 1000, type: 'limit', timeInForce: 'CONDITIONAL', limit: 10.01 });
+  assert.equal(queued.orders[0].filledQty, 100);
+  assert.equal(queued.cash, 9009.09);
+  assert.equal(account(queued).availableCash, 0);
+  const advanced = advanceSimulation(queued);
+  assert.equal(advanced.trades.length, 1);
+  assert.equal(advanced.cash, 9009.09);
+  assert.equal(advanced.orders[0].state, 'open');
+  assert.equal(advanced.orders[0].remaining, 900);
+  assert.equal(advanced.orders[0].reserved, 9009.09);
+  assert.equal(advanced.orders[0].lastAttemptDay, 1);
+  assert.match(advanced.orders[0].error!, /佣金所需现金不足/);
+  assert.equal(account(advanced).availableCash, 0);
+  assertLedger(advanced);
+  const cancelled = cancelOrder(advanced, advanced.orders[0].id);
+  assert.equal(account(cancelled).availableCash, 9009.09);
+  assertLedger(cancelled);
+});
+
+test('several conditions can rebase or skip new-day fees without spending cash frozen for another order', () => {
+  const source = thinFixture(); source.initialCash = source.cash = 20030.2;
+  const order = { symbol: SYMBOL, side: 'buy' as const, qty: 1000, type: 'limit' as const, timeInForce: 'CONDITIONAL' as const, limit: 10.01 };
+  let sim = placeOrder(source, { ...order, id: 'fee-rebase-first' });
+  sim = placeOrder(sim, { ...order, id: 'fee-rebase-second' });
+  assert.equal(account(sim).availableCash, 0);
+  sim = advanceSimulation(sim);
+  assert.equal(sim.orders[0].state, 'open');
+  assert.equal(sim.orders[0].remaining, 900);
+  assert.equal(sim.orders[1].state, 'filled');
+  assert.equal(sim.orders[1].remaining, 0);
+  assert.equal(sim.cash, 9009.09);
+  assert.equal(account(sim).frozenCash, 9009.09);
+  assert.equal(account(sim).availableCash, 0);
+  assertLedger(sim);
+});
+
+test('selling yesterday holdings does not regenerate the already used buy-side daily budget', () => {
+  const source = thinFixture();
+  source.lots[SYMBOL] = [{ qty: 300, price: 10, cost: 3000, boughtDay: -1 }];
+  let sim = placeOrder(source, market('exhaust-buy-budget', 'buy', 300));
+  sim = placeOrder(sim, market('exhaust-sell-old', 'sell', 300));
+  assert.equal(sim.sessionLiquidity![SYMBOL].buy, 300);
+  assert.equal(sim.sessionLiquidity![SYMBOL].sell, 300);
+  const cash = sim.cash;
+  sim = placeOrder(sim, market('cannot-refresh-budget', 'buy', 100));
+  assert.equal(sim.cash, cash);
+  assert.equal(sim.trades.length, 2);
+  assert.equal(sim.orders.at(-1)!.filledQty, 0);
+});
+
+test('partial executions can contain odd quantities even though odd-lot submission cannot be split', () => {
+  const source = thinFixture(); source.lots[SYMBOL] = [{ qty: 230, cost: 2300, price: 10, boughtDay: -1 }];
+  let sim = placeOrder(source, market('odd-partial-one', 'sell', 30));
+  assert.equal(sim.trades[0].qty, 30);
+  // A new 100-share order can meet 70 shares left at bid one. The submission rule does not ban a 70-share fill.
+  sim = placeOrder(sim, { id: 'odd-partial-level', symbol: SYMBOL, side: 'sell', qty: 100, type: 'limit', limit: 9.99 });
+  assert.equal(sim.orders[1].filledQty, 70);
+  assert.equal(sim.orders[1].remaining, 30);
+  assert.equal(holdings(sim, SYMBOL).total, 130);
+  assert.equal(holdings(sim, SYMBOL).frozen, 30);
+});
+
+
+test('legacy same-day fills consume depth before read-only previews and before any migration action', () => {
+  const bought = placeOrder(thinFixture(), market('legacy-liquidity-first', 'buy', 300));
+  const legacy = structuredClone(bought); delete legacy.modelVersion; delete legacy.sessionLiquidity;
+  // Original engine market fills did not create order records or execution-depth fields.
+  legacy.orders = []; delete legacy.trades[0].orderId; delete legacy.trades[0].executionLevels;
+  const snapshot = structuredClone(legacy);
+  assert.equal(orderBook(legacy, SYMBOL).availableToBuy, 0);
+  assert.equal(orderPreview(legacy, market('legacy-liquidity-preview', 'buy', 300)).estimatedFilledQty, 0);
+  assert.deepEqual(legacy, snapshot);
+  const next = placeOrder(legacy, market('legacy-liquidity-second', 'buy', 300));
+  assert.equal(next.trades.length, 1);
+  assert.equal(next.cash, legacy.cash);
+  assert.deepEqual(next.lots, legacy.lots);
+  assert.equal(next.orders[0].filledQty, 0);
+  assert.equal(next.orders[0].remaining, 300);
+  assert.equal(next.sessionLiquidity![SYMBOL].buy, 300);
+  assert.equal(next.sessionLiquidity![SYMBOL].sell, 0);
+  assertLedger(next);
+});
+
+test('legacy consumption beyond the new shared cap is preserved, and only a new session replenishes it', () => {
+  const initial = fixture();
+  const legacy = placeOrder(initial, market('legacy-large-record', 'buy', 500));
+  delete legacy.modelVersion; delete legacy.sessionLiquidity;
+  currentCandle(legacy, SYMBOL).volume = 30000;
+  assert.equal(orderBook(legacy, SYMBOL).dayCapacity, 300);
+  assert.equal(orderBook(legacy, SYMBOL).availableToBuy, 0);
+  const blocked = placeOrder(legacy, market('legacy-beyond-cap', 'buy', 100));
+  assert.equal(blocked.trades.length, 1);
+  assert.equal(blocked.trades[0].qty, 500);
+  assert.equal(blocked.sessionLiquidity![SYMBOL].buy, 500);
+  assert.equal(blocked.cash, legacy.cash);
+  const newDay = advanceSimulation(blocked);
+  assert.ok(orderBook(newDay, SYMBOL).availableToBuy > 0);
+  assert.equal(newDay.trades.length, 1);
+  assertLedger(newDay);
+});
+
+test('legacy sell-side depth is reconstructed independently and cannot be refreshed by a missing index', () => {
+  const source = thinFixture(); source.lots[SYMBOL] = [{ qty: 600, cost: 6000, price: 10, boughtDay: -1 }];
+  const legacy = placeOrder(source, market('legacy-sell-first', 'sell', 300));
+  delete legacy.modelVersion; delete legacy.sessionLiquidity;
+  assert.equal(orderBook(legacy, SYMBOL).availableToSell, 0);
+  assert.equal(orderBook(legacy, SYMBOL).availableToBuy, 300);
+  const blocked = placeOrder(legacy, market('legacy-sell-second', 'sell', 300));
+  assert.equal(blocked.trades.length, 1);
+  assert.equal(blocked.cash, legacy.cash);
+  assert.deepEqual(blocked.lots, legacy.lots);
+  assert.equal(blocked.sessionLiquidity![SYMBOL].sell, 300);
 });

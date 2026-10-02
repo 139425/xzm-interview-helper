@@ -6,7 +6,7 @@ import { experimentResult } from '../lib/experiments.ts';
 // Put this file in tests/experiments.test.ts. Expected values below come from
 // independently stated financial identities or closed forms, not copied code.
 type Control = { key: string; min: number; max: number; default: number };
-type Course = { lessons: { id: string; experiment: { controls: Control[] } }[] };
+type Course = { lessons: { id: string; experiment: { kind: string; controls: Control[] } }[] };
 const course = JSON.parse(readFileSync(new URL('../lib/curriculum.json', import.meta.url), 'utf8')) as Course;
 const defaults = (id: string): Record<string, number> => {
   const lesson = course.lessons.find(lesson => lesson.id === id);
@@ -170,19 +170,20 @@ test('review: zero-day returns are zero; day-20 excess is an absolute percentage
   assert.equal(day.metrics[1].unit, '百分点');
 });
 
-test('all 15 experiments: 296 parameter corner combinations produce valid metrics/curves', () => {
-  assert.equal(course.lessons.length, 15);
-  assert.equal(new Set(course.lessons.map(lesson => lesson.id)).size, 15);
+test('all 21 lessons route to 15 models and parameter corners produce valid metrics/curves', () => {
+  assert.equal(course.lessons.length, 21);
+  assert.equal(new Set(course.lessons.map(lesson => lesson.id)).size, 21);
+  assert.equal(new Set(course.lessons.map(lesson => lesson.experiment.kind)).size, 15);
   let corners = 0;
   for (const lesson of course.lessons) {
     const controls = lesson.experiment.controls;
     for (let mask = 0; mask < 2 ** controls.length; mask++) {
       const values = Object.fromEntries(controls.map((control, i) => [control.key, mask & (1 << i) ? control.max : control.min]));
-      const r = experimentResult(lesson.id, values);
+      const r = experimentResult(lesson.experiment.kind, values);
       corners++;
       r.metrics.forEach((metric, index) => {
-        const expectedNA = (lesson.id === 'valuation' && values.eps <= 0 && (index === 0 || index === 2))
-          || (lesson.id === 'orderbook' && index === 1 && r.metrics[0].value === 0);
+        const expectedNA = (lesson.experiment.kind === 'valuation' && values.eps <= 0 && (index === 0 || index === 2))
+          || (lesson.experiment.kind === 'orderbook' && index === 1 && r.metrics[0].value === 0);
         if (expectedNA) assert.ok(Number.isNaN(metric.value), `${lesson.id}: expected N/A for ${metric.label}`);
         else assert.ok(Number.isFinite(metric.value), `${lesson.id}: non-finite ${metric.label}`);
       });
@@ -192,7 +193,7 @@ test('all 15 experiments: 296 parameter corner combinations produce valid metric
       });
     }
   }
-  assert.equal(corners, 296);
+  assert.ok(corners >= 296, 'The original formula coverage must not shrink');
 });
 
 test('financial invariants: chronological drawdown, stock/cash wealth, volatility bounds and ETF fee identity', () => {

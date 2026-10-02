@@ -2,7 +2,7 @@ import curriculum from './curriculum.json';
 import research from './market-research.json';
 export const LESSONS = curriculum.lessons;
 export type Lesson = typeof LESSONS[number];
-export const STAGES = ['看懂市场', '读懂公司', '管理风险', '形成判断'];
+export const STAGES = curriculum.stages.map(stage => stage.title);
 export const CURATED_NEWS = research.news;
 export type NewsItem = { id: string; title: string; date: string; publisher: string; url: string; fact: string; explanation: string; question: string; tags: string[]; lesson?: string; curated?: boolean };
 export type Quote = { symbol: string; name: string; last: number; prevClose: number; open: number; high: number; low: number; change: number; changePercent: number; sourceTime: string; source: string; stale?: boolean; volumeRaw?: string; turnoverWanYuanRaw?: string };
