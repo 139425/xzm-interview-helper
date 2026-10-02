@@ -1,5 +1,5 @@
 import { spawn, spawnSync } from 'node:child_process';
-import { readFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import './sites-env.mjs';
@@ -7,7 +7,7 @@ import './sites-env.mjs';
 const project = fileURLToPath(new URL('../', import.meta.url));
 process.chdir(project);
 const cli = fileURLToPath(new URL('../node_modules/wrangler/bin/wrangler.js', import.meta.url));
-const config = 'dist/server/wrangler.json';
+const config = 'dist/server/wrangler.standalone.json';
 const state = resolve(process.env.MARKET_ATLAS_STATE_DIR || '.wrangler/state');
 const port = Number(process.env.MARKET_ATLAS_PORT || 5174);
 const host = process.env.MARKET_ATLAS_HOST || '127.0.0.1';
@@ -25,6 +25,11 @@ if (publicOrigins) {
   if (!publicOrigin) throw new Error('MARKET_ATLAS_PUBLIC_ORIGINS requires MARKET_ATLAS_PUBLIC_ORIGIN');
   for (const value of publicOrigins.split(',')) validateOrigin(value.trim(), 'MARKET_ATLAS_PUBLIC_ORIGINS');
 }
+// Keep the generated build configuration intact; vinext serves public files
+// through the ASSETS binding in the standalone Wrangler runtime.
+const standaloneConfig = JSON.parse(readFileSync('dist/server/wrangler.json', 'utf8'));
+standaloneConfig.assets = { ...standaloneConfig.assets, binding: 'ASSETS' };
+writeFileSync(config, JSON.stringify(standaloneConfig, null, 2) + '\n');
 mkdirSync(state, { recursive: true });
 // Idempotent schema creation preserves all existing learning/trading records.
 const schema = readFileSync('drizzle/0000_sharp_wallflower.sql', 'utf8').replace(/CREATE TABLE /g, 'CREATE TABLE IF NOT EXISTS ');
