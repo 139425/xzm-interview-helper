@@ -1,0 +1,293 @@
+{
+  "researchedDate": "2026-10-02",
+  "marketTimezone": "Asia/Shanghai",
+  "scope": "A股学习与模拟项目的官方近期消息、公开行情接口只读探测。解释角度为教学推导，并非原文预测。",
+  "marketCalendar": {
+    "status": "closed",
+    "reason": "国庆节休市",
+    "closedFrom": "2026-10-01",
+    "closedThrough": "2026-10-07",
+    "nextOpen": "2026-10-08",
+    "lastSession": "2026-09-30",
+    "sourceTitle": "关于2026年中秋节、国庆节休市安排的公告",
+    "sourceDate": "2026-09-17",
+    "sourceUrl": "https://www.sse.com.cn/disclosure/announcement/general/c/c_20260915_10832273.shtml"
+  },
+  "news": [
+    {
+      "id": "reit-registration-20260930",
+      "title": "中金开元旅业封闭式商业不动产基金获准注册",
+      "originalTitle": "关于准予中金开元旅业封闭式商业不动产证券投资基金注册的批复",
+      "date": "2026-09-30",
+      "publisher": "中国证监会",
+      "url": "https://www.csrc.gov.cn/csrc/c101895/c7662083/content.shtml",
+      "fact": "批复准予基金注册；类型为契约型封闭式，合同期限34年，募集份额总额6亿份。",
+      "explanation": "基金并不只有买股票的基金。商业不动产基金让你通过基金份额间接参与资产经营；份额价格、资产现金流和封闭式期限是不同概念。获准注册不等于收益被保证，也不等于已经完成发行上市。",
+      "lesson": "基金与REITs",
+      "question": "拥有一份酒店资产基金，与你直接持有酒店公司股票，权利和收益来源有什么差别？",
+      "tags": [
+        "基金",
+        "REITs",
+        "现金流"
+      ],
+      "verified": "原始网页正文与PubDate元数据均已读取"
+    },
+    {
+      "id": "yuandao-delisting-20260922",
+      "title": "元道通信股票进入终止上市程序",
+      "originalTitle": "关于元道通信股份有限公司股票终止上市的公告",
+      "date": "2026-09-22",
+      "documentSignedDate": "2026-09-21",
+      "publisher": "深圳证券交易所",
+      "url": "https://www.szse.cn/disclosure/notice/t20260922_622981.html",
+      "fact": "公告称公司首次公开发行股票披露文件存在虚假记载，触及终止上市情形；自2026年9月30日起进入十五个交易日的退市整理期，届满次一交易日摘牌。",
+      "explanation": "便宜的股票不一定是便宜的企业。除了价格波动，还存在退市和无法按预期卖出的风险。十五个交易日不等于十五个自然日；国庆休市也不会成为整理期交易日。",
+      "lesson": "退市与流动性风险",
+      "question": "价格跌去80%后，要上涨多少才能回本？如果股票退市，这个计算还足够吗？",
+      "tags": [
+        "股票",
+        "退市",
+        "公告阅读"
+      ],
+      "verified": "www.szse.cn官方原始HTML已读取；investor子域web工具超时，未据此伪造内容"
+    },
+    {
+      "id": "whistleblowers-20260918",
+      "title": "证监会拟奖励17起案件线索的吹哨人",
+      "originalTitle": "中国证监会拟对17起案件线索的“吹哨人”给予奖励",
+      "date": "2026-09-18",
+      "publisher": "中国证监会",
+      "url": "https://www.csrc.gov.cn/csrc/c100028/c7659506/content.shtml",
+      "fact": "证监会拟依法奖励提供17起案件线索的吹哨人；线索涉及信息披露违法、内幕交易、私募违法和非法证券咨询等。奖励申领登记期为2026年9月18日至12月18日。",
+      "explanation": "股票市场依赖可核验的信息，不是每个消息源都可靠。把公司公告、监管决定、媒体报道和社群传言画成不同证据等级，可以练习分辨事实与观点。",
+      "lesson": "消息与信息披露",
+      "question": "有人声称掌握未公开利好时，你需要寻找哪些可公开核验的证据？",
+      "tags": [
+        "信息披露",
+        "内幕交易",
+        "消息辨别"
+      ],
+      "verified": "官方网页正文已读取"
+    },
+    {
+      "id": "holiday-calendar-20260917",
+      "title": "国庆A股休市至10月7日，10月8日开市",
+      "originalTitle": "关于2026年中秋节、国庆节休市安排的公告",
+      "date": "2026-09-17",
+      "publisher": "上海证券交易所",
+      "url": "https://www.sse.com.cn/disclosure/announcement/general/c/c_20260915_10832273.shtml",
+      "fact": "10月1日至10月7日休市，10月8日起照常开市；10月10日仍为周末休市。",
+      "explanation": "今天看到的是最近交易日收盘快照，而非实时成交。工作日、自然日、交易日需要分开；假期里消息仍可能变化，下一次成交价格也可能跳空。",
+      "lesson": "交易日与跳空",
+      "question": "在假期提交交易计划，下一交易日开盘一定会按上次收盘价成交吗？",
+      "tags": [
+        "交易规则",
+        "休市",
+        "交易日"
+      ],
+      "verified": "官方休市公告与年度休市表均已读取"
+    },
+    {
+      "id": "zhuoran-fraud-20260911",
+      "title": "证监会披露*ST卓然财务造假处罚事先告知",
+      "originalTitle": "中国证监会严肃查处*ST卓然严重财务造假案件",
+      "date": "2026-09-11",
+      "publisher": "中国证监会",
+      "url": "https://www.csrc.gov.cn/csrc/c100028/c7658185/content.shtml",
+      "fact": "证监会对公司涉嫌定期报告等财务数据虚假记载作出处罚事先告知；拟对公司罚款1250万元、6名责任人合计罚款3580万元，并对实际控制人采取10年市场禁入。原文称公司涉嫌触及重大违法强制退市情形。",
+      "explanation": "利润数字本身并不能证明经营质量。可以把利润、经营现金流、应收账款并排可视化，练习发现需要继续查证的差异。这里是拟处罚和涉嫌退市，不能改写为处罚已经全部落地或公司已退市。",
+      "lesson": "财报与利润质量",
+      "question": "利润增长但收不到现金时，你最想继续检查财报里的哪两项？",
+      "tags": [
+        "财报",
+        "风险",
+        "ST"
+      ],
+      "verified": "官方网页正文已读取"
+    },
+    {
+      "id": "private-fund-consultation-20260904",
+      "title": "私募基金募集监管办法征求意见",
+      "originalTitle": "中国证监会就《私募投资基金募集监督管理办法（征求意见稿）》公开征求意见",
+      "date": "2026-09-04",
+      "publisher": "中国证监会",
+      "url": "https://www.csrc.gov.cn/csrc/c100028/c7656676/content.shtml",
+      "fact": "证监会就募集办法公开征求意见，草案共七章四十五条，涉及合格投资者标准、适当性与风险揭示义务、募集结算资金安全和法律责任；意见反馈截止2026年10月4日。",
+      "explanation": "公募和私募不是收益高低的标签，而是募集对象、销售方式、监管要求等方面的区别。这个文件目前为征求意见稿，不应把草案规则标成现行已生效规则。",
+      "lesson": "公募与私募",
+      "question": "一只产品收益展示很好，就代表它适合所有投资者吗？",
+      "tags": [
+        "基金",
+        "适当性",
+        "征求意见稿"
+      ],
+      "relatedUrl": "https://www.csrc.gov.cn/csrc/c101981/c7656693/content.shtml",
+      "verified": "官方解读和征求意见通知正文均已读取"
+    },
+    {
+      "id": "real-estate-capital-market-20260828",
+      "title": "资本市场支持房地产新模式的意见发布",
+      "originalTitle": "中国证监会发布《关于资本市场支持构建房地产发展新模式的意见》",
+      "date": "2026-08-28",
+      "publisher": "中国证监会",
+      "url": "https://www.csrc.gov.cn/csrc/c100028/c7655025/content.shtml",
+      "fact": "意见共四部分十二条，涉及合理融资、证券发行与信息披露监管、募集资金监管和风险处置；包含支持符合条件的房地产项目通过债券、ABS、REITs等方式融资。",
+      "explanation": "政策可以改变融资条件，但不能直接推导每一家公司的利润或股价。用政策→融资成本/资产处置→现金流→估值的链条练习思考，每个箭头都需要企业层面证据。",
+      "lesson": "政策如何影响企业",
+      "question": "行业获得政策支持，为什么同一行业的两家公司仍可能表现不同？",
+      "tags": [
+        "政策",
+        "估值",
+        "房地产"
+      ],
+      "verified": "官方网页正文已读取"
+    }
+  ],
+  "publicDataSources": [
+    {
+      "name": "腾讯行情快照",
+      "url": "https://qt.gtimg.cn/q=sh000001,sz399001,sh600519,sz000001",
+      "tested": "HTTP 200，GBK，响应Access-Control-Allow-Origin: *；四个标的报价时间均为2026-09-30",
+      "format": "v_<exchange><code>=\"字段0~字段1~...\";，多个标的逗号拼接",
+      "decode": "TextDecoder('gbk')或gb18030，禁止eval响应",
+      "fields": {
+        "1": "名称",
+        "2": "六位代码",
+        "3": "最新价",
+        "4": "昨收",
+        "5": "今开",
+        "6": "成交量（股票通常为手；指数口径不同，不要盲目乘100）",
+        "9/10,11/12,13/14,15/16,17/18": "买一至买五价/量，股票量通常为手",
+        "19/20,21/22,23/24,25/26,27/28": "卖一至卖五价/量，股票量通常为手",
+        "30": "行情时间yyyyMMddHHmmss，北京时间",
+        "31": "涨跌额",
+        "32": "涨跌幅百分数",
+        "33": "最高",
+        "34": "最低",
+        "37": "成交额，通常万元",
+        "38": "换手率百分数",
+        "39": "市盈率（可能为空或特殊值）",
+        "43": "振幅百分数",
+        "44": "流通市值，通常亿元",
+        "45": "总市值，通常亿元",
+        "46": "市净率",
+        "47": "涨停价（指数可能为-1）",
+        "48": "跌停价（指数可能为-1）"
+      },
+      "caveats": "字段为实测及常见口径，并非已获得官方版本化API合同。可用不表示授权商业再分发。未确认延迟SLA，产品标识应为公开行情快照/延时未知，展示数据时间。"
+    },
+    {
+      "name": "腾讯日K线",
+      "url": "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=sh600519,day,,,120,qfq",
+      "tested": "HTTP 200，UTF-8 JSON，CORS *；qfqday返回真实截至2026-09-30日K",
+      "format": "data[symbol].qfqday，可能回退为day；数组顺序[日期,开盘,收盘,最高,最低,成交量]",
+      "parameters": "param=<symbol>,day,<begin yyyy-MM-dd>,<end yyyy-MM-dd>,<count>,qfq；始末可空。qfq前复权，hfq后复权；去掉复权参数可请求原始day，需继续核验具体输出。",
+      "caveats": "复权K线是连续性价格序列，不能简单与另行分红再相加，否则会重复计算收益。用于历史回放时必须在UI标识复权方式、数据源、真实日期。"
+    },
+    {
+      "name": "腾讯最近交易日分时",
+      "url": "https://web.ifzq.gtimg.cn/appstock/app/minute/query?code=sh600519",
+      "tested": "HTTP 200，UTF-8 JSON，CORS *；data.sh600519.data.date=20260930，267条数据",
+      "format": "data[symbol].data.data每项空格分隔：HHmm 最新价 累计成交量 累计成交额；data[symbol].data.date为交易日期",
+      "caveats": "是最近交易日分时，不是任意历史分钟库。重复分钟或集合竞价时间应保留/明确聚合策略；股价、成交量单位需按标的口径核验。"
+    },
+    {
+      "name": "新浪行情快照备用",
+      "url": "https://hq.sinajs.cn/list=sh000001,sz399001,sh600519,sz000001",
+      "tested": "带Referer: https://finance.sina.com.cn请求HTTP成功，返回2026-09-30报价",
+      "format": "var hq_str_<symbol>=\"名称,今开,昨收,最新,最高,最低,买价,卖价,成交量,成交额,五档买卖...,日期,时间,状态,...\";",
+      "decode": "GBK/gb18030；不eval。股票成交量字段8为股、成交额字段9为元；五档买卖量一般股，与腾讯手数不同。",
+      "caveats": "需服务端代理添加Referer；状态与末尾扩展字段不要当固定已获合同。延迟与授权均未确认。可用作备用和价格交叉核对。"
+    },
+    {
+      "name": "东方财富历史日K备用",
+      "url": "https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=1.600519&klt=101&fqt=1&beg=20260901&end=20260930&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61",
+      "tested": "HTTP 200，UTF-8 JSON，CORS *，data.klines截至2026-09-30，价格与腾讯一致",
+      "format": "secid=1.沪市代码/0.深市代码；klt=101日；fqt=0不复权、1前复权、2后复权；beg/end为yyyyMMdd",
+      "fields": "f51日期,f52开盘,f53收盘,f54最高,f55最低,f56成交量(手),f57成交额(元),f58振幅,f59涨跌幅,f60涨跌额,f61换手率",
+      "caveats": "非官方版本化契约，可能限流或变更；不应视为获准生产再分发。"
+    },
+    {
+      "name": "官方消息刷新",
+      "url": "https://www.csrc.gov.cn/",
+      "tested": "HTTP 200；首页包含2026-09最新官方文章链接，正文页包含ArticleTitle/PubDate/ContentSource元数据。注意https://www.csrc.gov.cn/csrc/c100028/common_list.shtml实测是2021年陈旧列表，不能用来宣布已更新最新消息。",
+      "format": "服务端抓首页/csrc/c100028/c<id>/content.shtml相关链接，限制官方域名与路径；再取文章meta ArticleTitle、PubDate及正文。",
+      "otherOfficialPages": [
+        "https://www.sse.com.cn/disclosure/dealinstruc/closed/",
+        "https://www.szse.cn/disclosure/notice/general/index.html"
+      ],
+      "caveats": "官方文章不是实时滚动行情；保留发布日期与抓取时间。RSS未找到稳定官方可用源。https://rss.sina.com.cn/finance/stock/jsy.xml实测404，不应接成成功新闻源。"
+    }
+  ],
+  "implementationRules": [
+    "真实行情与教学模拟严格分区；模拟标注合成/教学，不把生成价格写进真实行情区。",
+    "行情时间使用源数据时间（Asia/Shanghai），抓取时间单列；休市时标注休市与最近交易日。",
+    "API超时/HTTP失败/空数据/字段不足/价格无效应返回结构化failure；保留最近成功快照并显示旧数据时间，绝不生成一组随机报价作为回退。",
+    "可用腾讯作为主源，新浪备用；历史日K腾讯主源、Eastmoney备用。限频、缓存、请求超时、指数退避，避免高频重试。",
+    "先校验symbol白名单/合法证券代码，再构造固定域名URL，不让客户端任意URL通过代理。",
+    "成交量、成交额、复权方式均与源单位显式转换；指数没有真实五档盘口，不展示0为可成交盘口。",
+    "消息解释独立标识教学解读；监管原文的拟/涉嫌/征求意见状态不得改写成已生效结论。"
+  ],
+  "quoteSnapshots": [
+    {
+      "symbol": "sh000001",
+      "name": "上证指数",
+      "last": 3842.19,
+      "prevClose": 3830.45,
+      "open": 3839.25,
+      "high": 3851.22,
+      "low": 3833.09,
+      "change": 11.74,
+      "changePercent": 0.31,
+      "sourceTime": "20260930161500",
+      "source": "Tencent",
+      "volumeRaw": "414560247",
+      "turnoverWanYuanRaw": "67939899"
+    },
+    {
+      "symbol": "sz399001",
+      "name": "深证成指",
+      "last": 12887.62,
+      "prevClose": 12901.95,
+      "open": 12958.08,
+      "high": 12966.45,
+      "low": 12854.78,
+      "change": -14.33,
+      "changePercent": -0.11,
+      "sourceTime": "20260930161454",
+      "source": "Tencent",
+      "volumeRaw": "494715201",
+      "turnoverWanYuanRaw": "75861910"
+    },
+    {
+      "symbol": "sh600519",
+      "name": "贵州茅台",
+      "last": 1258.62,
+      "prevClose": 1235.58,
+      "open": 1239.53,
+      "high": 1268.0,
+      "low": 1236.05,
+      "change": 23.04,
+      "changePercent": 1.86,
+      "sourceTime": "20260930161458",
+      "source": "Tencent",
+      "volumeRaw": "38331",
+      "turnoverWanYuanRaw": "479725"
+    },
+    {
+      "symbol": "sz000001",
+      "name": "平安银行",
+      "last": 11.57,
+      "prevClose": 11.35,
+      "open": 11.36,
+      "high": 11.65,
+      "low": 11.33,
+      "change": 0.22,
+      "changePercent": 1.94,
+      "sourceTime": "20260930161500",
+      "source": "Tencent",
+      "volumeRaw": "1045357",
+      "turnoverWanYuanRaw": "120581"
+    }
+  ]
+}

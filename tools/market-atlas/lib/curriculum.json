@@ -1,0 +1,1454 @@
+{
+  "schemaVersion": 1,
+  "language": "zh-CN",
+  "researchedAt": "2026-10-02",
+  "audience": "已有少量概念基础、偏好交互可视化的股票学习者；A 股规则为本地教学参照，通用金融知识配合 SEC / Investor.gov 一手投教。",
+  "method": "先观察可视化，再改变一个变量，再预测结果，最后解释两道情境题；每节可进入模拟交易或查看对应新闻解读。",
+  "boundaries": [
+    "所有实验数值、公司与路径为教学假设；不给股票买卖推荐。",
+    "实时消息单独记录来源、发布时间、抓取时间、事实及解读，不把假设模拟标记为真实行情。",
+    "美国来源仅支持通用概念；A 股交易规则以交易所现行条文为准。"
+  ],
+  "researchNotes": [
+    {
+      "topic": "现行上交所规则",
+      "note": "2026 年 4 月 24 日通知正文规定 2026 年 7 月 6 日起施行，同时废止 2023 年版本；页面 metadata 仍出现尚未施行，因此以通知正文和附件核对条文，避免复述 stale metadata。",
+      "url": "https://www.sse.com.cn/lawandrules/sselawsrules2025/fund/trading/c/c_20260424_10817739.shtml"
+    },
+    {
+      "topic": "直接核对的规则条款",
+      "note": "已下载并读取 2026 附件 docx：3.1.4 交收前不得卖出但回转除外，3.5.1 价格优先时间优先，4.3.1–4.3.3 除权除息。另查暂缓实施附件，所列暂缓内容是固定价格申报，不是上述条款。",
+      "url": "https://www.sse.com.cn/lawandrules/sselawsrules2025/fund/trading/c/10817739/files/704204728fe74fff89de4f16efda4791.docx"
+    },
+    {
+      "topic": "订单投教新近更新",
+      "note": "Investor.gov Understanding Order Types 页面标注 2026 年 8 月 18 日更新。美国订单类型的可用性不应直接推导为中国券商均支持。",
+      "url": "https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-14"
+    },
+    {
+      "topic": "K 线来源年限",
+      "note": "深交所手册用于 OHLC 与 K 线颜色定义；该旧手册的涨跌幅和交易制度不当作当前规则来源。",
+      "url": "https://investor.szse.cn/institute/bookshelf/manualseriesbook/P020190322685818724112.pdf"
+    }
+  ],
+  "stages": [
+    {
+      "title": "看懂市场",
+      "ids": [
+        "equity",
+        "orderbook",
+        "candle"
+      ]
+    },
+    {
+      "title": "读懂公司",
+      "ids": [
+        "statements",
+        "cashflow",
+        "valuation",
+        "dividend"
+      ]
+    },
+    {
+      "title": "管理风险",
+      "ids": [
+        "compound",
+        "drawdown",
+        "position",
+        "diversification"
+      ]
+    },
+    {
+      "title": "形成判断",
+      "ids": [
+        "news",
+        "costs",
+        "etf",
+        "review"
+      ]
+    }
+  ],
+  "lessons": [
+    {
+      "id": "equity",
+      "title": "你买的是一小块公司",
+      "stage": "看懂市场",
+      "minutes": 8,
+      "coreQuestion": "一张股票，究竟给了你什么？",
+      "analogy": "把一家咖啡店切成 10,000 份。你拿着 100 份，就拥有这家店 1% 的股权。店今天卖了多少杯、今年赚了多少、别人愿意用多少钱收购你的份额，是三个不同的问题。",
+      "explanation": "股票代表公司所有权的一部分。普通股股东可能获得分红、参与表决，并承担经营和价格变化的风险。公司赚了钱，不等于马上把这笔钱发给你；二级市场里你买入别人的股票，交易款通常交给卖方。破产清偿时，普通股股东排在债权人之后。",
+      "takeaways": [
+        "股份比例回答你占多少，股价回答市场愿意付多少。",
+        "每股利润不等于每股现金分红。",
+        "股价低的公司，总市值仍可能很大。"
+      ],
+      "experiment": {
+        "kind": "equity",
+        "title": "成为咖啡店的小股东",
+        "controls": [
+          {
+            "key": "shares",
+            "label": "持有份数",
+            "min": 100,
+            "max": 2000,
+            "step": 100,
+            "default": 100,
+            "unit": "份"
+          },
+          {
+            "key": "profit",
+            "label": "全年利润",
+            "min": 0,
+            "max": 200000,
+            "step": 5000,
+            "default": 100000,
+            "unit": "元"
+          },
+          {
+            "key": "payout",
+            "label": "分红比例",
+            "min": 0,
+            "max": 100,
+            "step": 5,
+            "default": 30,
+            "unit": "%"
+          }
+        ],
+        "outputs": [
+          "股权圆环",
+          "对应利润份额",
+          "假设现金分红",
+          "公司留存利润"
+        ],
+        "formula": "总股本固定为 10,000；持股比例 = 持股数 / 10,000；分红 = 利润 × 分红比例 × 持股比例。",
+        "observe": "把分红比例拖到 0：你的股权没有消失，现金分红却归零。把利润拖低：股东承担的是业务结果。",
+        "assumptions": "虚构公司；利润与分红比例由你设定；不模拟真实表决规则、税费和董事会决策。"
+      },
+      "quizzes": [
+        {
+          "question": "咖啡店有 10,000 股，你有 100 股，店当年赚了 100,000 元但决定不分红。你当年必定收到多少钱？",
+          "options": [
+            "1,000 元",
+            "100,000 元",
+            "0 元"
+          ],
+          "answerIndex": 2,
+          "explanation": "你持有 1% 股权，对应利润份额为 1,000 元，但没有现金分配决定时不会自动到账。"
+        },
+        {
+          "question": "甲股价 5 元、总股本 10 亿股；乙股价 50 元、总股本 1,000 万股。谁的总市值更大？",
+          "options": [
+            "甲：50 亿元",
+            "乙：500 亿元",
+            "一样大"
+          ],
+          "answerIndex": 0,
+          "explanation": "甲为 5 × 10 亿 = 50 亿元；乙为 50 × 1,000 万 = 5 亿元。单看每股价格无法判断公司整体大小。"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Investor.gov：股票是什么",
+          "url": "https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks"
+        }
+      ]
+    },
+    {
+      "id": "orderbook",
+      "title": "价格是怎样被成交出来的",
+      "stage": "看懂市场",
+      "minutes": 10,
+      "coreQuestion": "看到 10 元报价，为什么你可能买不到 10 元？",
+      "analogy": "二手相机集市里，卖家按最低报价排队，买家按最高报价排队。最便宜的那一台售出后，下一台可能更贵；卖家标价并不等于已经成交。",
+      "explanation": "订单簿记录未成交的买卖申报，最新价记录最近一笔成交。限价单限定你能接受的价格，但可能等待或只成交一部分；市价类订单优先追求成交，价格受当时对手盘与数量影响。A 股竞价撮合主要按价格优先、时间优先。",
+      "takeaways": [
+        "最新成交价、买一价、卖一价是三个数。",
+        "限价约束价格，不保证成交。",
+        "可见深度少时，大单可能逐档成交。"
+      ],
+      "experiment": {
+        "kind": "orderbook",
+        "title": "亲手吃掉卖盘",
+        "controls": [
+          {
+            "key": "quantity",
+            "label": "买入数量",
+            "min": 100,
+            "max": 400,
+            "step": 100,
+            "default": 300,
+            "unit": "股"
+          },
+          {
+            "key": "limit",
+            "label": "限价",
+            "min": 9.98,
+            "max": 10.06,
+            "step": 0.01,
+            "default": 10.02,
+            "unit": "元"
+          },
+          {
+            "key": "depth",
+            "label": "每档可售数量",
+            "min": 100,
+            "max": 500,
+            "step": 100,
+            "default": 100,
+            "unit": "股"
+          }
+        ],
+        "outputs": [
+          "逐档成交动画",
+          "成交均价",
+          "未成交数量",
+          "与卖一的价差"
+        ],
+        "formula": "卖价固定为 10.01、10.02、10.05；成交均价 = Σ(成交价 × 成交数量) / 总成交数量；买入限价单只匹配卖价 ≤ 限价的档位。",
+        "observe": "买 300 股、每档只有 100 股时，限价 10.02 只成交 200 股。切到市价教学模式，观察第三档如何抬高均价。",
+        "assumptions": "静态虚构订单簿；不含撤单、延迟、隐藏流动性、集合竞价和交易所市价申报限制；市价教学模式是撮合概念演示。"
+      },
+      "quizzes": [
+        {
+          "question": "卖一 10.01 元有 100 股，卖二 10.02 元有 100 股。以 10.01 元限价买 200 股，静态演示中会怎样？",
+          "options": [
+            "200 股都按 10.01 成交",
+            "100 股成交，100 股等待",
+            "100 股按 10.01，100 股按 10.02"
+          ],
+          "answerIndex": 1,
+          "explanation": "限价买单不会主动买入超过限价的档位；已成交与剩余委托要分别看。"
+        },
+        {
+          "question": "两张同方向、同价格的限价单，谁在同一交易主机里优先？",
+          "options": [
+            "较早被主机接受的单",
+            "数量大的单",
+            "账户资产大的单"
+          ],
+          "answerIndex": 0,
+          "explanation": "时间优先以交易主机接受申报的先后确定；点击按钮的本地时间不必然等于主机接受时间。"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Investor.gov：订单类型",
+          "url": "https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-14"
+        },
+        {
+          "title": "上交所：交易规则 3.5.1",
+          "url": "https://www.sse.com.cn/lawandrules/sselawsrules2025/fund/trading/c/c_20260424_10817739.shtml"
+        }
+      ]
+    },
+    {
+      "id": "candle",
+      "title": "把一天的价格折成一根蜡烛",
+      "stage": "看懂市场",
+      "minutes": 9,
+      "coreQuestion": "一根红色 K 线，为什么当天仍可能下跌？",
+      "analogy": "把一天徒步压缩成一张卡：起点、终点、最高处、最低处。卡能交代范围，却不能告诉你先爬山还是先下谷；K 线也会丢掉盘中的先后顺序。",
+      "explanation": "K 线用开盘、最高、最低、收盘四个价格概括一个周期。实体表示开收盘之差，影线表示极值。成交量是该周期成交的股份数量，不能单独说明谁在吸筹或明天方向。国内常见红涨绿跌按收盘相对开盘着色，涨跌幅则常相对前收盘计算。",
+      "takeaways": [
+        "蜡烛颜色与相对昨日的涨跌幅可以不同。",
+        "同一根 K 线可能来自很多条不同盘中路径。",
+        "成交量放大说明交易活跃，不是涨跌保证。"
+      ],
+      "experiment": {
+        "kind": "candle",
+        "title": "自己捏一根 K 线",
+        "controls": [
+          {
+            "key": "open",
+            "label": "开盘",
+            "min": 8,
+            "max": 12,
+            "step": 0.1,
+            "default": 9,
+            "unit": "元"
+          },
+          {
+            "key": "close",
+            "label": "收盘",
+            "min": 8,
+            "max": 12,
+            "step": 0.1,
+            "default": 9.5,
+            "unit": "元"
+          },
+          {
+            "key": "high",
+            "label": "最高",
+            "min": 8,
+            "max": 14,
+            "step": 0.1,
+            "default": 10,
+            "unit": "元"
+          },
+          {
+            "key": "low",
+            "label": "最低",
+            "min": 6,
+            "max": 12,
+            "step": 0.1,
+            "default": 8.5,
+            "unit": "元"
+          },
+          {
+            "key": "volume",
+            "label": "成交量",
+            "min": 1000,
+            "max": 100000,
+            "step": 1000,
+            "default": 25000,
+            "unit": "股"
+          }
+        ],
+        "outputs": [
+          "K 线实体和影线",
+          "价格标注",
+          "成交量柱",
+          "相对前收盘涨跌幅"
+        ],
+        "formula": "前收盘固定 10 元；高价 ≥ max(开盘,收盘)，低价 ≤ min(开盘,收盘)；当日涨跌幅 = 收盘 / 前收盘 - 1。",
+        "observe": "设开盘 9 元、收盘 9.5 元：蜡烛为阳线，但相对前收盘 10 元仍跌 5%。拖成交量，价格范围保持不变。",
+        "assumptions": "虚构价格；高低价控件应自动约束，不能允许不合法的 OHLC；使用中国市场常见颜色并显示文字，避免仅靠颜色表达。"
+      },
+      "quizzes": [
+        {
+          "question": "前收盘 10 元，今天开盘 9 元、收盘 9.5 元。哪句话正确？",
+          "options": [
+            "阳线，当日涨幅 5%",
+            "阳线，当日跌幅 5%",
+            "阴线，当日跌幅 5%"
+          ],
+          "answerIndex": 1,
+          "explanation": "9.5 大于 9，形成阳线；但 9.5 / 10 - 1 = -5%。两个比较基准不同。"
+        },
+        {
+          "question": "某天成交量翻倍，下一天一定上涨吗？",
+          "options": [
+            "一定",
+            "一定下跌",
+            "仅凭成交量不能确定"
+          ],
+          "answerIndex": 2,
+          "explanation": "每笔成交同时有买方和卖方；成交量记录活动规模，不能自行证明未来方向。"
+        }
+      ],
+      "sources": [
+        {
+          "title": "深交所：投资者入市手册，K 线说明第 53–54 页",
+          "url": "https://investor.szse.cn/institute/bookshelf/manualseriesbook/P020190322685818724112.pdf"
+        }
+      ]
+    },
+    {
+      "id": "statements",
+      "title": "给公司做一次体检",
+      "stage": "读懂公司",
+      "minutes": 12,
+      "coreQuestion": "收入很好看，为什么公司还会缺钱？",
+      "analogy": "小餐馆的三本账：拍一张今天的家底照片；算这一年做生意赚了多少；检查银行卡这一年实际进出的钱。照片、成绩单、流水分别回答不同问题。",
+      "explanation": "资产负债表看某一时点的资产、负债和权益；利润表看一段期间的收入与费用；现金流量表看经营、投资、筹资造成的现金变化。把三张表连起来，再读业务说明和附注，才能理解企业，而不是只看净利润一行。",
+      "takeaways": [
+        "资产 = 负债 + 股东权益。",
+        "利润表是期间成绩，资产负债表是时点照片。",
+        "借来的现金增加银行余额，也增加债务。"
+      ],
+      "experiment": {
+        "kind": "statements",
+        "title": "经营你的虚构餐馆",
+        "controls": [
+          {
+            "key": "revenue",
+            "label": "年度收入",
+            "min": 100,
+            "max": 2000,
+            "step": 50,
+            "default": 1000,
+            "unit": "万元"
+          },
+          {
+            "key": "cost",
+            "label": "成本与费用",
+            "min": 0,
+            "max": 1500,
+            "step": 50,
+            "default": 700,
+            "unit": "万元"
+          },
+          {
+            "key": "assets",
+            "label": "期末资产",
+            "min": 200,
+            "max": 3000,
+            "step": 100,
+            "default": 1200,
+            "unit": "万元"
+          },
+          {
+            "key": "debt",
+            "label": "期末负债",
+            "min": 0,
+            "max": 2000,
+            "step": 100,
+            "default": 600,
+            "unit": "万元"
+          }
+        ],
+        "outputs": [
+          "利润瀑布图",
+          "资产负债堆叠图",
+          "净利润率",
+          "权益余额"
+        ],
+        "formula": "教学净利润 = 收入 - 成本费用；净利润率 = 净利润 / 收入；权益 = 资产 - 负债。",
+        "observe": "把收入拉高但费用拉得更高，观察规模扩大和盈利恶化如何同时发生。把负债拉到高于资产，看权益转负。",
+        "assumptions": "为结构理解而简化，省略所得税和多种利润层级；期末资产与期间收入分别由你设定，不宣称是完整会计联动模型。"
+      },
+      "quizzes": [
+        {
+          "question": "资产 1,200 万元，负债 800 万元，股东权益是多少？",
+          "options": [
+            "2,000 万元",
+            "400 万元",
+            "800 万元"
+          ],
+          "answerIndex": 1,
+          "explanation": "权益 = 资产 - 负债 = 400 万元。资产多不等于全部属于股东。"
+        },
+        {
+          "question": "餐馆借款 100 万元到账，立即把这笔钱记为营业收入，正确吗？",
+          "options": [
+            "正确，钱进来了",
+            "错误，是筹资现金流并增加负债",
+            "正确，只要借期超过一年"
+          ],
+          "answerIndex": 1,
+          "explanation": "收款来源决定分类；借款要归还，不是销售收入。"
+        }
+      ],
+      "sources": [
+        {
+          "title": "SEC：如何阅读年度报告",
+          "url": "https://www.sec.gov/answers/reada10k.htm"
+        },
+        {
+          "title": "SEC：财务报表基础",
+          "url": "https://www.sec.gov/about/reports-publications/investorpubsbegfinstmtguide"
+        }
+      ]
+    },
+    {
+      "id": "cashflow",
+      "title": "利润和现金不是双胞胎",
+      "stage": "读懂公司",
+      "minutes": 10,
+      "coreQuestion": "账上赚了 500 万，银行卡为何只多了 200 万？",
+      "analogy": "你卖出 1,000 杯咖啡，有 300 杯客人记账下月付。销售已经发生，但那 300 杯的钱还没到口袋；同时买咖啡机花掉的钱，也不一定全部成为当期费用。",
+      "explanation": "确认收入与收到现金的时间可能不同，折旧等费用也未必伴随当期付款。经营现金流关注主营活动收付，投资现金流反映买卖长期资产等，筹资现金流反映融资和还款等。利润和现金长期不匹配时，要去检查应收款、存货及附注，不能立即给公司贴真假标签。",
+      "takeaways": [
+        "净利润增加与经营现金流减少可以同时出现。",
+        "贷款让现金增加，不等于主营赚钱能力增加。",
+        "一次性卖资产所得，不能直接当作持续经营表现。"
+      ],
+      "experiment": {
+        "kind": "cashflow",
+        "title": "咖啡店的收银台",
+        "controls": [
+          {
+            "key": "collection",
+            "label": "销售收款比例",
+            "min": 0,
+            "max": 100,
+            "step": 5,
+            "default": 70,
+            "unit": "%"
+          },
+          {
+            "key": "equipment",
+            "label": "购买咖啡机",
+            "min": 0,
+            "max": 500,
+            "step": 25,
+            "default": 100,
+            "unit": "万元"
+          },
+          {
+            "key": "loan",
+            "label": "新增借款",
+            "min": 0,
+            "max": 500,
+            "step": 25,
+            "default": 0,
+            "unit": "万元"
+          }
+        ],
+        "outputs": [
+          "利润与经营现金流并排柱",
+          "应收款余额",
+          "投资/筹资现金流",
+          "现金净变化"
+        ],
+        "formula": "收入固定 1,000 万、费用及现金付款固定 500 万；净利润 = 500 万；经营现金流 = 1,000 × 收款比例 - 500；投资现金流 = -设备支出；筹资现金流 = 借款；现金净变化 = 三类现金流之和。",
+        "observe": "收款比例 70% 时利润 500 万、经营现金流 200 万。加一笔 400 万贷款，现金改善，但经营现金流不会改变。",
+        "assumptions": "期初应收款为零；假定所有收入已满足确认条件；省略折旧、税、利息和存货等项目，设备支出仅演示现金分类。"
+      },
+      "quizzes": [
+        {
+          "question": "销售 1,000 万，已收 700 万，成本费用 500 万且已付清。本简化情境的利润和经营现金流分别为？",
+          "options": [
+            "500 万、200 万",
+            "200 万、500 万",
+            "500 万、500 万"
+          ],
+          "answerIndex": 0,
+          "explanation": "利润 = 1,000 - 500；经营现金流 = 700 - 500。300 万差额来自未收回的销售款。"
+        },
+        {
+          "question": "经营现金流为负，就一定是财务造假吗？",
+          "options": [
+            "一定",
+            "不一定，还要看原因、期间和附注",
+            "只要有利润就一定没有问题"
+          ],
+          "answerIndex": 1,
+          "explanation": "业务增长、回款季节性等也会影响现金；应结合多期报表与具体原因，不能只用一个数字下结论。"
+        }
+      ],
+      "sources": [
+        {
+          "title": "SEC：现金流量表与利润的关系",
+          "url": "https://www.sec.gov/about/reports-publications/investorpubsbegfinstmtguide"
+        }
+      ]
+    },
+    {
+      "id": "valuation",
+      "title": "好公司，是否也是好价格",
+      "stage": "读懂公司",
+      "minutes": 12,
+      "coreQuestion": "市盈率 8 倍，真的比 30 倍更便宜吗？",
+      "analogy": "两家小店都标价 100 万。甲每年赚 20 万，但主要靠一次性卖了仓库；乙每年赚 10 万，靠持续卖早餐。拿一个看似便宜的倍数，可能买到完全不同的生意。",
+      "explanation": "PE = 每股价格 / 每股收益，必须说明利润的时期与口径。静态、滚动和预测 PE 的分母不同。亏损或利润接近零时，PE 会失去常规比较意义。行业、增长、资本需求、债务与一次性收益都会影响可比性；PE 是比较工具，不是回本承诺。",
+      "takeaways": [
+        "比较 PE 之前，先比较盈利口径和业务。",
+        "低 PE 可能来自风险或周期高点。",
+        "股价近似分解为 EPS × PE，可区分业绩变化与估值变化。"
+      ],
+      "experiment": {
+        "kind": "valuation",
+        "title": "让盈利与估值各走一步",
+        "controls": [
+          {
+            "key": "eps",
+            "label": "当前每股收益",
+            "min": -2,
+            "max": 5,
+            "step": 0.1,
+            "default": 2,
+            "unit": "元"
+          },
+          {
+            "key": "price",
+            "label": "当前股价",
+            "min": 5,
+            "max": 100,
+            "step": 1,
+            "default": 30,
+            "unit": "元"
+          },
+          {
+            "key": "growth",
+            "label": "假设下一年 EPS 变化",
+            "min": -80,
+            "max": 100,
+            "step": 5,
+            "default": 20,
+            "unit": "%"
+          },
+          {
+            "key": "multiple",
+            "label": "假设下一年 PE",
+            "min": 5,
+            "max": 50,
+            "step": 1,
+            "default": 12,
+            "unit": "倍"
+          }
+        ],
+        "outputs": [
+          "当前 PE 或不适用提示",
+          "盈利增长路径",
+          "估值变化路径",
+          "假设终值价格与收益"
+        ],
+        "formula": "当前 PE = 价格 / EPS（仅 EPS > 0）；假设明年 EPS = EPS × (1 + 增长率)；假设明年价格 = 明年 EPS × 明年 PE；不将非正 EPS 代入正倍数价格预测。",
+        "observe": "当前 EPS 2、价格 30 对应 15 倍；盈利增长 20%、PE 降到 12，价格只有 28.8 元，盈利增长仍可伴随股价下跌。",
+        "assumptions": "终值完全由你输入的假设决定；非正 EPS 的价格演示应停用；不含分红、税、稀释和实际市场预测。"
+      },
+      "quizzes": [
+        {
+          "question": "股价 30 元，EPS 2 元；下一年 EPS 增长 20%，PE 从 15 降到 12。假设价格是多少？",
+          "options": [
+            "36 元",
+            "28.8 元",
+            "30 元"
+          ],
+          "answerIndex": 1,
+          "explanation": "EPS 变为 2.4；2.4 × 12 = 28.8。业绩与市场支付倍数可以反向变化。"
+        },
+        {
+          "question": "甲 EPS 为 -1 元，乙 PE 为 8 倍，可以说甲的负 PE 更便宜吗？",
+          "options": [
+            "可以，负数更小",
+            "不能，亏损下 PE 不适合按正常盈利倍数比较",
+            "可以，只要股价一样"
+          ],
+          "answerIndex": 1,
+          "explanation": "负的分母没有常规盈利倍数的含义；应先理解亏损原因、资产与现金等。"
+        }
+      ],
+      "sources": [
+        {
+          "title": "深交所：静态市盈率的定义",
+          "url": "https://investor.szse.cn/knowledge/stock/margin/t20181205_563380.html"
+        },
+        {
+          "title": "SEC：PE 比率计算",
+          "url": "https://www.sec.gov/about/reports-publications/investorpubsbegfinstmtguide"
+        }
+      ]
+    },
+    {
+      "id": "dividend",
+      "title": "分红：从公司口袋到你的口袋",
+      "stage": "读懂公司",
+      "minutes": 9,
+      "coreQuestion": "分红到账，是凭空多赚一笔钱吗？",
+      "analogy": "你拥有的一盒蛋糕值 100 元。店主从盒中分出价值 5 元的一小块给你，盒内剩 95 元；把蛋糕切得更细，也不会让总量自动增加。",
+      "explanation": "现金分红把公司现金分配给股东；除息参考价会对派息作调整。送股或转增让股份数变化，需要除权处理。若其他因素不变且忽略税费，分红前后总资产不会只因这次转移自动增加。除权参考价是涨跌幅基准，实际成交价仍由交易形成。",
+      "takeaways": [
+        "看股价之外，还要把现金分红加回总回报。",
+        "除权参考价不等于保证成交价。",
+        "复权曲线方便比较，但下单用的是实际价格。"
+      ],
+      "experiment": {
+        "kind": "dividend",
+        "title": "切蛋糕，不变魔术",
+        "controls": [
+          {
+            "key": "dividend",
+            "label": "每股现金分红",
+            "min": 0,
+            "max": 2,
+            "step": 0.1,
+            "default": 0.5,
+            "unit": "元"
+          },
+          {
+            "key": "bonus",
+            "label": "每股新增股份",
+            "min": 0,
+            "max": 1,
+            "step": 0.1,
+            "default": 0,
+            "unit": "股"
+          }
+        ],
+        "outputs": [
+          "持股数动画",
+          "除权除息参考价",
+          "股权价值与现金堆叠",
+          "分派前后总资产"
+        ],
+        "formula": "前收盘 10 元、原有 100 股；无配股时参考价 = (10 - 每股现金分红)/(1 + 每股新增股份)；新股数 = 100 × (1 + 新增比例)；现金 = 100 × 每股分红。",
+        "observe": "每股分红 0.5 元：100 股参考价值变为 950 元，加上现金 50 元仍为 1,000 元。再把新增比例拖到 1，观察股数翻倍而理论总价值未增加。",
+        "assumptions": "仅现金派息及送转的简化公式；假定无价格波动、无税费、无配股，到账时点不作完整结算模拟。"
+      },
+      "quizzes": [
+        {
+          "question": "忽略税费和价格波动，100 股、股价 10 元，每股分红 0.5 元。除息后按参考价计算的股票加现金为？",
+          "options": [
+            "1,050 元",
+            "1,000 元",
+            "950 元"
+          ],
+          "answerIndex": 1,
+          "explanation": "股票 100 × 9.5 = 950，现金 50，合计 1,000。"
+        },
+        {
+          "question": "除息参考价 9.5 元，当天必须成交在 9.5 元吗？",
+          "options": [
+            "必须",
+            "不必，参考价是基准，成交另由市场决定",
+            "当天不能交易"
+          ],
+          "answerIndex": 1,
+          "explanation": "除权除息机制调整比较基准；市场交易仍可能高于或低于该参考价。"
+        }
+      ],
+      "sources": [
+        {
+          "title": "上交所：交易规则 4.3，除权与除息",
+          "url": "https://www.sse.com.cn/lawandrules/sselawsrules2025/fund/trading/c/c_20260424_10817739.shtml"
+        }
+      ]
+    },
+    {
+      "id": "compound",
+      "title": "收益走的是乘法",
+      "stage": "管理风险",
+      "minutes": 10,
+      "coreQuestion": "先涨 20% 再跌 20%，为什么没有回到原点？",
+      "analogy": "上楼时从第 100 级跨上 20%，到第 120 级；再退后当前位置的 20%，退了 24 级，只剩第 96 级。百分比每次都换了底数。",
+      "explanation": "持有期收益是各期增长因子的连乘，而不是收益率相加。资金追加与分红再投入会改变资产曲线；投入本金和投资收益应分开展示。固定收益率演示只是解释复利，不代表股票会按稳定速度增长。",
+      "takeaways": [
+        "涨跌对称，资产结果不对称。",
+        "算年化必须说明起止日期与持有期。",
+        "投入本金增长不能被误显示为投资盈利。"
+      ],
+      "experiment": {
+        "kind": "compound",
+        "title": "让时间参与运算",
+        "controls": [
+          {
+            "key": "principal",
+            "label": "初始本金",
+            "min": 1000,
+            "max": 100000,
+            "step": 1000,
+            "default": 10000,
+            "unit": "元"
+          },
+          {
+            "key": "contribution",
+            "label": "每年末追加",
+            "min": 0,
+            "max": 20000,
+            "step": 500,
+            "default": 2000,
+            "unit": "元"
+          },
+          {
+            "key": "rate",
+            "label": "假设年收益",
+            "min": -20,
+            "max": 20,
+            "step": 1,
+            "default": 6,
+            "unit": "%"
+          },
+          {
+            "key": "years",
+            "label": "年数",
+            "min": 1,
+            "max": 30,
+            "step": 1,
+            "default": 10,
+            "unit": "年"
+          }
+        ],
+        "outputs": [
+          "本金/收益面积图",
+          "每年资产表",
+          "不同假设曲线",
+          "涨跌对称小实验"
+        ],
+        "formula": "每年末资产 A_t = A_(t-1) × (1 + r) + C；累计投入 = 初始本金 + 年数 × C；无追加时总收益 = Π(1 + r_t) - 1。",
+        "observe": "先设追加为 0，再拉长期限；然后加入追加，把自己投入的钱与收益色块分开。用 +20%、-20% 两步看到 100 变 96。",
+        "assumptions": "年末追加且年复利；固定 r 为数学假设，真实股票收益不稳定；未计税、费用、通胀。"
+      },
+      "quizzes": [
+        {
+          "question": "1 万元先涨 20% 再跌 20%，最终余额是多少？",
+          "options": [
+            "10,000 元",
+            "9,600 元",
+            "10,400 元"
+          ],
+          "answerIndex": 1,
+          "explanation": "10,000 × 1.2 × 0.8 = 9,600，累计收益 -4%。"
+        },
+        {
+          "question": "期初 10,000 元，全年收益 10%，年末又投入 1,000 元，年底资产 12,000 元。投资盈利是多少？",
+          "options": [
+            "2,000 元",
+            "1,000 元",
+            "12,000 元"
+          ],
+          "answerIndex": 1,
+          "explanation": "余额增长 2,000，其中 1,000 是追加本金；本年度投资盈利为 1,000。"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Investor.gov：复利计算器及假设输入",
+          "url": "https://www.investor.gov/financial-tools-calculators/calculators/compound-interest-calculator"
+        }
+      ]
+    },
+    {
+      "id": "drawdown",
+      "title": "曲线的终点与路况",
+      "stage": "管理风险",
+      "minutes": 10,
+      "coreQuestion": "同样赚 10%，为什么两条路完全不同？",
+      "analogy": "两辆车都从海拔 100 米到 110 米。一辆沿缓坡上行，另一辆先跌到山谷 60 米再爬回去；终点相同，乘客的体验和中途下车结果却不同。",
+      "explanation": "波动描述收益的起伏，回撤描述资产从此前高点下落的幅度，最大回撤取最深的一次。风险还包括企业失败、流动性和需要用钱的时点；一个回撤数字不能覆盖全部风险。亏损后的回本涨幅会随损失扩大而加速增加。",
+      "takeaways": [
+        "收益率、波动、最大回撤回答不同问题。",
+        "从高点跌 50%，需要从低点涨 100% 才回本。",
+        "只看到终点会漏掉过程中是否承担得起。"
+      ],
+      "experiment": {
+        "kind": "drawdown",
+        "title": "给同一个终点换一条路线",
+        "controls": [
+          {
+            "key": "loss",
+            "label": "中途从高点下跌",
+            "min": 0,
+            "max": 80,
+            "step": 1,
+            "default": 30,
+            "unit": "%"
+          },
+          {
+            "key": "ending",
+            "label": "最终相对起点收益",
+            "min": -20,
+            "max": 40,
+            "step": 1,
+            "default": 10,
+            "unit": "%"
+          }
+        ],
+        "outputs": [
+          "资产路径",
+          "运行高点虚线",
+          "回撤阴影",
+          "回本所需涨幅"
+        ],
+        "formula": "路径固定起点 100 → 高点 120 → 指定观察点 120 × (1-L) → 终点 100 × (1+R)；每点回撤 = 1 - 资产 / 此前含当点最高资产；最大回撤 D 为各点最大值；从最大回撤对应低点恢复到此前高点需上涨 D/(1-D)。",
+        "observe": "保持终点 +10%，把中途跌幅从 10% 拉到 50%，观察最大回撤和回本难度，而不是只看终值。",
+        "assumptions": "路径为人工构造，百分比按高点计算；指标未包含交易成本、流动性及永久损失等其他风险。"
+      },
+      "quizzes": [
+        {
+          "question": "资产从高点 100 降到 70，再回到 90。最大回撤是多少？",
+          "options": [
+            "10%",
+            "30%",
+            "20%"
+          ],
+          "answerIndex": 1,
+          "explanation": "谷底相对此前高点为 70 / 100 - 1 = -30%；后来恢复不会抹去历史最大回撤。"
+        },
+        {
+          "question": "亏损 40% 后，要涨多少才能回到本金？",
+          "options": [
+            "40%",
+            "约 66.7%",
+            "约 28.6%"
+          ],
+          "answerIndex": 1,
+          "explanation": "本金 100 剩 60，要增加 40；40 / 60 = 66.7%。涨跌的基数不同。"
+        }
+      ],
+      "sources": [
+        {
+          "title": "FINRA：股票波动与风险",
+          "url": "https://www.finra.org/investors/investing/investment-products/stocks"
+        },
+        {
+          "title": "Investor.gov：风险承受能力",
+          "url": "https://www.investor.gov/introduction-investing/investing-basics/save-and-invest/gauge-your-risk-tolerance"
+        }
+      ]
+    },
+    {
+      "id": "position",
+      "title": "仓位是一只音量旋钮",
+      "stage": "管理风险",
+      "minutes": 9,
+      "coreQuestion": "看对方向，却用错仓位，会怎样？",
+      "analogy": "同一首声音很大的音乐，音量开 20% 与 100% 对听众影响不同。股票的涨跌是曲目，仓位决定你的账户把这个变化放大到什么程度。",
+      "explanation": "仓位是某项持仓市值占总资产的比例。无杠杆且其他资产不变时，账户收益是各项收益按仓位加权。仓位越集中，单一公司的冲击对账户影响越大。仓位会随市场价格变化而漂移，决定比例之前要知道资金用途与损失承受能力。",
+      "takeaways": [
+        "单只股票跌幅不等于整个账户跌幅。",
+        "按市值而非当初投入金额计算当前仓位。",
+        "假设最大跌幅不是损失上限的保证。"
+      ],
+      "experiment": {
+        "kind": "position",
+        "title": "给冲击调音量",
+        "controls": [
+          {
+            "key": "weight",
+            "label": "单股仓位",
+            "min": 0,
+            "max": 100,
+            "step": 5,
+            "default": 30,
+            "unit": "%"
+          },
+          {
+            "key": "shock",
+            "label": "单股冲击",
+            "min": -80,
+            "max": 80,
+            "step": 5,
+            "default": -30,
+            "unit": "%"
+          },
+          {
+            "key": "wealth",
+            "label": "账户总资产",
+            "min": 10000,
+            "max": 200000,
+            "step": 5000,
+            "default": 100000,
+            "unit": "元"
+          }
+        ],
+        "outputs": [
+          "股票/现金圆环",
+          "账户收益",
+          "盈亏金额",
+          "冲击前后仓位"
+        ],
+        "formula": "其余为收益 0 的现金；账户收益 = 股票仓位 × 股票收益；冲击后股票仓位 = w(1+r)/(1+wr)。",
+        "observe": "同样股票跌 30%，把仓位从 20% 拉到 80%，账户跌幅从 6% 变为 24%。再把冲击改为上涨，观察仓位漂移。",
+        "assumptions": "无杠杆、无费用、无其他持仓变动；仅解释权重与冲击，不能据此推荐个人适宜比例。"
+      },
+      "quizzes": [
+        {
+          "question": "账户 10 万元，某股票占 30%，该股跌 20%，其余现金不变。账户损失多少？",
+          "options": [
+            "2 万元",
+            "6,000 元",
+            "3 万元"
+          ],
+          "answerIndex": 1,
+          "explanation": "10 万 × 30% × 20% = 6,000 元，账户收益 -6%。"
+        },
+        {
+          "question": "股票起初占 50%，随后价格翻倍，现金不变。现在股票仓位是多少？",
+          "options": [
+            "50%",
+            "100%",
+            "约 66.7%"
+          ],
+          "answerIndex": 2,
+          "explanation": "初始股票和现金各为 50；涨后股票 100、现金 50，总计 150，仓位 100/150。"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Investor.gov：资产配置与再平衡",
+          "url": "https://www.investor.gov/introduction-investing/getting-started/asset-allocation"
+        },
+        {
+          "title": "FINRA：集中度风险",
+          "url": "https://www.finra.org/investors/insights/concentration-risk"
+        }
+      ]
+    },
+    {
+      "id": "diversification",
+      "title": "十把伞也挡不住同一场风",
+      "stage": "管理风险",
+      "minutes": 12,
+      "coreQuestion": "买了十只股票，就一定分散了吗？",
+      "analogy": "你开了十家冰淇淋摊，看似很多生意；可一场持续低温让十家都冷清。再加入一家雨具店，冲击的来源才可能有些不同。",
+      "explanation": "分散看的是共同风险，而不只是持仓数量。不同公司仍可能受同一行业、宏观或汇率因素影响，基金之间也可能持有相同股票。相关性描述收益共同变化程度；它会随时期变化，在压力下分散效果也可能减弱。",
+      "takeaways": [
+        "分散可以减轻部分特有风险，不能保证不亏。",
+        "看透基金底层持仓，避免重复暴露。",
+        "历史相关性不是未来固定参数。"
+      ],
+      "experiment": {
+        "kind": "diversification",
+        "title": "让两条曲线一起走或分开走",
+        "controls": [
+          {
+            "key": "weight",
+            "label": "资产 A 权重",
+            "min": 0,
+            "max": 100,
+            "step": 5,
+            "default": 50,
+            "unit": "%"
+          },
+          {
+            "key": "sigmaA",
+            "label": "A 假设波动率",
+            "min": 5,
+            "max": 50,
+            "step": 1,
+            "default": 20,
+            "unit": "%"
+          },
+          {
+            "key": "sigmaB",
+            "label": "B 假设波动率",
+            "min": 5,
+            "max": 50,
+            "step": 1,
+            "default": 20,
+            "unit": "%"
+          },
+          {
+            "key": "rho",
+            "label": "假设相关系数",
+            "min": -1,
+            "max": 1,
+            "step": 0.1,
+            "default": 0.5,
+            "unit": ""
+          }
+        ],
+        "outputs": [
+          "两条共同变化的示意曲线",
+          "组合波动率",
+          "相关性刻度",
+          "组合与单资产对比"
+        ],
+        "formula": "σ_p² = w²σ_A² + (1-w)²σ_B² + 2w(1-w)σ_Aσ_Bρ；所有波动率采用同一周期。",
+        "observe": "两项波动率均 20%、各半仓，ρ 从 1 拖到 0，理论组合波动率从 20% 降到约 14.14%。",
+        "assumptions": "仅双资产、固定权重与固定相关性；示意曲线不应声称样本相关系数精确等于滑块；ρ=-1 的抵消是理想数学情境。"
+      },
+      "quizzes": [
+        {
+          "question": "持有十只同一行业股票，可否仅凭数量认定已充分分散？",
+          "options": [
+            "可以，十只一定足够",
+            "不能，还要看共同风险与持仓权重",
+            "只要平均分就足够"
+          ],
+          "answerIndex": 1,
+          "explanation": "同一行业可能同时受需求和政策冲击；数量不能代替风险来源分析。"
+        },
+        {
+          "question": "两项资产波动率均 20%，各占一半，假设相关系数为 1，组合波动率是多少？",
+          "options": [
+            "10%",
+            "20%",
+            "0%"
+          ],
+          "answerIndex": 1,
+          "explanation": "完全同向时，两个同波动率资产合并仍为 20%；风险不会因数量变多自动减半。"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Investor.gov：分散的含义及基金持仓重叠",
+          "url": "https://www.investor.gov/introduction-investing/getting-started/asset-allocation"
+        },
+        {
+          "title": "FINRA：资产配置与相关性",
+          "url": "https://www.finra.org/investors/investing/investing-basics/asset-allocation-diversification"
+        }
+      ]
+    },
+    {
+      "id": "news",
+      "title": "新闻如何穿过预期到达价格",
+      "stage": "形成判断",
+      "minutes": 11,
+      "coreQuestion": "利润增长了，股票为什么还可能跌？",
+      "analogy": "考试得了 85 分本来不错，可大家原本期待 95 分。新闻是成绩，价格中已经包含的期待是预期，二者的差距会改变人们愿意付的价。",
+      "explanation": "消息可能通过收入、成本、利率、风险或预期影响估值。先区分已确认事实、管理层预测和评论推断，再问影响路径与市场原先期待。价格的变化还有别的同时发生的原因；消息与涨跌同日出现，不足以证明因果。",
+      "takeaways": [
+        "事实、解读、预测要分别标明。",
+        "正面经营结果仍可能低于预期。",
+        "先看公告与原始数据，再读评论。"
+      ],
+      "experiment": {
+        "kind": "news",
+        "title": "让同一份成绩遇到不同预期",
+        "controls": [
+          {
+            "key": "expected",
+            "label": "预期盈利增幅",
+            "min": -30,
+            "max": 80,
+            "step": 5,
+            "default": 30,
+            "unit": "%"
+          },
+          {
+            "key": "actual",
+            "label": "公布盈利增幅",
+            "min": -30,
+            "max": 80,
+            "step": 5,
+            "default": 20,
+            "unit": "%"
+          },
+          {
+            "key": "sensitivity",
+            "label": "预期差敏感度",
+            "min": 0,
+            "max": 1,
+            "step": 0.1,
+            "default": 0.3,
+            "unit": ""
+          }
+        ],
+        "outputs": [
+          "预期与实际双柱",
+          "预期差",
+          "教学价格反应箭头",
+          "事实→假设→影响链"
+        ],
+        "formula": "预期差 = 实际增幅 - 预期增幅；教学反应 = 敏感度 × 预期差（单位为百分点）；此关系是人工演示，不是市场定价方程。",
+        "observe": "保持实际盈利增长 20%，把预期从 10% 拖到 40%，同一事实在教学模型中由正面惊喜转为失望。",
+        "assumptions": "不使用真实公司；反应系数人为设定，不可据此预测真实股价；忽略同时发生的其他消息。"
+      },
+      "quizzes": [
+        {
+          "question": "公司利润增长 20%，原先预期增长 40%。这则新闻必然导致股票上涨吗？",
+          "options": [
+            "必然",
+            "不必，低于预期且其他因素也会影响价格",
+            "必然下跌 20%"
+          ],
+          "answerIndex": 1,
+          "explanation": "增长与预期差是不同概念；也不能从一个消息直接算出实际涨跌幅。"
+        },
+        {
+          "question": "新闻页最有助于你核验的呈现方式是什么？",
+          "options": [
+            "只显示“利好”标签",
+            "显示来源、发布时间、事实与解读，并链接原文",
+            "只按阅读量排序"
+          ],
+          "answerIndex": 1,
+          "explanation": "来源与时间让事实可追溯；拆开事实与推断让你检查推理环节。"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Investor.gov：研究投资与原始披露",
+          "url": "https://www.investor.gov/introduction-investing/getting-started/researching-investments"
+        },
+        {
+          "title": "Investor.gov：噪声交易与行为偏差",
+          "url": "https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-72"
+        }
+      ]
+    },
+    {
+      "id": "costs",
+      "title": "你需要跨过的交易摩擦",
+      "stage": "形成判断",
+      "minutes": 12,
+      "coreQuestion": "报价涨了，你的账户为什么还没赚钱？",
+      "analogy": "买卖二手相机，两次运费和平台费会吃掉价差。哪怕卖价比买价高，也要把所有支出算进去；当日到手却明日才允许转卖，也会改变操作空间。",
+      "explanation": "净收益需扣除佣金、税费、买卖价差与可能的滑点。普通 A 股当日新买入股份一般不能当日卖出，原有可卖股份与今日新增股份要分开记录。T+1 中的“1”是下一交易日。不同证券的回转、申报单位和涨跌幅规定不同，不能把股票规则套给所有 ETF。",
+      "takeaways": [
+        "买卖两边的成本都要进入计算。",
+        "持仓数量与可卖数量不同。",
+        "涨停或限价触及不代表一定能成交。"
+      ],
+      "experiment": {
+        "kind": "costs",
+        "title": "让小利润穿过收费站",
+        "controls": [
+          {
+            "key": "buy",
+            "label": "买入价",
+            "min": 5,
+            "max": 100,
+            "step": 0.1,
+            "default": 10,
+            "unit": "元"
+          },
+          {
+            "key": "sell",
+            "label": "卖出价",
+            "min": 5,
+            "max": 100,
+            "step": 0.1,
+            "default": 10.1,
+            "unit": "元"
+          },
+          {
+            "key": "quantity",
+            "label": "股数",
+            "min": 100,
+            "max": 5000,
+            "step": 100,
+            "default": 1000,
+            "unit": "股"
+          },
+          {
+            "key": "commission",
+            "label": "单边教学佣金率",
+            "min": 0,
+            "max": 0.3,
+            "step": 0.01,
+            "default": 0.03,
+            "unit": "%"
+          },
+          {
+            "key": "minimum",
+            "label": "单笔教学最低佣金",
+            "min": 0,
+            "max": 10,
+            "step": 1,
+            "default": 5,
+            "unit": "元"
+          },
+          {
+            "key": "sellTax",
+            "label": "卖出侧教学税率",
+            "min": 0,
+            "max": 0.2,
+            "step": 0.01,
+            "default": 0.05,
+            "unit": "%"
+          },
+          {
+            "key": "slippage",
+            "label": "单边教学滑点",
+            "min": 0,
+            "max": 1,
+            "step": 0.01,
+            "default": 0.02,
+            "unit": "%"
+          }
+        ],
+        "outputs": [
+          "毛利到净利瀑布",
+          "买卖实际成交价",
+          "盈亏平衡卖价",
+          "可卖股份日历"
+        ],
+        "formula": "教学买入成交价 = 买价 × (1+滑点率)，卖出成交价 = 卖价 × (1-滑点率)；单边佣金 = max(成交额×佣金率,最低佣金)；双边过户费=(买入额+卖出额)×0.001%；净利 = 卖出额 - 买入额 - 双边佣金 - 卖出印花税 - 双边过户费。",
+        "observe": "把数量从 1,000 股拖到 100 股，看最低收费如何提高成本比例。规则日历中买入 100 股，当日可卖新增股份为 0；下一交易日转为可卖。",
+        "assumptions": "数值是教学假设，佣金与最低费用依券商协议调整。双边过户费固定 0.001%，印花税只在卖出计提；佣金含经手与监管费用。实验保留精度，模拟成交按分四舍五入。"
+      },
+      "quizzes": [
+        {
+          "question": "教学情境：100 股 10 元买入、10.1 元卖出，双边佣金各 5 元，暂忽略其余费用。净利多少？",
+          "options": [
+            "10 元",
+            "0 元",
+            "5 元"
+          ],
+          "answerIndex": 1,
+          "explanation": "毛利 100 × 0.1 = 10 元；买卖佣金合计 10 元，净利为 0。"
+        },
+        {
+          "question": "普通 A 股周五当日新买入股份，周末不是交易日且周一正常开市。一般最早何时可卖？",
+          "options": [
+            "周五下午",
+            "周六",
+            "周一"
+          ],
+          "answerIndex": 2,
+          "explanation": "T+1 是下一交易日，不是下一自然日；持仓和可卖股份应按交易日结转。"
+        }
+      ],
+      "sources": [
+        {
+          "title": "上交所：交易规则 3.1.4–3.1.5 及回转例外",
+          "url": "https://www.sse.com.cn/lawandrules/sselawsrules2025/fund/trading/c/c_20260424_10817739.shtml"
+        },
+        {
+          "title": "Investor.gov：费用如何影响回报",
+          "url": "https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/updated"
+        }
+      ]
+    },
+    {
+      "id": "etf",
+      "title": "股票、基金和 ETF 的工具箱",
+      "stage": "形成判断",
+      "minutes": 11,
+      "coreQuestion": "你是在买一家公司，还是买一篮子资产？",
+      "analogy": "单只股票像点一道菜；基金像按菜单配的一份套餐；ETF 则是一份可以在交易所转手的套餐。套餐可能很丰富，也可能几乎全是辣椒，不能只因为名字叫套餐就认为营养均衡。",
+      "explanation": "基金汇集投资者资金按合同投资；ETF 是可在交易所交易的基金，市场价可能偏离净值。指数策略与主动策略是管理方式，ETF 与场外开放式基金是结构和交易方式，不是同一维度。学习时应比较持仓、目标、费用、流动性及折溢价，而不是只比较近期涨幅。",
+      "takeaways": [
+        "ETF 不等于所有基金，也不必然都是被动指数。",
+        "行业基金可能仍高度集中。",
+        "管理费、交易费与价差可能同时存在。"
+      ],
+      "experiment": {
+        "kind": "etf",
+        "title": "拆开你买的那只篮子",
+        "controls": [
+          {
+            "key": "nav",
+            "label": "每份资产净值",
+            "min": 1,
+            "max": 10,
+            "step": 0.1,
+            "default": 2,
+            "unit": "元"
+          },
+          {
+            "key": "market",
+            "label": "交易所市场价",
+            "min": 1,
+            "max": 10,
+            "step": 0.1,
+            "default": 2.1,
+            "unit": "元"
+          },
+          {
+            "key": "fee",
+            "label": "假设年运营费率",
+            "min": 0,
+            "max": 2,
+            "step": 0.1,
+            "default": 0.5,
+            "unit": "%"
+          },
+          {
+            "key": "years",
+            "label": "持有年数",
+            "min": 1,
+            "max": 20,
+            "step": 1,
+            "default": 10,
+            "unit": "年"
+          }
+        ],
+        "outputs": [
+          "股票/基金/ETF 对照卡",
+          "市场价与净值双柱",
+          "折溢价率",
+          "同毛回报不同费用曲线"
+        ],
+        "formula": "折溢价率 = 市场价 / 净值 - 1；费用比较设毛年收益为 5%，教学年末余额 = 上年余额 × 1.05 × (1-费率)，每年更新。",
+        "observe": "净值 2 元、市场价 2.1 元对应 5% 溢价。把费率由 0.2% 拖到 1.5%，观察同样毛收益假设下长期净余额差异。",
+        "assumptions": "基金结构说明参考投教，不直接移植美股申购赎回、税务及结算细则到 A 股；费用模型是年末比例扣减的简化假设。"
+      },
+      "quizzes": [
+        {
+          "question": "ETF 每份净值 2 元，市场价 2.1 元。溢价是多少？",
+          "options": [
+            "0.1%",
+            "5%",
+            "10%"
+          ],
+          "answerIndex": 1,
+          "explanation": "(2.1/2 - 1) × 100% = 5%；你付出的交易价格高于每份资产净值。"
+        },
+        {
+          "question": "哪一项判断正确？",
+          "options": [
+            "所有 ETF 都是被动指数基金",
+            "买三只持仓几乎相同的 ETF 就充分分散了",
+            "ETF 的交易结构与指数/主动管理方式是不同维度"
+          ],
+          "answerIndex": 2,
+          "explanation": "指数或主动描述策略；ETF 描述基金结构及交易方式。分散要检查底层暴露。"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Investor.gov：ETF 的结构与价格",
+          "url": "https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-24"
+        },
+        {
+          "title": "Investor.gov：基金与 ETF 的费用",
+          "url": "https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/mutual-fund-and-etf-fees-and-expenses-investor-bulletin"
+        }
+      ]
+    },
+    {
+      "id": "review",
+      "title": "把一次交易变成一次实验",
+      "stage": "形成判断",
+      "minutes": 12,
+      "coreQuestion": "一次赚钱，能证明你的判断正确吗？",
+      "analogy": "抛硬币赢一次并不能证明你学会了预测。做菜也要记录配方：只记“今天好吃”无法复现；记录材料、温度和失误，下次才能改进。",
+      "explanation": "交易前写下观察、假设、依据、可能推翻判断的条件与仓位；交易后区分结果、成本和过程。把同一期间同样投入的持有基准放在旁边，并查看回撤和多次交易，不以单次收益给自己的能力打分。后见之明会让原本不确定的事情看起来像早就知道。",
+      "takeaways": [
+        "先保存当时的理由，再看到后来的行情。",
+        "结果好与决策过程好不是同一回事。",
+        "总收益、成本、回撤、基准要一起复盘。"
+      ],
+      "experiment": {
+        "kind": "review",
+        "title": "你的决策录像",
+        "controls": [
+          {
+            "key": "confidence",
+            "label": "事前信心",
+            "min": 0,
+            "max": 100,
+            "step": 5,
+            "default": 60,
+            "unit": "%"
+          },
+          {
+            "key": "holdDays",
+            "label": "计划持有期",
+            "min": 1,
+            "max": 60,
+            "step": 1,
+            "default": 20,
+            "unit": "交易日"
+          },
+          {
+            "key": "reviewDay",
+            "label": "回放进度",
+            "min": 0,
+            "max": 60,
+            "step": 1,
+            "default": 0,
+            "unit": "日"
+          }
+        ],
+        "outputs": [
+          "交易与理由时间线",
+          "当时可见信息",
+          "账户/基准曲线",
+          "成本与决策标签"
+        ],
+        "formula": "无入金时收益 = 期末总资产 / 初始资产 - 1；超额收益以同一期间、同一口径的账户收益减基准收益描述；有入金时需另用能处理现金流的方法，不能直接套该公式。",
+        "observe": "先提交理由并锁定事前记录，再逐日揭示行情。回放后回答：哪些证据支持原假设，哪些变了，盈利来自判断还是共同市场上涨？",
+        "assumptions": "虚构历史路径；基准与账户均应使用总回报或均不含分红，避免口径不一；短期超额收益不能证明稳定能力。"
+      },
+      "quizzes": [
+        {
+          "question": "你的模拟账户赚 8%，同期间同口径基准赚 12%。能说你因为赚钱就跑赢市场了吗？",
+          "options": [
+            "能",
+            "不能，简单超额收益为 -4 个百分点",
+            "能，只要没有亏损"
+          ],
+          "answerIndex": 1,
+          "explanation": "绝对收益 +8% 与相对表现不同；还要比较承担的风险和费用，不能只看赚钱。"
+        },
+        {
+          "question": "最有用的复盘记录是哪一种？",
+          "options": [
+            "看到结果后补写“我早就知道”",
+            "只保存盈利截图",
+            "下单前写依据与反证条件，事后对照真实发生的事"
+          ],
+          "answerIndex": 2,
+          "explanation": "事前记录降低后见之明与选择性记忆，让决策过程可检查，结果也更容易转化为学习。"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Investor.gov：行为模式与投资表现",
+          "url": "https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-72"
+        },
+        {
+          "title": "Investor.gov：自行投资需要计划和研究",
+          "url": "https://www.investor.gov/introduction-investing/getting-started/investing-your-own"
+        }
+      ]
+    }
+  ]
+}

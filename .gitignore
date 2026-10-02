@@ -31,6 +31,9 @@ frontend/test-artifacts/
 **/dist/
 **/target/
 **/build/
+# market-atlas/build contains runtime source, not generated output.
+!tools/market-atlas/build/
+!tools/market-atlas/build/**
 **/.venv/
 **/venv/
 **/__pycache__/
@@ -39,6 +42,7 @@ frontend/test-artifacts/
 **/.jqwik-database
 **/*.py[cod]
 **/*.class
+**/*.tsbuildinfo
 **/*.jar
 **/*.zip
 **/*.tar.gz

@@ -34,6 +34,10 @@ export default defineConfig({
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
     },
     proxy: {
+      '/tools/market-atlas': {
+        target: 'http://127.0.0.1:5174',
+        changeOrigin: false
+      },
       '/xzm': {
         target: 'http://127.0.0.1:8104',
         changeOrigin: false,

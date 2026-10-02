@@ -105,6 +105,17 @@ const groups = [
     ],
   },
   {
+    label: "学习工具",
+    items: [
+      {
+        id: "market-atlas",
+        symbol: "↗",
+        label: "观市 · 股票学习",
+        desc: "课程、交互实验与模拟交易",
+      },
+    ],
+  },
+  {
     label: "求职与帮助",
     items: [
       {
@@ -119,6 +130,8 @@ const groups = [
 ];
 function handleAction(id) {
   visible.value = false;
+  if (id === "market-atlas")
+    return window.open("/tools/market-atlas/", "_blank", "noopener");
   if (id === "recruitment") return router.push("/recruitment");
   const events = {
     code: "open-code-editor",

@@ -289,4 +289,10 @@ npm run build
 
 ## 说明
 
+### 观市 · 股票学习工具
+
+AI 对话页顶部 **工具 → 学习工具 → 观市 · 股票学习**，在新标签页访问原版股票学习实验室。完整模块位于 `tools/market-atlas`，保留课程、交互实验、模拟市场、市场解读与复盘；访问路径为 `/tools/market-atlas/`。
+
+运行方法和内容一致性核对见 [接入说明](tools/market-atlas/docs/integration.md)，现有服务器的独立服务与 Nginx 接入见 [部署说明](tools/market-atlas/deploy/README.md)。
+
 本仓库是一个经过隐私清理的单仓库版本，因此不保留原项目中嵌套 Git 仓库、历史向量数据或环境专用部署脚本。运行 RAG 功能需要维护者在本地补充自己的文档和索引。

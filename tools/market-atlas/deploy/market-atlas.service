@@ -1,0 +1,22 @@
+[Unit]
+Description=Market Atlas stock learning tool
+After=network.target
+
+[Service]
+Type=simple
+User=xzm-market-atlas
+Group=xzm-market-atlas
+WorkingDirectory=/opt/xzm-market-atlas/current
+EnvironmentFile=/etc/xzm-market-atlas.env
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node scripts/start-server.mjs
+StateDirectory=xzm-market-atlas
+StateDirectoryMode=0700
+UMask=0077
+Restart=on-failure
+RestartSec=5s
+KillMode=control-group
+TimeoutStopSec=30s
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,32 @@
+services:
+  market-atlas:
+    image: xzm-market-atlas:${MARKET_ATLAS_IMAGE_TAG:-local}
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    environment:
+      MARKET_ATLAS_PUBLIC_ORIGIN: ${MARKET_ATLAS_PUBLIC_ORIGIN:?Set MARKET_ATLAS_PUBLIC_ORIGIN to the public interview-helper origin}
+      MARKET_ATLAS_PUBLIC_ORIGINS: ${MARKET_ATLAS_PUBLIC_ORIGINS:-}
+      MARKET_ATLAS_HOST: 0.0.0.0
+      MARKET_ATLAS_PORT: "5174"
+      MARKET_ATLAS_STATE_DIR: /app/.wrangler/state
+    ports:
+      - "127.0.0.1:5174:5174"
+    volumes:
+      - market-atlas-state:/app/.wrangler/state
+    restart: unless-stopped
+    init: true
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:5174/tools/market-atlas/api/state', {headers: {Cookie: 'market_atlas=00000000-0000-4000-8000-000000000001'}, signal: AbortSignal.timeout(8000)}).then(response => {if (!response.ok) process.exit(1)}).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 10s
+      start_period: 45s
+      retries: 3
+
+volumes:
+  market-atlas-state:
+    name: xzm-market-atlas-state
