@@ -30,6 +30,9 @@ if (publicOrigins) {
 const standaloneConfig = JSON.parse(readFileSync('dist/server/wrangler.json', 'utf8'));
 standaloneConfig.assets = { ...standaloneConfig.assets, binding: 'ASSETS' };
 writeFileSync(config, JSON.stringify(standaloneConfig, null, 2) + '\n');
+if (process.env.MARKET_ATLAS_DEEPSEEK_API_KEY) {
+  writeFileSync('dist/server/.dev.vars', `MARKET_ATLAS_DEEPSEEK_API_KEY=${JSON.stringify(process.env.MARKET_ATLAS_DEEPSEEK_API_KEY)}\n`, { mode: 0o600 });
+}
 mkdirSync(state, { recursive: true });
 // Idempotent schema creation preserves all existing learning/trading records.
 const schema = readFileSync('drizzle/0000_sharp_wallflower.sql', 'utf8').replace(/CREATE TABLE /g, 'CREATE TABLE IF NOT EXISTS ');

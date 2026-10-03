@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:workers';
 import { createSimulation, type SimState } from './simulator';
-export type LearningState = { completed: string[]; quizResults: Record<string, { answers: number[]; correct: number; updatedAt: string }>; bookmarked: string[]; lastLesson: string };
+export type LearningState = { completed: string[]; quizResults: Record<string, { answers: number[]; correct: number; updatedAt: string; revision?: number }>; previousQuizResults?: Record<string, { answers: number[]; correct: number; updatedAt: string; revision?: number }[]>; readingVersions?: Record<string, number>; lastOpenedRevision?: number; bookmarked: string[]; lastLesson: string };
 export type WorkspaceState = { learning: LearningState; simulator: SimState; notes: { id: string; text: string; createdAt: string }[]; newsRead: string[] };
-export function initialState(): WorkspaceState { return { learning: { completed: [], quizResults: {}, bookmarked: [], lastLesson: 'beginner-money' }, simulator: createSimulation(), notes: [], newsRead: [] }; }
+export function initialState(): WorkspaceState { return { learning: { completed: [], quizResults: {}, bookmarked: [], lastLesson: 'equity', readingVersions: {}, lastOpenedRevision: 3 }, simulator: createSimulation(), notes: [], newsRead: [] }; }
 export function database() { if (!env.DB) throw new Error('保存服务暂时不可用，请重试'); return env.DB; }
 export function identity(request: Request) {
   const trusted = request.headers.get('oai-authenticated-user-id');

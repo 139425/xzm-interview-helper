@@ -1,6 +1,7 @@
 import curriculum from './curriculum.json';
 import research from './market-research.json';
 export const LESSONS = curriculum.lessons;
+export const COURSE_STAGES = curriculum.stages;
 export type Lesson = typeof LESSONS[number];
 export const STAGES = curriculum.stages.map(stage => stage.title);
 export const CURATED_NEWS = research.news;

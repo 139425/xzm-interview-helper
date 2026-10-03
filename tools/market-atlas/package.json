@@ -13,7 +13,7 @@
     "start:server": "node scripts/start-server.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
-    "test": "node --experimental-strip-types --test tests/simulator.test.ts tests/experiments.test.ts tests/standalone-request.test.ts tests/curriculum.test.mjs",
+    "test": "node --experimental-strip-types --test tests/simulator.test.ts tests/experiments.test.ts tests/standalone-request.test.ts tests/curriculum.test.mjs tests/tutor.test.ts",
     "test:api": "node --test tests/api.test.mjs",
     "typecheck": "tsc --noEmit"
   },

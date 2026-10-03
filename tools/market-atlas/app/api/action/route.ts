@@ -34,16 +34,19 @@ export async function POST(request: Request) {
         ensure(!state.simulator.orders.some(o => o.state === 'open'), '请先取消未成交委托，再修改费用设置，避免冻结金额变化');
         Object.assign(state.simulator.config, { commissionRate: payload.commissionRate, minCommission: payload.minCommission, slippageBps: payload.slippageBps }); break;
       }
-      case 'lesson-open': ensure(LESSONS.some(l => l.id === payload.id), '课程不存在'); state.learning.lastLesson = payload.id; break;
-      case 'lesson-complete': ensure(LESSONS.some(l => l.id === payload.id), '课程不存在'); if (!state.learning.completed.includes(payload.id)) state.learning.completed.push(payload.id); break;
+      case 'lesson-open': ensure(LESSONS.some(l => l.id === payload.id), '课程不存在'); state.learning.lastLesson = payload.id; state.learning.lastOpenedRevision = 3; break;
+      case 'lesson-complete': ensure(LESSONS.some(l => l.id === payload.id), '课程不存在'); if (!state.learning.completed.includes(payload.id)) state.learning.completed.push(payload.id); (state.learning.readingVersions ??= {})[payload.id] = 3; break;
       case 'bookmark': {
         ensure(LESSONS.some(l => l.id === payload.id), '课程不存在');
         state.learning.bookmarked = state.learning.bookmarked.includes(payload.id) ? state.learning.bookmarked.filter(id => id !== payload.id) : [...state.learning.bookmarked, payload.id]; break;
       }
       case 'quiz': {
         const lesson = LESSONS.find(l => l.id === payload.id); ensure(lesson, '课程不存在');
+        ensure(payload.revision === lesson.quizRevision, '课程练习已更新，请刷新页面后重新作答');
         ensure(Array.isArray(payload.answers) && payload.answers.length === lesson.quizzes.length && payload.answers.every((answer: number, i: number) => Number.isInteger(answer) && answer >= 0 && answer < lesson.quizzes[i].options.length), '请回答每一道题');
-        state.learning.quizResults[payload.id] = { answers: payload.answers, correct: payload.answers.filter((a: number, i: number) => a === lesson.quizzes[i].answerIndex).length, updatedAt: new Date().toISOString() }; break;
+        const previous = state.learning.quizResults[payload.id];
+        if (previous && previous.revision !== lesson.quizRevision) { ((state.learning.previousQuizResults ??= {})[payload.id] ??= []).push(previous); }
+        state.learning.quizResults[payload.id] = { answers: payload.answers, correct: payload.answers.filter((a: number, i: number) => a === lesson.quizzes[i].answerIndex).length, updatedAt: new Date().toISOString(), revision: 3 }; break;
       }
       case 'note': {
         ensure(typeof payload.text === 'string' && payload.text.trim().length > 0 && payload.text.length <= 5000, '复盘内容需要在 1–5000 字之间');

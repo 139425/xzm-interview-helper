@@ -4,6 +4,10 @@
 
 ## 本地构建与 systemd 部署
 
+学习助手需要服务端 `MARKET_ATLAS_DEEPSEEK_API_KEY`，放入权限0600的环境文件。启动脚本写入服务私有 `dist/server/.dev.vars`（0600）；开发时使用被忽略的 `.dev.vars`。密钥不进入Git、发布包或客户端。不配置时课程正常阅读，助手返回503。
+
+模型为 `deepseek-flash`，显式设置 `thinking.type=disabled`。每次问答先生成、再独立核对事实和计算，正常调用模型两次；失败最多重试一轮，总超时45秒。额度按用户问答计：每个空间每分钟6次、UTC日60次，全站每日300次；并发4，同一空间同时1次。D1保存额度计数，不保存问答正文。旧测验归档到 `learning.previousQuizResults`；新版接口拒绝旧题库版本。
+
 需要 Node.js 22.13+ 和 npm。在开发机器的 `tools/market-atlas` 中执行 `npm ci`、`npm run build`，将同版本模块源码和完整 `dist/` 上传到服务器 `/opt/xzm-market-atlas/releases/<release-id>/`。不要上传本地 `node_modules`、数据库、环境文件或工具缓存。服务器执行 `npm ci --include=dev` 安装锁定依赖；运行时仍需要 devDependencies 中的 Wrangler，无需在服务器再次构建。
 
 创建系统账号 `xzm-market-atlas` 与持久目录 `/var/lib/xzm-market-atlas`，让该账号拥有持久目录并能读取发布目录。将 `/opt/xzm-market-atlas/current` 符号链接指向这次发布目录，保持前一版目录以便回滚。
