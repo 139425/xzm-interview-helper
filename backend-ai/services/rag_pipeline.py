@@ -97,6 +97,87 @@ class RetrievalCandidate:
 
 
 @dataclass(frozen=True)
+class RagEvidence:
+    """A retrieval result with stable citation and provenance fields."""
+
+    evidence_id: str
+    chunk_id: str
+    content: str
+    source_path: str
+    document_title: str
+    section_path: str
+    content_type: str
+    retrieval_channels: tuple[str, ...]
+    rerank_score: float
+    query_coverage: float
+
+    @classmethod
+    def from_candidate(
+        cls,
+        candidate: RetrievalCandidate,
+        index: int,
+    ) -> "RagEvidence":
+        metadata = candidate.metadata or {}
+        return cls(
+            evidence_id=f"S{index}",
+            chunk_id=candidate.chunk_id,
+            content=str(candidate.content or ""),
+            source_path=candidate.source_path,
+            document_title=str(
+                metadata.get("document_title")
+                or metadata.get("file_name")
+                or Path(candidate.source_path).name
+                or "unknown"
+            ),
+            section_path=candidate.section_path,
+            content_type=str(metadata.get("content_type") or "text"),
+            retrieval_channels=tuple(sorted(candidate.retrieval_channels)),
+            rerank_score=round(float(candidate.rerank_score or 0.0), 6),
+            query_coverage=round(float(candidate.query_coverage or 0.0), 6),
+        )
+
+    @classmethod
+    def from_text(cls, content: str, index: int) -> "RagEvidence":
+        """Compatibility adapter for retrievers that still return plain text."""
+
+        text = str(content or "")
+        return cls(
+            evidence_id=f"S{index}",
+            chunk_id=_stable_id("legacy-evidence", text),
+            content=text,
+            source_path="unknown",
+            document_title="检索资料",
+            section_path="",
+            content_type="text",
+            retrieval_channels=(),
+            rerank_score=0.0,
+            query_coverage=0.0,
+        )
+
+    def to_prompt_record(self, *, max_content_chars: int = 2_400) -> dict[str, object]:
+        return {
+            "id": self.evidence_id,
+            "source_path": self.source_path,
+            "document_title": self.document_title,
+            "section_path": self.section_path,
+            "content_type": self.content_type,
+            "content": self.content[:max_content_chars],
+        }
+
+    def to_public_record(self) -> dict[str, object]:
+        """Return bounded, non-content metadata safe for an SSE stage frame."""
+
+        return {
+            "id": self.evidence_id,
+            "sourcePath": self.source_path[:240],
+            "documentTitle": self.document_title[:160],
+            "sectionPath": self.section_path[:240],
+            "channels": list(self.retrieval_channels),
+            "score": self.rerank_score,
+        }
+
+
+@dataclass(frozen=True)
 class RetrievalResult:
     query: str
     chunks: list[RetrievalCandidate]
@@ -105,6 +186,12 @@ class RetrievalResult:
     lexical_count: int
     degraded: bool = False
     degraded_reason: str = ""
+
+    def to_evidence(self) -> list[RagEvidence]:
+        return [
+            RagEvidence.from_candidate(candidate, index)
+            for index, candidate in enumerate(self.chunks, start=1)
+        ]
 
 
 def estimate_tokens(value: str) -> int:

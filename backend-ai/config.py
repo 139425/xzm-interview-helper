@@ -7,6 +7,7 @@ import json
 import os
 from functools import lru_cache
 from pathlib import Path
+from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import BaseModel, Field, AliasChoices
@@ -165,8 +166,24 @@ class Settings(BaseSettings):
     )
 
     embed_max_tokens: int = Field(
-        default=320,
+        default=480,
         description="单条嵌入文本的安全 token 上限"
+    )
+
+    embedding_dimensions: Optional[int] = Field(
+        default=None,
+        validation_alias=AliasChoices("EMBEDDING_DIMENSIONS"),
+        description="可选输出维度；只为供应商明确支持 dimensions 的模型设置",
+    )
+
+    embed_timeout_seconds: float = Field(
+        default=20.0,
+        validation_alias=AliasChoices("EMBED_TIMEOUT_SECONDS"),
+    )
+
+    embed_max_retries: int = Field(
+        default=2,
+        validation_alias=AliasChoices("EMBED_MAX_RETRIES"),
     )
 
     docs_dir: str = Field(

@@ -1,6 +1,7 @@
 from services.rag_pipeline import (
     BM25Index,
     RetrievalCandidate,
+    RagEvidence,
     normalize_document_text,
     expand_query,
     reciprocal_rank_fusion,
@@ -119,3 +120,19 @@ def test_rerank_and_diversity_remove_near_duplicate_parent_chunks():
 
     assert len([item for item in selected if item.parent_id == "parent"]) == 1
     assert any(item.chunk_id == "three" for item in selected)
+
+
+def test_rag_evidence_preserves_source_and_bounded_public_metadata():
+    item = candidate("chunk-1", "AtomicStampedReference 通过版本戳解决 ABA。", "Java > CAS > ABA")
+    item.metadata.update({"file_name": "Java并发.md", "source_path": "java/并发.md"})
+    item.retrieval_channels = {"dense", "bm25"}
+    item.rerank_score = 0.87654321
+
+    evidence = RagEvidence.from_candidate(item, 1)
+
+    assert evidence.evidence_id == "S1"
+    assert evidence.document_title == "Java并发.md"
+    assert evidence.section_path == "Java > CAS > ABA"
+    assert evidence.retrieval_channels == ("bm25", "dense")
+    assert evidence.to_prompt_record()["content"] == item.content
+    assert evidence.to_public_record()["score"] == 0.876543

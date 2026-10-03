@@ -243,4 +243,27 @@ describe("normalizeStageEvent", () => {
     expect(normalizeStageEvent({ phase: "terminal", status: "done" })).toBeNull();
     expect(normalizeStageEvent({ phase: "answer", status: "forged" })).toBeNull();
   });
+
+  it("normalizes bounded public citation metadata", () => {
+    expect(normalizeStageEvent({
+      phase: "retrieval",
+      status: "done",
+      publicSources: [{
+        id: "S1",
+        title: "Java 并发",
+        path: "java/concurrency.md",
+        section: "CAS > ABA",
+        channels: ["dense", "bm25"],
+        score: 0.876543,
+      }],
+    }).publicSources).toEqual([{
+      id: "S1",
+      title: "Java 并发",
+      sourceType: "PUBLIC_KNOWLEDGE",
+      path: "java/concurrency.md",
+      section: "CAS > ABA",
+      channels: ["dense", "bm25"],
+      score: 0.876543,
+    }]);
+  });
 });

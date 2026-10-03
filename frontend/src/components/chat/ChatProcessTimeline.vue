@@ -89,7 +89,9 @@ function allSources(stage) {
 
 function sourceLabel(source) {
   if (source.sourceType === 'CAREER_CONTEXT') return '岗位上下文'
-  if (source.sourceType === 'PUBLIC_KNOWLEDGE') return '公共知识'
+  if (source.sourceType === 'PUBLIC_KNOWLEDGE') {
+    return source.id ? `[${source.id}] 公共知识` : '公共知识'
+  }
   return '个人资料'
 }
 </script>

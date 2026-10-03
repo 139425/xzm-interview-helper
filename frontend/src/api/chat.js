@@ -52,10 +52,15 @@ export function normalizeStageEvent(value) {
   }
   if (Array.isArray(value.publicSources)) {
     normalized.publicSources = value.publicSources.slice(0, 8).map((source) => ({
+      id: String(source?.id || '').trim().slice(0, 24),
       title: String(source?.title || '公共知识库').trim().slice(0, 160),
       sourceType: 'PUBLIC_KNOWLEDGE',
       path: String(source?.path || '').trim().slice(0, 300),
       section: String(source?.section || '').trim().slice(0, 200),
+      channels: Array.isArray(source?.channels)
+        ? source.channels.map((channel) => String(channel).trim().slice(0, 24)).filter(Boolean).slice(0, 4)
+        : [],
+      score: Number.isFinite(Number(source?.score)) ? Number(source.score) : 0,
     }))
   }
   return normalized

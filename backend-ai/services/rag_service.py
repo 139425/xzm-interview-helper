@@ -7,6 +7,7 @@ import hashlib
 import json
 import logging
 import os
+import threading
 import time
 from pathlib import Path
 from typing import Optional
@@ -46,18 +47,29 @@ class SiliconFlowEmbedding(EmbeddingFunction):
         base_url: str,
         model: str,
         batch_size: int = 64,
-        max_tokens: int = 320,
+        max_tokens: int = 480,
+        dimensions: Optional[int] = None,
+        timeout_seconds: float = 20.0,
+        max_retries: int = 2,
     ):
         self._client = OpenAI(
             api_key=api_key,
             base_url=base_url,
-            max_retries=0,
-            timeout=15.0,
+            max_retries=max(0, int(max_retries)),
+            timeout=max(1.0, float(timeout_seconds)),
         )
         self._model = model
         self._batch_size = max(int(batch_size), 1)
         self._max_tokens = max(int(max_tokens), 32)
-        self._max_characters = self._max_tokens
+        # A cheap language-agnostic estimator cannot exactly reproduce the
+        # provider tokenizer. For 512-token models, keep a Unicode-character
+        # hard limit with extra room for special tokens and mixed punctuation.
+        self._max_characters = (
+            max(32, self._max_tokens - 64)
+            if self._max_tokens <= 512
+            else self._max_tokens * 4
+        )
+        self._dimensions = dimensions if dimensions and dimensions > 0 else None
 
     def _prepare_input(self, value: str) -> str:
         """Keep provider inputs within the embedding model's token budget.
@@ -89,14 +101,51 @@ class SiliconFlowEmbedding(EmbeddingFunction):
         if not input:
             return []
 
+        empty_indexes = [index for index, value in enumerate(input) if not str(value or "").strip()]
+        if empty_indexes:
+            raise ValueError(
+                f"Embedding input must not contain empty text (indexes: {empty_indexes[:8]})"
+            )
+
         embeddings: Embeddings = []
         for start in range(0, len(input), self._batch_size):
             batch = [
                 self._prepare_input(document)
                 for document in input[start:start + self._batch_size]
             ]
-            response = self._client.embeddings.create(input=batch, model=self._model)
-            embeddings.extend([item.embedding for item in response.data])
+            request = {
+                "input": batch,
+                "model": self._model,
+                "encoding_format": "float",
+            }
+            configured_dimensions = getattr(self, "_dimensions", None)
+            if configured_dimensions is not None:
+                request["dimensions"] = configured_dimensions
+
+            raw_endpoint = getattr(self._client.embeddings, "with_raw_response", None)
+            if raw_endpoint is not None and hasattr(raw_endpoint, "create"):
+                raw_response = raw_endpoint.create(**request)
+                trace_id = raw_response.headers.get("x-siliconcloud-trace-id", "")
+                if trace_id:
+                    logger.debug("SiliconFlow embedding trace_id=%s", trace_id)
+                response = raw_response.parse()
+            else:  # Compatibility with lightweight test doubles.
+                response = self._client.embeddings.create(**request)
+
+            response_data = list(response.data)
+            if len(response_data) != len(batch):
+                raise RuntimeError(
+                    "Embedding provider returned a different number of vectors than inputs"
+                )
+            ordered = sorted(
+                enumerate(response_data),
+                key=lambda pair: int(getattr(pair[1], "index", pair[0])),
+            )
+            vectors = [item.embedding for _, item in ordered]
+            dimensions = {len(vector) for vector in vectors}
+            if len(dimensions) != 1 or 0 in dimensions:
+                raise RuntimeError("Embedding provider returned invalid vector dimensions")
+            embeddings.extend(vectors)
         return embeddings
 
 
@@ -112,7 +161,10 @@ class RagService:
                 base_url=settings.siliconflow_base_url,
                 model=settings.embedding_model,
                 batch_size=settings.embed_batch_size,
-                max_tokens=getattr(settings, "embed_max_tokens", 320),
+                max_tokens=getattr(settings, "embed_max_tokens", 480),
+                dimensions=getattr(settings, "embedding_dimensions", None),
+                timeout_seconds=getattr(settings, "embed_timeout_seconds", 20.0),
+                max_retries=getattr(settings, "embed_max_retries", 2),
             )
             if settings.siliconflow_api_key.strip()
             else None
@@ -132,6 +184,7 @@ class RagService:
         self._semantic_retry_after = 0.0
         self._lexical_documents_cache: Optional[list[str]] = None
         self._bm25_index_cache: Optional[BM25Index] = None
+        self._index_lock = threading.Lock()
 
     # ------------------------------------------------------------------
     # 文件哈希与判重
@@ -146,19 +199,38 @@ class RagService:
                 h.update(block)
         return h.hexdigest()
 
-    def _get_indexed_hashes(self) -> dict[str, set[str]]:
-        """
-        返回 {file_hash: {id1, id2, ...}} 映射，
-        用于判重和删除旧数据。
-        """
-        result: dict[str, set[str]] = {}
+    @staticmethod
+    def _versioned_chunk_id(
+        source_path: str,
+        file_hash: str,
+        logical_chunk_id: str,
+    ) -> str:
+        """Keep file generations disjoint so failed updates cannot overwrite old chunks."""
+
+        return hashlib.sha256(
+            f"{source_path.casefold()}:{file_hash}:{logical_chunk_id}".encode("utf-8")
+        ).hexdigest()
+
+    def _get_indexed_sources(self) -> dict[str, dict[str, set[str]]]:
+        """Return persisted ids and hashes grouped by stable source path."""
+
+        result: dict[str, dict[str, set[str]]] = {}
         total = self._collection.count()
         if total == 0:
             return result
         data = self._collection.get(include=["metadatas"])
         for doc_id, meta in zip(data["ids"], data["metadatas"]):
-            fh = meta.get("file_hash", "")
-            result.setdefault(fh, set()).add(doc_id)
+            metadata = meta or {}
+            source_path = str(
+                metadata.get("source_path") or metadata.get("file_name") or ""
+            ).replace("\\", "/")
+            if not source_path:
+                continue
+            record = result.setdefault(source_path, {"ids": set(), "hashes": set()})
+            record["ids"].add(str(doc_id))
+            file_hash = str(metadata.get("file_hash") or "")
+            if file_hash:
+                record["hashes"].add(file_hash)
         return result
     # ------------------------------------------------------------------
     # 文本分块
@@ -199,18 +271,49 @@ class RagService:
     _SUPPORTED_EXTS = {".txt", ".md", ".pdf"}
 
     def index_docs_directory(self) -> None:
+        """Run one in-process index build and reject overlapping rebuilds."""
+
+        lock = getattr(self, "_index_lock", None)
+        if lock is None:  # Compatibility for lightweight test instances.
+            lock = threading.Lock()
+            self._index_lock = lock
+        if not lock.acquire(blocking=False):
+            logger.warning("RAG indexing is already running in this process; skipping duplicate run")
+            return
+        try:
+            self._index_docs_directory_locked()
+        finally:
+            lock.release()
+
+    def _index_docs_directory_locked(self) -> None:
         """扫描 docs/ 目录，跳过已索引文件，嵌入新文件。"""
         if not os.path.isdir(self._docs_dir):
             logger.warning(f"文档目录不存在，跳过索引: {self._docs_dir}")
             return
 
-        indexed = self._get_indexed_hashes()
+        indexed = self._get_indexed_sources()
 
         files = sorted(
             str(path)
             for path in Path(self._docs_dir).rglob("*")
             if path.is_file() and path.suffix.lower() in self._SUPPORTED_EXTS
         )
+        current_sources = {
+            os.path.relpath(filepath, self._docs_dir).replace("\\", "/")
+            for filepath in files
+        }
+        removed_count = 0
+        for stale_source in sorted(set(indexed) - current_sources):
+            stale_ids = sorted(indexed[stale_source]["ids"])
+            if stale_ids:
+                self._collection.delete(ids=stale_ids)
+                removed_count += len(stale_ids)
+                logger.info("删除已移除文档的索引: %s (%s chunks)", stale_source, len(stale_ids))
+
+        # Every explicit indexing run rebuilds the local view from the current
+        # source manifest, even when semantic credentials are unavailable.
+        self._lexical_documents_cache = None
+        self._bm25_index_cache = None
         new_count = 0
         semantic_index_available = bool(
             str(getattr(self._settings, "siliconflow_api_key", "") or "").strip()
@@ -220,24 +323,25 @@ class RagService:
                 break
             file_hash = self._compute_file_hash(filepath)
             file_name = os.path.basename(filepath)
+            source_path = os.path.relpath(filepath, self._docs_dir).replace("\\", "/")
+            source_record = indexed.get(source_path, {"ids": set(), "hashes": set()})
+            old_source_ids = set(source_record["ids"])
+            source_hashes = set(source_record["hashes"])
 
             # Two-phase per-file update: write the new version before deleting
             # old ids so a failed embedding request does not erase good data.
-            old_hashes_to_remove = [
-                h for h, ids in indexed.items()
-                if any(True for _ in ids)  # 存在旧记录
-                and h != file_hash
-                and self._file_name_in_ids(file_name, ids)
-            ]
             structured_chunks = self._load_structured_chunks(filepath)
             chunks = [chunk.indexed_text for chunk in structured_chunks]
             if not chunks:
                 continue
 
-            ids = [chunk.chunk_id for chunk in structured_chunks]
+            ids = [
+                self._versioned_chunk_id(source_path, file_hash, chunk.chunk_id)
+                for chunk in structured_chunks
+            ]
             expected_ids = set(ids)
-            indexed_ids = set(indexed.get(file_hash, set()))
-            if expected_ids.issubset(indexed_ids):
+            indexed_ids = old_source_ids if file_hash in source_hashes else set()
+            if expected_ids.issubset(indexed_ids) and source_hashes == {file_hash}:
                 logger.info(f"文件未变化且索引完整，跳过: {file_name}")
                 continue
             if indexed_ids:
@@ -248,13 +352,32 @@ class RagService:
                     len(expected_ids),
                 )
 
-            metadatas = [
-                chunk.to_metadata(file_hash=file_hash)
-                for chunk in structured_chunks
-            ]
+            metadatas = []
+            for chunk in structured_chunks:
+                metadata = chunk.to_metadata(file_hash=file_hash)
+                metadata["logical_chunk_id"] = chunk.chunk_id
+                for neighbor_key in ("previous_chunk_id", "next_chunk_id"):
+                    logical_neighbor_id = str(metadata.get(neighbor_key) or "")
+                    if logical_neighbor_id:
+                        metadata[neighbor_key] = self._versioned_chunk_id(
+                            source_path,
+                            file_hash,
+                            logical_neighbor_id,
+                        )
+                metadata["embedding_model"] = str(self._settings.embedding_model)
+                dimensions = getattr(self._settings, "embedding_dimensions", None)
+                if dimensions:
+                    metadata["embedding_dimensions"] = int(dimensions)
+                metadatas.append(metadata)
             try:
                 added = self._add_in_batches(chunks, ids, metadatas)
             except Exception as exc:
+                partial_new_ids = sorted(expected_ids - old_source_ids)
+                if partial_new_ids:
+                    try:
+                        self._collection.delete(ids=partial_new_ids)
+                    except Exception:
+                        logger.exception("Could not roll back a partial semantic index update")
                 semantic_index_available = False
                 self._semantic_retry_after = time.monotonic() + SEMANTIC_RETRY_COOLDOWN_SECONDS
                 logger.warning(
@@ -262,19 +385,14 @@ class RagService:
                     type(exc).__name__,
                 )
                 break
-            stale_same_hash_ids = list(indexed_ids - expected_ids)
-            if stale_same_hash_ids:
-                self._collection.delete(ids=stale_same_hash_ids)
+            stale_source_ids = sorted(old_source_ids - expected_ids)
+            if stale_source_ids:
+                self._collection.delete(ids=stale_source_ids)
                 logger.info(
                     "删除同文件旧版分块: %s (%s chunks)",
-                    file_name,
-                    len(stale_same_hash_ids),
+                    source_path,
+                    len(stale_source_ids),
                 )
-            for old_hash in old_hashes_to_remove:
-                old_ids = list(indexed[old_hash] - set(ids))
-                if old_ids:
-                    self._collection.delete(ids=old_ids)
-                    logger.info(f"删除旧索引: {file_name} ({len(old_ids)} chunks)")
             if added:
                 self._lexical_documents_cache = None
                 self._bm25_index_cache = None
@@ -289,6 +407,7 @@ class RagService:
         logger.info(
             f"索引完成: 扫描 {len(files)} 个文件, "
             f"新增 {new_count} 个 chunks, "
+            f"删除 {removed_count} 个 stale chunks, "
             f"总计 {self._collection.count()} 个 chunks"
         )
 
@@ -332,12 +451,6 @@ class RagService:
 
         return total_added
 
-    def _file_name_in_ids(self, file_name: str, ids: set[str]) -> bool:
-        """检查给定 ids 对应的 metadata 中是否包含指定文件名。"""
-        if not ids:
-            return False
-        data = self._collection.get(ids=list(ids), include=["metadatas"])
-        return any(m.get("file_name") == file_name for m in data["metadatas"])
     # ------------------------------------------------------------------
     # 检索
     # ------------------------------------------------------------------
@@ -466,6 +579,40 @@ class RagService:
 
     def _load_retrieval_candidates(self) -> list[RetrievalCandidate]:
         candidates: list[RetrievalCandidate] = []
+        if os.path.isdir(self._docs_dir):
+            manifest = self._current_source_manifest()
+            candidates = self._load_local_lexical_cache(manifest)
+            if candidates:
+                return candidates
+            for path in sorted(Path(self._docs_dir).rglob("*")):
+                if not path.is_file() or path.suffix.lower() not in self._SUPPORTED_EXTS:
+                    continue
+                try:
+                    file_hash = self._compute_file_hash(str(path))
+                    for chunk in self._load_structured_chunks(str(path)):
+                        candidates.append(
+                            RetrievalCandidate(
+                                chunk_id=self._versioned_chunk_id(
+                                    chunk.source_path,
+                                    file_hash,
+                                    chunk.chunk_id,
+                                ),
+                                content=chunk.indexed_text[:MAX_LEXICAL_DOCUMENT_CHARS],
+                                metadata=chunk.to_metadata(file_hash=file_hash),
+                            )
+                        )
+                        if len(candidates) >= MAX_LEXICAL_DOCUMENTS:
+                            break
+                except (OSError, RuntimeError, ValueError) as exc:
+                    logger.warning("Could not read lexical document %s (%s)", path.name, type(exc).__name__)
+                if len(candidates) >= MAX_LEXICAL_DOCUMENTS:
+                    break
+            self._write_local_lexical_cache(manifest, candidates)
+            if candidates:
+                return candidates
+
+        # Last-resort compatibility for deployments that mount only Chroma and
+        # do not mount the original knowledge files.
         try:
             if self._collection.count() > 0:
                 stored = self._collection.get(
@@ -485,31 +632,6 @@ class RagService:
                     )
         except Exception as exc:
             logger.warning("Could not build BM25 from vector store (%s)", type(exc).__name__)
-
-        if not candidates and os.path.isdir(self._docs_dir):
-            manifest = self._current_source_manifest()
-            candidates = self._load_local_lexical_cache(manifest)
-            if candidates:
-                return candidates
-            for path in sorted(Path(self._docs_dir).rglob("*")):
-                if not path.is_file() or path.suffix.lower() not in {".md", ".txt"}:
-                    continue
-                try:
-                    for chunk in self._load_structured_chunks(str(path)):
-                        candidates.append(
-                            RetrievalCandidate(
-                                chunk_id=chunk.chunk_id,
-                                content=chunk.indexed_text[:MAX_LEXICAL_DOCUMENT_CHARS],
-                                metadata=chunk.to_metadata(file_hash=self._compute_file_hash(str(path))),
-                            )
-                        )
-                        if len(candidates) >= MAX_LEXICAL_DOCUMENTS:
-                            break
-                except OSError as exc:
-                    logger.warning("Could not read lexical document %s (%s)", path.name, type(exc).__name__)
-                if len(candidates) >= MAX_LEXICAL_DOCUMENTS:
-                    break
-            self._write_local_lexical_cache(manifest, candidates)
         return candidates
 
     def _local_lexical_cache_path(self) -> Path:
@@ -544,7 +666,7 @@ class RagService:
         try:
             with path.open("r", encoding="utf-8") as file:
                 payload = json.load(file)
-            if payload.get("schema_version") != 1 or payload.get("manifest") != manifest:
+            if payload.get("schema_version") != 2 or payload.get("manifest") != manifest:
                 return []
             return [
                 RetrievalCandidate(
@@ -567,7 +689,7 @@ class RagService:
         path = self._local_lexical_cache_path()
         temporary_path = path.with_suffix(path.suffix + ".tmp")
         payload = {
-            "schema_version": 1,
+            "schema_version": 2,
             "manifest": manifest,
             "candidates": [
                 {
